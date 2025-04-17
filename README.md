@@ -1,4 +1,4 @@
-# 🎉 Pulchowk Events  
+# 🏰 Pulchowk Events  
 
 **Discover & share events across Nepal's educational institutions!**  
 
