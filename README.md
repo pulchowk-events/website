@@ -1,7 +1,3 @@
-Here's an updated `README.md` for **Pulchowk Events** in the style of **Auto-Editor GUI**, with improved visuals, structure, and modern formatting:
-
----
-
 # 🎉 Pulchowk Events  
 
 **Discover & share events across Nepal's educational institutions!**  
