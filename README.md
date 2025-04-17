@@ -2,7 +2,7 @@
 
 **Discover & share events across Nepal's educational institutions!**  
 
-Pulchowk Events is a dynamic platform for students to explore events, showcase projects in **Product Hunt**, and engage with the community. Built with Next.js, Supabase, and NextAuth.  
+Pulchowk Events is a dynamic platform for students with more than 1000 members to explore events, showcase projects in **Product Hunt**, and engage with the community. Built with Next.js, Supabase, and NextAuth.  
 
 <p align="center">  
   <img src="https://s6.gifyu.com/images/bpq2A.gif" alt="Pulchowk Events Banner" width="700">  
