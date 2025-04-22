@@ -1,5 +1,4 @@
-// types/product.ts
-export interface Product {
+interface Product {
   id: number;
   name: string;
   description: string;
@@ -13,5 +12,6 @@ export interface Vote {
   id: number;
   user_id: string;
   product_id: number;
+  type: 'upvote' | 'downvote';
   created_at: string;
 }
