@@ -1,12 +1,8 @@
-Here's an updated `README.md` for **Pulchowk Events** in the style of **Auto-Editor GUI**, with improved visuals, structure, and modern formatting:
-
----
-
-# 🎉 Pulchowk Events  
+# 🏰 Pulchowk Events  
 
 **Discover & share events across Nepal's educational institutions!**  
 
-Pulchowk Events is a dynamic platform for students to explore events, showcase projects in **Product Hunt**, and engage with the community. Built with Next.js, Supabase, and NextAuth.  
+Pulchowk Events is a dynamic platform for students with more than 1000 members to explore events, showcase projects in **Product Hunt**, and engage with the community. Built with Next.js, Supabase, and NextAuth.  
 
 <p align="center">  
   <img src="https://s6.gifyu.com/images/bpq2A.gif" alt="Pulchowk Events Banner" width="700">  
@@ -53,7 +49,7 @@ pulchowk-events/
 ### ⚙️ Setup  
 1. **Clone the repo**:  
    ```bash  
-   git clone https://github.com/your-username/pulchowk-events.git  
+   git clone https://github.com/sashminea/pulchowk-events.git  
    cd pulchowk-events  
    ```  
 
