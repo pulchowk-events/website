@@ -52,9 +52,9 @@ pulchowk-events/
 ### About Us Page
 ![About Us Page](https://i.ibb.co/Tqmg8MTF/image.png)
 
-### Nav Bar Initial
+### Nav Logged in Initial
 
-![Nav Bar Page](https://i.ibb.co/ch3RgmDT/image.png)
+![Nav Logged in Page](https://i.ibb.co/ch3RgmDT/image.png)
 
 ---
 
