@@ -43,7 +43,7 @@ pulchowk-events/
 
 ## 📸 Screenshots
 
-### - Initial Boilerplate UI (4/22/2025)  
+### Initial Boilerplate UI (4/22/2025)  
 
 #### Home Page
 ![Home Page](https://i.ibb.co/PvZczfjN/image.png)
