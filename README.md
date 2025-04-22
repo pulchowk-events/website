@@ -41,18 +41,20 @@ pulchowk-events/
 ---
 
 
-## 📸 Screenshots - Initial Boilerplate UI (4/22/2025)  
+## 📸 Screenshots
 
-### Home Page
+### - Initial Boilerplate UI (4/22/2025)  
+
+#### Home Page
 ![Home Page](https://i.ibb.co/PvZczfjN/image.png)
 
-### Product Hunt List Page
+#### Product Hunt List Page
 ![Product Hunt List Page](https://i.ibb.co/Gf5s24pP/image.png)
 
-### About Us Page
+#### About Us Page
 ![About Us Page](https://i.ibb.co/Tqmg8MTF/image.png)
 
-### Nav Logged in Initial
+#### Nav Logged in Initial
 
 ![Nav Logged in Page](https://i.ibb.co/ch3RgmDT/image.png)
 
