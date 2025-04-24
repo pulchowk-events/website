@@ -1,85 +1,73 @@
-'use client';
-
+import { useVotes } from '../lib/VoteContext';
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
 
 export default function VoteCooldownNotice() {
   const { data: session } = useSession();
-  const [timeLeft, setTimeLeft] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { isAdmin, timeRemaining, canVote } = useVotes();
+  const [remainingTime, setRemainingTime] = useState({ hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
-    async function checkAdmin() {
-      if (!session?.user?.email) return;
-      const { data } = await supabase
-        .from('admins')
-        .select('email')
-        .eq('email', session.user.email)
-        .single();
+    // If user can vote or is admin, no need to show countdown
+    if (canVote || isAdmin || !timeRemaining) return;
 
-      setIsAdmin(!!data);
-    }
-
-    async function fetchVoteTime() {
-      if (!session?.user?.id) return;
-
-      const { data, error } = await supabase
-        .from('users')
-        .select('last_voted_at')
-        .eq('id', session.user.id)
-        .single();
-
-      if (error || !data?.last_voted_at) {
-        setTimeLeft(null);
-        return;
+    // Parse timeRemaining from format "Xh Ym"
+    const parseTimeRemaining = () => {
+      const match = timeRemaining.match(/(\d+)h\s+(\d+)m/);
+      if (match) {
+        const hours = parseInt(match[1], 10);
+        const minutes = parseInt(match[2], 10);
+        return { hours, minutes };
       }
+      return { hours: 0, minutes: 0 };
+    };
 
-      const lastVoted = new Date(data.last_voted_at).getTime();
-      const now = new Date().getTime();
-      const diff = 24 * 60 * 60 * 1000 - (now - lastVoted);
+    const calculateRemainingSeconds = () => {
+      const { hours, minutes } = parseTimeRemaining();
+      const totalSeconds = hours * 3600 + minutes * 60;
+      
+      // Calculate seconds portion
+      const now = new Date();
+      const seconds = 59 - now.getSeconds(); // Count down from current second to next minute
+      
+      setRemainingTime({ hours, minutes, seconds });
+      return totalSeconds > 0;
+    };
 
-      if (diff > 0 || isAdmin) {
-        const hours = Math.floor(diff / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-        setTimeLeft(`${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`);
-      } else {
-        setTimeLeft("00h 00m 00s");
-      }
+    // Initial calculation
+    const hasTimeRemaining = calculateRemainingSeconds();
+    
+    // Update every second - Fix TypeScript error by using proper typing
+    let interval: ReturnType<typeof setInterval> | undefined;
+    
+    if (hasTimeRemaining) {
+      interval = setInterval(() => {
+        const stillHasTime = calculateRemainingSeconds();
+        if (!stillHasTime && interval) {
+          clearInterval(interval);
+        }
+      }, 1000);
     }
 
-    function pad(num: number): string {
-      return num.toString().padStart(2, '0');
-    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [timeRemaining, canVote, isAdmin]);
 
-    checkAdmin().then(fetchVoteTime);
+  // If there's no remaining time or user can vote, hide the notice
+  if (canVote || !timeRemaining || isAdmin) return null;
 
-    // Auto-refresh timer every second
-    const interval = setInterval(() => {
-      checkAdmin().then(fetchVoteTime);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [session, isAdmin]);
-
-  if (!timeLeft) return null;
-
-return (
-  <div
-    className={`bg-black-100 border border-gray-800 text-gray-300 h-10 flex flex-row gap-2 items-center py-2 px-4 rounded-full transition text-sm w-fit font-medium ${
-      isAdmin || timeLeft === '00h 00m 00s' ? 'opacity-0' : 'opacity-100'
-    }`}
-  >
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
-      <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
-        <path d="M10 2h4m-2 12l3-3" />
-        <circle cx="12" cy="14" r="8" />
-      </g>
-    </svg>
-    <span className="font-semibold">{timeLeft}</span>
-  </div>
-);
-
+  return (
+    <div className="bg-black-100 border border-gray-800 text-gray-300 h-10 flex flex-row gap-2 items-center py-2 px-4 rounded-full transition text-sm w-fit font-medium">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
+        <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
+          <path d="M10 2h4m-2 12l3-3" />
+          <circle cx="12" cy="14" r="8" />
+        </g>
+      </svg>
+      <span className="font-semibold">
+        {remainingTime.hours}h {remainingTime.minutes}m {remainingTime.seconds}s
+      </span>
+    </div>
+  );
 }

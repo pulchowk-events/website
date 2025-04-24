@@ -1,8 +1,9 @@
-import { supabase } from '../lib/supabase'
-import { ProductCard } from '../components/ProductCard'
-import Layout from '../components/layout/Layout'
-import VoteCooldownNotice from '../components/VoteCooldownNotice';
+import { supabase } from '@/app/lib/supabase';
+import Layout from '@/app/components/layout/Layout';
+import { ProductCard } from '@/app/components/ProductCard';
+import ClientVoteCooldownNotice from '@/app/components/ClientVoteCooldown';
 
+export const dynamic = 'force-dynamic';
 
 interface Product {
   id: number;
@@ -11,68 +12,43 @@ interface Product {
   url: string;
   created_at: string;
   approved: boolean;
-  upvotes: number;
-  downvotes: number;
 }
 
 export default async function ProductHuntPage() {
-  const { data: rawProducts, error } = await supabase
+  const { data: products, error } = await supabase
     .from('products')
-    .select('*, votes(type)')
-    .eq('approved', true);
+    .select('*')
+    .eq('approved', true)
+    .order('created_at', { ascending: false });
 
   if (error) {
     console.error('Error fetching products:', error);
-    return null;
+    return (
+      <Layout>
+        <div className="max-w-4xl mx-auto py-20 text-center text-red-500">
+          Error loading products.
+        </div>
+      </Layout>
+    );
   }
 
-  const products: Product[] = rawProducts.map((product: any) => {
-    const votes = product.votes || [];
-    const upvotes = votes.filter((v: any) => v.type === 'up').length;
-    const downvotes = votes.filter((v: any) => v.type === 'down').length;
-
-    return {
-      id: product.id,
-      name: product.name,
-      description: product.description,
-      url: product.url,
-      created_at: product.created_at,
-      approved: product.approved,
-      upvotes,
-      downvotes,
-    };
-  });
-
   return (
-<Layout>
-  <div className="max-w-6xl mx-auto py-12 px-6">
- 
-
-    <div className="flex justify-between items-center align-middle mb-8">
-      <h1 className="text-3xl font-bold">Products</h1>
-      <div className= "flex flex-row gap-2 ">   
-        <div>
-          <VoteCooldownNotice />
-            </div>
-          <a
-              href="https://forms.google.com/your-form-link" 
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-white text-black hover:bg-gray-100 font-medium py-2 px-4 h-10 rounded-full transition"
-            >
-              + Add Product
-            </a>
-    </div>
- 
-    </div>
-
-    <div className="space-y-4">
-      {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
-      ))}
-    </div>
-  </div>
-</Layout>
-
+    <Layout>
+      <div className="max-w-4xl mx-auto py-10 px-4">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold">Products</h1>
+          <ClientVoteCooldownNotice />
+        </div>
+        <div className="grid gap-6">
+          {products && products.length > 0 ? (
+            products.map((product: Product) => (
+              <ProductCard key={product.id} product={product} />
+            ))
+          ) : (
+            <p className="text-center text-gray-400">No products found.</p>
+          )}
+        </div>
+      </div>
+    </Layout>
   );
 }

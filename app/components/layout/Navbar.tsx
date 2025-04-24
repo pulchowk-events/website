@@ -22,7 +22,9 @@ export default function Navbar() {
       setIsAdmin(!!data);
     }
 
-    checkAdmin();
+    if (session?.user?.email) {
+      checkAdmin();
+    }
   }, [session]);
 
   return (

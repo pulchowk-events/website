@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
 export default function AdminProductForm() {
@@ -9,8 +9,19 @@ export default function AdminProductForm() {
   const [description, setDescription] = useState('');
   const [approved, setApproved] = useState(true);
   const [message, setMessage] = useState<string>('');
+  const [loading, setLoading] = useState(false); // Added loading state to prevent multiple requests
+
+  const [mounted, setMounted] = useState(false);
+
+  // UseEffect to handle hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   async function addProduct() {
+    if (loading) return; // Prevent action if already loading
+
+    setLoading(true);
     const { error } = await supabase.from('products').insert({ name, url, description, approved });
 
     if (error) {
@@ -19,11 +30,13 @@ export default function AdminProductForm() {
       setMessage('Product added successfully!');
     }
 
-    // Clear form after submission
     setName('');
     setUrl('');
     setDescription('');
+    setLoading(false);
   }
+
+  if (!mounted) return null; // Prevent hydration mismatch by rendering nothing initially
 
   return (
     <div className="p-6 rounded-lg">
@@ -31,13 +44,13 @@ export default function AdminProductForm() {
 
       <input
         placeholder="Product Name"
-        className="w-full p-3 mb-4 rounded border   text-white"
+        className="w-full p-3 mb-4 rounded border text-white"
         value={name}
         onChange={(e) => setName(e.target.value)}
       />
 
       <input
-        placeholder="Product URL"
+        placeholder="Product Slug"
         className="w-full p-3 mb-4 border rounded text-white"
         value={url}
         onChange={(e) => setUrl(e.target.value)}
@@ -53,9 +66,10 @@ export default function AdminProductForm() {
       <div className="flex items-center justify-between">
         <button
           onClick={addProduct}
-          className="bg-primary px-6 py-3 rounded-lg text-white hover:bg-primary-dark transition duration-300"
+          disabled={loading}
+          className={`bg-primary px-6 py-3 rounded-lg text-white ${loading ? 'opacity-50' : 'hover:bg-primary-dark'} transition duration-300`}
         >
-          Add Product
+          {loading ? 'Adding...' : 'Add Product'}
         </button>
       </div>
 

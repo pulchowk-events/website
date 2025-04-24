@@ -1,170 +1,67 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { useVotes } from '../lib/VoteContext';
 import { useSession } from 'next-auth/react';
+import { useEffect, useRef } from 'react';
 
-export function VoteButton({
-  productId,
-  initialUpvotes,
-  initialDownvotes,
-  userLastVoteType,
-  lastVotedAt,
-}: {
-  productId: number;
-  initialUpvotes?: number;
-  initialDownvotes?: number;
-  userLastVoteType?: 'upvote' | 'downvote';
-  lastVotedAt?: string;
-}) {
-  const [upvotes, setUpvotes] = useState<number | null>(initialUpvotes ?? null);
-  const [downvotes, setDownvotes] = useState<number | null>(initialDownvotes ?? null);
-  const [loading, setLoading] = useState(false);
-  const [canVote, setCanVote] = useState(false);
-  const [showLoginMessage, setShowLoginMessage] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
+export function VoteButton({ productId }: { productId: number }) {
+  const {
+    productVotes,
+    handleVote,
+    canVote,
+    isAdmin,
+    timeRemaining,
+    loadingStates,
+    votesLoading,
+    refreshVotes,
+    showLoginMessage,
+    setShowLoginMessage,
+    userVotes
+  } = useVotes();
 
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const loading = loadingStates[productId] || false;
+  const isVotesLoading = votesLoading[productId] || false;
+  const hasInitialized = useRef(false);
 
-  // Check if the user is an admin
+  // Only fetch votes once when the component mounts or productId changes
   useEffect(() => {
-    if (session?.user?.email) {
-      const checkAdminStatus = async () => {
-        const { data, error } = await supabase
-          .from('admins')
-          .select('email')
-          .eq('email', session.user.email)
-          .single();
-
-        if (data && !error) {
-          setIsAdmin(true);
-          setCanVote(true); // Admins can always vote
-        } else {
-          setIsAdmin(false);
-        }
-      };
-
-      checkAdminStatus();
+    if (!hasInitialized.current) {
+      refreshVotes(productId);
+      hasInitialized.current = true;
     }
-  }, [session?.user?.email]);
+  }, [productId, refreshVotes]);
 
-  // Check if user can vote based on cooldown
-  useEffect(() => {
-    if (!session?.user?.id) return;
-    
-    const checkVoteCooldown = () => {
-      if (isAdmin) {
-        setCanVote(true);
-        return;
-      }
-      
-      if (!lastVotedAt) {
-        // First time voting or no previous vote
-        setCanVote(true);
-        return;
-      }
-      
-      const lastVotedTime = new Date(lastVotedAt).getTime();
-      const currentTime = new Date().getTime();
-      const timeDiff = currentTime - lastVotedTime;
-      const timeLimit = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-      
-      if (timeDiff >= timeLimit) {
-        // 24 hours have passed
-        setCanVote(true);
-        setTimeRemaining(null);
-      } else {
-        // Still in cooldown
-        setCanVote(false);
-        
-        // Calculate time remaining
-        const remainingMs = timeLimit - timeDiff;
-        const hours = Math.floor(remainingMs / (1000 * 60 * 60));
-        const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
-        setTimeRemaining(`${hours}h ${minutes}m`);
-      }
-    };
-    
-    checkVoteCooldown();
-    // Set interval to update cooldown timer
-    const interval = setInterval(checkVoteCooldown, 60000); // Update every minute
-    
-    return () => clearInterval(interval);
-  }, [lastVotedAt, session, isAdmin]);
+  const votes = productVotes[productId] || { upvotes: 0, downvotes: 0 };
+  const userVoteType = userVotes[productId];
+  const totalVotes = votes.upvotes - votes.downvotes;
 
-  // Fetch votes
-  useEffect(() => {
-    async function fetchVotes() {
-      const { data, error } = await supabase
-        .from('votes')
-        .select('type')
-        .eq('product_id', productId);
+  // Enhanced loading check to include vote data loading
+  const isLoadingData =
+    status === 'loading' || 
+    isVotesLoading;
 
-      if (error) {
-        console.error(error);
-        return;
-      }
+  // Always disable the button during any loading state
+  const isDisabled =
+    isLoadingData ||
+    loading ||
+    (!canVote && !isAdmin) ||
+    !session?.user?.id;
 
-      const up = data?.filter((vote: any) => vote.type === 'upvote').length || 0;
-      const down = data?.filter((vote: any) => vote.type === 'downvote').length || 0;
-
-      setUpvotes(up);
-      setDownvotes(down);
-    }
-
-    fetchVotes();
-  }, [productId]);
-
-  async function handleVote(type: 'upvote' | 'downvote') {
-    if (!session?.user?.id) {
-      setShowLoginMessage(true);
-      return;
-    }
-
-    if (!canVote) return;
-
-    setLoading(true);
-
-    // Record the vote
-    const { error } = await supabase.from('votes').insert({
-      user_id: session.user.id,
-      product_id: productId,
-      type,
-    });
-
-    if (!error) {
-      // Update the UI counts
-      if (type === 'upvote') {
-        setUpvotes((prev) => (prev ?? 0) + 1);
-      } else {
-        setDownvotes((prev) => (prev ?? 0) + 1);
-      }
-
-      // Update vote count on product
-      await supabase.rpc('increment_vote_count', { pid: productId, type });
-      
-      // Update user's last voted timestamp
-      await supabase
-        .from('users')
-        .update({ last_voted_at: new Date().toISOString() })
-        .eq('id', session.user.id);
-      
-      // Update local state to prevent voting again until refresh
-      setCanVote(isAdmin); // Only admins can vote multiple times
-    }
-
-    setLoading(false);
+  // Show loading state for votes count and buttons
+  if (status === 'loading') {
+    return (
+      <div className="flex items-center gap-2">
+        <div className="h-6 w-6 rounded-full bg-gray-600 animate-pulse" />
+        <p className="text-sm text-gray-400 animate-pulse">Loading session...</p>
+      </div>
+    );
   }
 
-  const isDisabled = loading || !canVote || !session?.user?.id;
-
-  const totalVotes = upvotes !== null && downvotes !== null ? upvotes - downvotes : 'N/A';
-
   return (
-      <div className="flex flex-row items-center gap-0">
+    <div className="flex flex-row items-center gap-0">
       <button
-        onClick={() => handleVote('upvote')}
+        onClick={() => handleVote(productId, 'upvote')}
         disabled={isDisabled}
         className="px-2 py-1 rounded-full font-medium text-sm hover:cursor-pointer"
         title={!canVote && timeRemaining ? `You can vote again in ${timeRemaining}` : ''}
@@ -175,22 +72,30 @@ export function VoteButton({
           height="24"
           viewBox="0 0 24 24"
           className={`transition ${
-            isDisabled ? 'stroke-gray-400' : 'stroke-green-500 hover:stroke-green-600'
+            isDisabled
+              ? 'stroke-gray-400'
+              : userVoteType === 'upvote'
+              ? 'stroke-green-600 fill-green-600'
+              : 'stroke-green-500 hover:stroke-green-600'
           }`}
         >
-          <g fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
+          <g fill={userVoteType === 'upvote' ? 'none' : 'none'} strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
             <circle cx="12" cy="12" r="10" />
             <path d="m16 12l-4-4l-4 4m4 4V8" />
           </g>
         </svg>
       </button>
 
-      <p className="text-sm font-semibold text-gray-300">{totalVotes}</p>
+      {isVotesLoading ? (
+        <p className="text-sm font-semibold text-gray-400 animate-pulse w-6 text-center">-</p>
+      ) : (
+        <p className="text-sm font-semibold text-gray-300">{totalVotes}</p>
+      )}
 
       <button
-        onClick={() => handleVote('downvote')}
+        onClick={() => handleVote(productId, 'downvote')}
         disabled={isDisabled}
-        className="px-2 py-1 rounded-full font-medium text-sm  hover:cursor-pointer"
+        className="px-2 py-1 rounded-full font-medium text-sm hover:cursor-pointer"
         title={!canVote && timeRemaining ? `You can vote again in ${timeRemaining}` : ''}
       >
         <svg
@@ -199,10 +104,14 @@ export function VoteButton({
           height="24"
           viewBox="0 0 24 24"
           className={`transition ${
-            isDisabled ? 'stroke-gray-400' : 'stroke-red-500 hover:stroke-red-600'
+            isDisabled
+              ? 'stroke-gray-400'
+              : userVoteType === 'downvote'
+              ? 'stroke-red-600 fill-red-600'
+              : 'stroke-red-500 hover:stroke-red-600'
           }`}
         >
-          <g fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
+          <g fill={userVoteType === 'downvote' ? 'currentColor' : 'none'} strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
             <circle cx="12" cy="12" r="10" />
             <path d="M12 8v8m-4-4l4 4l4-4" />
           </g>
@@ -213,6 +122,5 @@ export function VoteButton({
         <p className="text-red-500 text-sm mt-1">Please log in to vote</p>
       )}
     </div>
-
   );
 }

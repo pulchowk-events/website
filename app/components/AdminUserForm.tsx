@@ -1,14 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
 export default function AdminUserForm() {
   const [email, setEmail] = useState('');
   const [action, setAction] = useState<'add' | 'remove'>('add');
   const [message, setMessage] = useState<string>('');
+  const [loading, setLoading] = useState(false); // Added loading state to prevent multiple requests
+
+  const [mounted, setMounted] = useState(false);
+
+  // UseEffect to handle hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   async function handleAdminUpdate() {
+    if (loading) return; // Prevent action if already loading
+
+    setLoading(true);
     const { error } = action === 'add'
       ? await supabase.from('admins').upsert({ email })
       : await supabase.from('admins').delete().eq('email', email);
@@ -20,7 +31,10 @@ export default function AdminUserForm() {
     }
 
     setEmail('');
+    setLoading(false);
   }
+
+  if (!mounted) return null; // Prevent hydration mismatch by rendering nothing initially
 
   return (
     <div className="p-6 rounded-lg">
@@ -34,20 +48,21 @@ export default function AdminUserForm() {
       />
 
       <select
-        className="w-full p-3 mb-4 border rounded text-white p-4"
+        className="w-full p-3 mb-4 border rounded text-white"
         value={action}
         onChange={(e) => setAction(e.target.value as 'add' | 'remove')}
       >
         <option className='bg-black text-white' value="add">Add Admin</option>
-        <option className='bg-black text-white'  value="remove">Remove Admin</option>
+        <option className='bg-black text-white' value="remove">Remove Admin</option>
       </select>
 
       <div className="flex items-center justify-between">
         <button
           onClick={handleAdminUpdate}
-          className="bg-primary px-6 py-3 rounded-lg text-white hover:bg-primary-dark transition duration-300"
+          disabled={loading}
+          className={`bg-primary px-6 py-3 rounded-lg text-white ${loading ? 'opacity-50' : 'hover:bg-primary-dark'} transition duration-300`}
         >
-          Update Admins
+          {loading ? 'Updating...' : 'Update Admins'}
         </button>
       </div>
 
