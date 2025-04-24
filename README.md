@@ -40,6 +40,26 @@ pulchowk-events/
 
 ---
 
+
+## 📸 Screenshots
+
+### Initial Boilerplate UI (4/22/2025)  
+
+#### Home Page
+![Home Page](https://i.ibb.co/PvZczfjN/image.png)
+
+#### Product Hunt List Page
+![Product Hunt List Page](https://i.ibb.co/Gf5s24pP/image.png)
+
+#### About Us Page
+![About Us Page](https://i.ibb.co/Tqmg8MTF/image.png)
+
+#### Nav Logged in Initial
+
+![Nav Logged in Page](https://i.ibb.co/ch3RgmDT/image.png)
+
+---
+
 ## 🚀 Quick Start  
 
 ### 📋 Prerequisites  
@@ -49,7 +69,11 @@ pulchowk-events/
 ### ⚙️ Setup  
 1. **Clone the repo**:  
    ```bash  
+<<<<<<< HEAD
    git clone https://github.com/your-username/pulchowk-events.git  
+=======
+   git clone https://github.com/pulchowk-events/website.git
+>>>>>>> c0ebcb38a20ee162396ca0515be4e79b8fb8a8a4
    cd pulchowk-events  
    ```  
 
@@ -74,8 +98,8 @@ pulchowk-events/
 
 ## 🛠️ Tech Stack  
 
-- Frontend: Next.js, Tailwind CSS
-- Backend: Supabase, Next.js API Routes
+- Frontend: Next.js, Tailwind CSS  
+- Backend: Supabase, Next.js API Routes  
 
 ---
 
@@ -101,3 +125,6 @@ pulchowk-events/
 - **Supabase** – Open-source Firebase alternative.  
 - **Discord** – Easy OAuth integration.  
 - **Tailwind CSS** – Rapid UI development.  
+
+---
+
