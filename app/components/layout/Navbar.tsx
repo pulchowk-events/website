@@ -43,14 +43,14 @@ export default function Navbar() {
         </Link>
 
         <div className="flex items-center space-x-6">
-          <Link href="/product-hunt" className="hover:text-primary transition-colors">
+          <Link href="/product-hunt" className="hover:text-white/80 transition-colors">
             Product Hunt
           </Link>
-          <Link href="/about" className="hover:text-primary transition-colors">
+          <Link href="/about" className="hover:text-white/80 transition-colors">
             About
           </Link>
           {isAdmin && (
-            <Link href="/admin" className="hover:text-primary transition-colors">
+            <Link href="/admin" className="hover:text-white/80 transition-colors">
               Admin Panel
             </Link>
           )}

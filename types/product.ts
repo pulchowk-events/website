@@ -6,6 +6,7 @@ interface Product {
   votes: number;
   created_at: string;
   approved: boolean;
+  posted_by: string;
 }
 
 export interface Vote {

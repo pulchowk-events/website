@@ -8,10 +8,10 @@ export default function Home() {
           <div className="md:w-1/2 mb-10 md:mb-0">
             <h1 className="text-4xl md:text-5xl font-bold mb-6">
               Nation Wide Events <br />
-              <span className="text-primary">All In One Place</span>
+              <span className="text-white">All In One Place</span>
             </h1>
-            <button className="bg-primary hover:bg-primary-dark text-white font-medium py-2 px-6 rounded-full transition">
-              Join Discord Now
+            <button className="bg-green-700 text-white font-medium py-2 px-6 rounded-md transition">
+              Join Discord
             </button>
           </div>
           <div className="md:w-1/2">

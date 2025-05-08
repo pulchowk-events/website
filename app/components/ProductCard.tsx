@@ -17,7 +17,7 @@ export function ProductCard({ product }: { product: Product }) {
       <div className="flex items-center space-x-4">
         <div className="flex-grow">
           <Link href={`/product-hunt/${product.url}`} className="block">
-            <h3 className="text-xl font-bold hover:text-primary transition-colors">
+            <h3 className="text-xl font-bold hover:text-white/80 transition-colors">
               {product.name}
             </h3>
             <p className="text-gray-400 mt-1">{product.description}</p>
@@ -25,9 +25,7 @@ export function ProductCard({ product }: { product: Product }) {
         </div>
         
         <div className="ml-4">
-          <button className="text-sm bg-primary hover:bg-primary-dark text-white py-1 px-3 rounded-full transition">
-            Join
-          </button>
+
         </div>
       </div>
       <ClientVoteButton productId={product.id} />
