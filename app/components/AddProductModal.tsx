@@ -19,6 +19,7 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
   const [description, setDescription] = useState('');
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
+  const [urlError, setUrlError] = useState('');
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -27,12 +28,27 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
     };
   }, []);
 
+  const validateUrl = (value: string) => {
+    const regex = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
+    if (!regex.test(value)) {
+      return 'Url must use lowercase letters and hyphens only, no spaces.';
+    }
+    return '';
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!session?.user?.id) {
       toast.error('You must be signed in to submit.');
       router.push('/api/auth/signin');
+      return;
+    }
+
+    const errorMsg = validateUrl(url);
+    if (errorMsg) {
+      setUrlError(errorMsg);
       return;
     }
 
@@ -66,7 +82,7 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[999] min-h-screen  flex items-center justify-center bg-black/50 px-4 sm:px-0"
+        className="fixed inset-0 z-[999] min-h-screen flex items-center justify-center bg-black/50 px-4 sm:px-0"
         onClick={onClose}
       >
         <motion.div
@@ -78,7 +94,7 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
           onClick={(e) => e.stopPropagation()}
         >
           <h2 className="text-xl sm:text-2xl font-bold mb-4">Add New Product</h2>
-          <form className="space-y-4" onSubmit={handleSubmit}>
+          <form className="space-y-4" onSubmit={handleSubmit} noValidate>
             <input
               type="text"
               value={name}
@@ -87,6 +103,7 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
               required
               className="w-full p-3 rounded bg-zinc-800 border border-zinc-700 text-sm sm:text-base"
             />
+
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -94,19 +111,28 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
               required
               className="w-full p-3 rounded bg-zinc-800 border border-zinc-700 text-sm sm:text-base min-h-[100px]"
             />
-            <input
-              type="text"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="Product URL"
-              required
-              className="w-full p-3 rounded bg-zinc-800 border border-zinc-700 text-sm sm:text-base"
-            />
+
+            <div>
+              <input
+                type="text"
+                value={url}
+                onChange={(e) => {
+                  setUrl(e.target.value);
+                  if (urlError) setUrlError('');
+                }}
+                placeholder="Product Url (e.g. my-product-url)"
+                required
+                className="w-full p-3 rounded bg-zinc-800 border border-zinc-700 text-sm sm:text-base"
+              />
+              {urlError && <p className="mt-1 text-red-400 text-sm">{urlError}</p>}
+            </div>
+
             <div className="flex flex-col sm:flex-row justify-end gap-2 pt-2">
               <button
                 type="button"
                 className="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500"
                 onClick={onClose}
+                disabled={loading}
               >
                 Cancel
               </button>

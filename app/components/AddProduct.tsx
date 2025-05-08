@@ -25,7 +25,7 @@ export default function AddProduct() {
       className="w-full sm:w-auto"
     >
       <Button
-        className="w-full sm:w-auto bg-green-600 hover:bg-green-700"
+        className="w-full sm:w-auto bg-green-700 hover:bg-green-800"
         onClick={handleClick}
       >
         Add Product
