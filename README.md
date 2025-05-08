@@ -13,10 +13,15 @@ Pulchowk Events is a dynamic platform for students with more than 1000 members t
 ## ✨ Key Features  
 
 - **🔐 Discord OAuth Login** – Secure authentication via NextAuth.  
-- **🚀 Product Hunt** – Showcase and vote for student projects.  
-- **🛠️ Admin Panel** – Manage users and products with role-based access.  
-- **⏳ Voting Cooldown** – Users can vote **once per day** per project.  
-- **🌐 Responsive UI** – Tailwind CSS for sleek, mobile-friendly design.  
+- **🚀 Product Hunt** – Showcase and vote for student projects.
+- **📝 Product Submissions** – Submit products with images and custom URLs.
+- **👥 Admin Dashboard** – Comprehensive admin panel for content moderation.
+- **🛡️ Role Management** – Add and manage admin users with special privileges.
+- **⏳ Voting Cooldown** – Fair voting system with daily cooldown period.
+- **🎨 Modern UI** – Sleek animations and responsive design with Tailwind CSS.
+- **🔔 Toast Notifications** – Real-time feedback for user actions.
+- **🖼️ Image Upload** – Support for product images with dimension validation.
+- **🔒 Protected Routes** – Secure admin and authenticated user areas.
 
 ---
 
@@ -25,18 +30,43 @@ Pulchowk Events is a dynamic platform for students with more than 1000 members t
 ```  
 pulchowk-events/  
 ├── app/  
-│   ├── actions/               # Business logic (e.g., voting)  
+│   ├── actions/               # Business logic (e.g., voting, submissions)  
 │   ├── api/                   # Next.js API routes  
 │   ├── auth/                  # NextAuth authentication flows  
-│   ├── components/            # Reusable UI components  
+│   ├── components/  
+│   │   ├── ui/               # Reusable UI components  
+│   │   ├── admin/            # Admin dashboard components
+│   │   └── forms/            # Form components
 │   ├── lib/                   # Supabase client & utilities  
 │   ├── product-hunt/          # Product Hunt showcase  
-│   ├── admin/                 # Admin dashboard (protected)  
-│   └── ...  
+│   └── admin/                 # Admin dashboard (protected)  
 ├── types/                     # TypeScript definitions  
 ├── public/                    # Static assets  
 └── config/                    # ESLint, Tailwind, etc.  
 ```  
+
+---
+
+## 🛠️ Tech Stack  
+
+- **Frontend**: 
+  - Next.js 14 with App Router
+  - Tailwind CSS for styling
+  - Framer Motion for animations
+  - Sonner for toast notifications
+  - Radix UI for accessible components
+
+- **Backend**: 
+  - Supabase for database & storage
+  - Next.js API Routes
+  - NextAuth for authentication
+
+- **Development**: 
+  - TypeScript
+  - ESLint & Prettier
+  - Husky for git hooks
+
+[Rest of the existing setup instructions and contribution guidelines remain the same...]
 
 ---
 
@@ -89,13 +119,6 @@ pulchowk-events/
    ```bash  
    npm run dev  
    ```  
-
----
-
-## 🛠️ Tech Stack  
-
-- Frontend: Next.js, Tailwind CSS  
-- Backend: Supabase, Next.js API Routes  
 
 ---
 
