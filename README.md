@@ -15,6 +15,8 @@ Pulchowk Events is a dynamic platform for students with more than 1000 members t
 - **🔐 Discord OAuth Login** – Secure authentication via NextAuth.  
 - **🚀 Product Hunt** – Showcase and vote for student projects.
 - **📝 Product Submissions** – Submit products with images and custom URLs.
+- **✏️ Edit Products** – Quickly update your product’s name, URL, or description. 
+- **💬 Add Comments** – Engage with products through a dedicated comment section. 
 - **👥 Admin Dashboard** – Comprehensive admin panel for content moderation.
 - **🛡️ Role Management** – Add and manage admin users with special privileges.
 - **⏳ Voting Cooldown** – Fair voting system with daily cooldown period.
