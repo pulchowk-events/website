@@ -9,34 +9,45 @@ export default function AdminProductForm() {
   const [description, setDescription] = useState('');
   const [approved, setApproved] = useState(true);
   const [message, setMessage] = useState<string>('');
-  const [loading, setLoading] = useState(false); // Added loading state to prevent multiple requests
-
+  const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  // UseEffect to handle hydration mismatch
   useEffect(() => {
     setMounted(true);
   }, []);
 
   async function addProduct() {
-    if (loading) return; // Prevent action if already loading
+    if (loading) return;
 
     setLoading(true);
-    const { error } = await supabase.from('products').insert({ name, url, description, approved });
+    setMessage('');
 
-    if (error) {
-      setMessage('Error adding product.');
-    } else {
-      setMessage('Product added successfully!');
+    try {
+      const { error } = await supabase.from('products').insert({
+        name,
+        url,
+        description,
+        approved,
+      });
+
+      if (error) {
+        console.error('Supabase insert error:', error);
+        setMessage('Error adding product.');
+      } else {
+        setMessage('Product added successfully!');
+        setName('');
+        setUrl('');
+        setDescription('');
+      }
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      setMessage('Something went wrong.');
+    } finally {
+      setLoading(false);
     }
-
-    setName('');
-    setUrl('');
-    setDescription('');
-    setLoading(false);
   }
 
-  if (!mounted) return null; // Prevent hydration mismatch by rendering nothing initially
+  if (!mounted) return null;
 
   return (
     <div className="p-6 rounded-lg">
@@ -67,7 +78,9 @@ export default function AdminProductForm() {
         <button
           onClick={addProduct}
           disabled={loading}
-          className={`bg-primary px-6 py-3 rounded-lg text-white ${loading ? 'opacity-50' : 'hover:bg-primary-dark'} transition duration-300`}
+          className={`bg-primary px-6 py-3 rounded-lg text-white ${
+            loading ? 'opacity-50' : 'hover:bg-primary-dark'
+          } transition duration-300`}
         >
           {loading ? 'Adding...' : 'Add Product'}
         </button>
@@ -76,7 +89,7 @@ export default function AdminProductForm() {
       {message && (
         <div
           className={`mt-4 p-3 rounded-lg text-white ${
-            message.includes('Error') ? 'bg-red-600' : 'bg-green-600'
+            message.includes('Error') || message.includes('wrong') ? 'bg-red-600' : 'bg-green-600'
           }`}
         >
           {message}
@@ -84,4 +97,4 @@ export default function AdminProductForm() {
       )}
     </div>
   );
-};
+}

@@ -6,26 +6,34 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 
 export default function Navbar() {
-  const { data: session } = useSession();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { data: session, status } = useSession();
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null); // null indicates loading
 
   useEffect(() => {
-    async function checkAdmin() {
-      if (!session?.user?.email) return;
+    const checkAdminStatus = async () => {
+      if (!session?.user?.email) return setIsAdmin(false);
 
-      const { data } = await supabase
-        .from('admins')
-        .select('email')
-        .eq('email', session.user.email)
-        .maybeSingle();
+      try {
+        const { data } = await supabase
+          .from('admins')
+          .select('email')
+          .eq('email', session.user.email)
+          .maybeSingle();
 
-      setIsAdmin(!!data);
+        setIsAdmin(!!data);
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdmin(false);
+      }
+    };
+
+    if (status === 'authenticated') {
+      checkAdminStatus();
     }
+  }, [session, status]);
 
-    if (session?.user?.email) {
-      checkAdmin();
-    }
-  }, [session]);
+  // Show a loading state while checking admin status
+
 
   return (
     <nav className="border-b border-gray-700 py-4 px-6">
@@ -46,7 +54,6 @@ export default function Navbar() {
               Admin Panel
             </Link>
           )}
-
           {session ? (
             <>
               <span className="text-white">Hello, {session.user?.name}</span>

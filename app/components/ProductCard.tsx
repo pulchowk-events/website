@@ -8,6 +8,7 @@ interface Product {
   url: string;
   created_at: string;
   approved: boolean;
+  posted_by: string;
 }
 
 export function ProductCard({ product }: { product: Product }) {

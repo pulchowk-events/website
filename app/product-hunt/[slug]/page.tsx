@@ -1,6 +1,4 @@
-// This is an ***** of how you *would* use React.use() in a Server Component
-// This specific ***** won't directly apply to your existing client component
-// but illustrates the concept for future scenarios.
+// app/products/[slug]/page.tsx
 
 import React from 'react';
 import { supabase } from '@/app/lib/supabase';
@@ -12,40 +10,93 @@ interface Props {
 }
 
 export default async function ProductPage({ params }: Props) {
-  // In a Server Component, params is a promise-like object.
-  // React.use() would be used to unwrap it.
-  const { slug } = params; // Direct access is still supported for now
+  try {
+    // Safely extract slug
+    const slug = params?.slug;
+    console.log("Slug:", slug);
 
-  // If params were a Promise, you would do:
-  // const { slug } = await params; // Or React.use(params) in a Server Component
+    if (!slug || typeof slug !== 'string') {
+      console.error("Slug is undefined, empty, or not a string");
+      return (
+        <Layout>
+          <div className="max-w-3xl mx-auto py-20 text-center text-red-500">
+            Invalid product URL.
+          </div>
+        </Layout>
+      );
+    }
 
-  const { data: product, error } = await supabase
-    .from('products')
-    .select('id, name, description, url, created_at')
-    .eq('url', slug)
-    .single();
+    // Try fetching from Supabase
+    let product = null;
+    let error = null;
 
-  if (error || !product) {
+    try {
+      const result = await supabase
+        .from('products')
+        .select('id, name, description, url, created_at')
+        .eq('url', slug)
+        .single();
+
+      product = result.data;
+      error = result.error;
+
+      console.log("Product Query Result:", { product, error });
+    } catch (fetchError) {
+      console.error("Unexpected error while querying Supabase:", fetchError);
+      return (
+        <Layout>
+          <div className="max-w-3xl mx-auto py-20 text-center text-red-500">
+            Failed to load product data.
+          </div>
+        </Layout>
+      );
+    }
+
+    if (error || !product) {
+      console.error("Supabase returned error or product is null:", error);
+      return (
+        <Layout>
+          <div className="max-w-3xl mx-auto py-20 text-center text-red-500">
+            Product not found.
+          </div>
+        </Layout>
+      );
+    }
+
+    // Safely render the page
+    let creationDate = 'Unknown';
+    try {
+      creationDate = new Date(product.created_at).toDateString();
+    } catch (dateError) {
+      console.error("Failed to format product creation date:", dateError);
+    }
+
+    return (
+      <Layout>
+        <div className="max-w-3xl mx-auto py-16 px-4">
+          <h1 className="text-4xl font-bold mb-4">{product.name}</h1>
+          <p className="text-lg text-gray-300 mb-6">{product.description}</p>
+          <p className="text-sm text-gray-400">Created on: {creationDate}</p>
+
+          <div className="mt-6 flex gap-4 text-white">
+            {/* Safely render vote button */}
+            {product.id ? (
+              <ClientVoteButton productId={product.id} />
+            ) : (
+              <p className="text-red-400">Invalid product ID</p>
+            )}
+          </div>
+        </div>
+      </Layout>
+    );
+  } catch (unexpectedError) {
+    console.error("Unhandled error in ProductPage:", unexpectedError);
     return (
       <Layout>
         <div className="max-w-3xl mx-auto py-20 text-center text-red-500">
-          Product not found.
+          Internal server error. Please try again later.
         </div>
       </Layout>
     );
   }
-
-  return (
-    <Layout>
-      <div className="max-w-3xl mx-auto py-16 px-4">
-        <h1 className="text-4xl font-bold mb-4">{product.name}</h1>
-        <p className="text-lg text-gray-300 mb-6">{product.description}</p>
-        <p className="text-sm text-gray-400">Created on: {new Date(product.created_at).toDateString()}</p>
-
-        <div className="mt-6 flex gap-4 text-white">
-          <ClientVoteButton productId={product.id} />
-        </div>
-      </div>
-    </Layout>
-  );
 }

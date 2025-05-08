@@ -8,7 +8,7 @@ import React, {
   ReactNode,
   useCallback,
 } from 'react';
-import { supabase } from './supabase';
+import { supabase } from '../lib/supabase';
 import { useSession } from 'next-auth/react';
 
 type VoteType = 'upvote' | 'downvote';
@@ -53,7 +53,6 @@ export function VoteProvider({ children }: { children: ReactNode }) {
   const [lastVotedAt, setLastVotedAt] = useState<string | null>(null);
   const [userDataFetched, setUserDataFetched] = useState(false);
 
-  // This function checks the cooldown and updates canVote accordingly
   const checkVoteCooldown = useCallback((lastVoted: string | null) => {
     if (!lastVoted || isAdmin) {
       setCanVote(!!session?.user?.id);
@@ -82,7 +81,6 @@ export function VoteProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (sessionStatus === 'loading') return;
     
-    // If not logged in, set defaults and exit
     if (!session?.user?.email || !session?.user?.id) {
       setCanVote(false);
       setIsAdmin(false);
@@ -121,7 +119,6 @@ export function VoteProvider({ children }: { children: ReactNode }) {
         const lastVotedTime = userVoteTimeRes.data?.last_voted_at || null;
         setLastVotedAt(lastVotedTime);
         
-        // Now that we have the lastVotedAt, determine if the user can vote
         checkVoteCooldown(lastVotedTime);
         
         setUserDataFetched(true);
@@ -141,7 +138,6 @@ export function VoteProvider({ children }: { children: ReactNode }) {
     };
   }, [session, sessionStatus, checkVoteCooldown]);
 
-  // Setup interval for cooldown timer (separate from data fetching)
   useEffect(() => {
     if (!session?.user?.id || isAdmin) return;
     
@@ -152,7 +148,6 @@ export function VoteProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(interval);
   }, [lastVotedAt, session?.user?.id, isAdmin, checkVoteCooldown]);
 
-  // Fetch votes for a product - using useCallback to avoid regenerating this function
   const fetchVotesForProduct = useCallback(async (productId: number) => {
     setVotesLoading(prev => ({ ...prev, [productId]: true }));
     
@@ -188,17 +183,15 @@ export function VoteProvider({ children }: { children: ReactNode }) {
     }
   }, [session?.user?.id]);
 
-  // Memoize refreshVotes to avoid regenerating on each render
   const refreshVotes = useCallback(async (productId: number) => {
     await fetchVotesForProduct(productId);
   }, [fetchVotesForProduct]);
 
-  // Handle vote logic
   const handleVote = async (productId: number, type: VoteType) => {
     if (sessionStatus === 'loading' || !userDataFetched) {
-      return; // Block votes until session and initial checks are complete
+      return;
     }
-    
+
     if (!session?.user?.id) {
       setShowLoginMessage(true);
       return;
@@ -206,10 +199,8 @@ export function VoteProvider({ children }: { children: ReactNode }) {
 
     if (!canVote && !isAdmin) return;
 
-    // Set loading state immediately
     setLoadingStates(prev => ({ ...prev, [productId]: true }));
-    
-    // For non-admins, immediately disable voting
+
     if (!isAdmin) {
       setCanVote(false);
     }
@@ -217,11 +208,10 @@ export function VoteProvider({ children }: { children: ReactNode }) {
     const currentVote = userVotes[productId];
     if (currentVote === type) {
       setLoadingStates(prev => ({ ...prev, [productId]: false }));
-      return; // Prevent duplicate votes
+      return;
     }
 
     try {
-      // Attempt to insert the vote
       const { error } = await supabase.from('votes').insert({
         user_id: session.user.id,
         product_id: productId,
@@ -230,12 +220,11 @@ export function VoteProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
 
-      // Optimistically update UI state
       setUserVotes(prev => ({
         ...prev,
         [productId]: type,
       }));
-      
+
       setProductVotes(prev => {
         const votes = prev[productId] || { upvotes: 0, downvotes: 0 };
         return {
@@ -247,26 +236,20 @@ export function VoteProvider({ children }: { children: ReactNode }) {
         };
       });
 
-      // Update total vote count in the product table
       await supabase.rpc('increment_vote_count', { pid: productId, type });
 
-      // Update the last voted timestamp
       const timestamp = new Date().toISOString();
       await supabase.from('users').update({ last_voted_at: timestamp }).eq('id', session.user.id);
-      
-      // Update last voted time
+
       setLastVotedAt(timestamp);
       
-      // Refresh the actual vote counts
       refreshVotes(productId);
     } catch (error) {
       console.error('Error voting:', error);
-      // Reset canVote if voting fails and user is not admin
       if (!isAdmin) {
         checkVoteCooldown(lastVotedAt);
       }
     } finally {
-      // Reset loading state
       setLoadingStates(prev => ({ ...prev, [productId]: false }));
     }
   };
