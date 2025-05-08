@@ -98,7 +98,7 @@ pulchowk-events/
 ### ⚙️ Setup  
 1. **Clone the repo**:  
    ```bash  
-   git clone https://github.com/your-username/pulchowk-events.git  
+   git clone https://github.com/pulchowk-events/website.git  
    cd pulchowk-events  
    ```  
 
