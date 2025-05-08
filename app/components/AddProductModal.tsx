@@ -18,6 +18,7 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [url, setUrl] = useState('');
+  const [image, setImage] = useState<File | null>(null); // Added image state
   const [loading, setLoading] = useState(false);
   const [urlError, setUrlError] = useState('');
 
@@ -30,12 +31,71 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
 
   const validateUrl = (value: string) => {
     const regex = /^[a-z0-9]+(-[a-z0-9]+)*$/;
-
     if (!regex.test(value)) {
       return 'Url must use lowercase letters and hyphens only, no spaces.';
     }
     return '';
   };
+
+
+  const checkImageDimensions = (file: File): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      
+      img.onload = () => {
+        const isSquare = img.width === img.height;
+        URL.revokeObjectURL(url);
+        resolve(isSquare);
+      };
+      
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve(false);
+      };
+      
+      img.src = url;
+    });
+  };
+
+  const handleImageUpload = async () => {
+    if (!image) return null;
+    
+    // Check image size
+    const imageSize = image.size / 1024; // Convert bytes to KB
+    if (imageSize > 100) {
+      toast.error('Image size must be less than 100 KB. SVG is recommended.');
+      return null;
+    }
+    
+    // Check aspect ratio
+    const isSquare = await checkImageDimensions(image);
+    if (!isSquare) {
+      toast.error('Image must have a 1:1 aspect ratio (square).');
+      return null;
+    }
+
+    // Upload to product_bucket
+    const { data, error } = await supabase.storage
+      .from('product-images')
+      .upload(`${Date.now()}_${image.name}`, image, {
+        cacheControl: '3600',
+        upsert: false,
+      });
+
+    if (error) {
+      toast.error('Failed to upload image.');
+      return null;
+    }
+
+    // Get the public URL for the uploaded image
+    const { data: publicUrl } = supabase.storage
+      .from('product-images')
+      .getPublicUrl(data.path);
+
+    return publicUrl.publicUrl;
+  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,10 +113,20 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
     }
 
     setLoading(true);
+    
+    // Upload image if selected
+    const imagePath = await handleImageUpload();
+    if (!imagePath) {
+      setLoading(false);
+      return;
+    }
+
+    // Insert product into database
     const { error } = await supabase.from('products').insert({
       name,
       description,
       url,
+      image_url: imagePath, // Store image path in the product record
       votes: 0,
       approved: false,
       posted_by: session.user.id,
@@ -71,6 +141,7 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
       setName('');
       setDescription('');
       setUrl('');
+      setImage(null); // Clear the image state after submission
       onClose();
     }
   };
@@ -94,7 +165,7 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
           onClick={(e) => e.stopPropagation()}
         >
           <h2 className="text-xl sm:text-2xl font-bold mb-4">Add New Product</h2>
-          <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+          <form className="space-y-4" onSubmit={handleSubmit}>
             <input
               type="text"
               value={name}
@@ -126,6 +197,34 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
               />
               {urlError && <p className="mt-1 text-red-400 text-sm">{urlError}</p>}
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">Product Image</label>
+              
+              <div className="relative">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setImage(e.target.files ? e.target.files[0] : null)}
+                  id="product-image"
+                  className="sr-only"
+                />
+                
+                <label
+                  htmlFor="product-image"
+                  className="inline-block px-4 py-2 text-sm font-medium text-zinc-200 bg-zinc-700 hover:bg-zinc-600 rounded cursor-pointer"
+                >
+                  Upload Image
+                </label>
+
+                {image && (
+                  <p className="mt-2 text-xs text-zinc-400 truncate">
+                    Selected: {image.name}
+                  </p>
+                )}
+              </div>
+            </div>
+
 
             <div className="flex flex-col sm:flex-row justify-end gap-2 pt-2">
               <button

@@ -13,10 +13,69 @@ export default function AdminProductForm() {
     description: '',
     url: '',
   });
+  const [image, setImage] = useState<File | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const checkImageDimensions = (file: File): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      
+      img.onload = () => {
+        const isSquare = img.width === img.height;
+        URL.revokeObjectURL(url);
+        resolve(isSquare);
+      };
+      
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve(false);
+      };
+      
+      img.src = url;
+    });
+  };
+
+  const handleImageUpload = async () => {
+    if (!image) return null;
+    
+    // Check image size
+    const imageSize = image.size / 1024; // Convert bytes to KB
+    if (imageSize > 100) {
+      toast.error('Image size must be less than 100 KB. SVG is recommended.');
+      return null;
+    }
+    
+    // Check aspect ratio
+    const isSquare = await checkImageDimensions(image);
+    if (!isSquare) {
+      toast.error('Image must have a 1:1 aspect ratio (square).');
+      return null;
+    }
+
+    // Upload to product_bucket
+    const { data, error } = await supabase.storage
+      .from('product-images')
+      .upload(`${Date.now()}_${image.name}`, image, {
+        cacheControl: '3600',
+        upsert: false,
+      });
+
+    if (error) {
+      toast.error('Failed to upload image.');
+      return null;
+    }
+
+    // Get the public URL for the uploaded image
+    const { data: publicUrl } = supabase.storage
+      .from('product-images')
+      .getPublicUrl(data.path);
+
+    return publicUrl.publicUrl;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,6 +89,14 @@ export default function AdminProductForm() {
     try {
       setLoading(true);
       
+      // Upload image if selected
+      const imagePath = image ? await handleImageUpload() : null;
+      
+      if (image && !imagePath) {
+        setLoading(false);
+        return;
+      }
+
       const { error } = await supabase
         .from('products')
         .insert([
@@ -37,8 +104,9 @@ export default function AdminProductForm() {
             name: formData.name,
             description: formData.description,
             url: formData.url,
+            image_url: imagePath,
             posted_by: session?.user?.id || null,
-            approved: true, // Admin-added products are automatically approved
+            approved: true,
             votes: 0
           }
         ]);
@@ -55,6 +123,7 @@ export default function AdminProductForm() {
         description: '',
         url: '',
       });
+      setImage(null);
       
     } catch (err) {
       console.error('Unexpected error:', err);
@@ -113,6 +182,33 @@ export default function AdminProductForm() {
         />
       </div>
       
+<div>
+  <label className="block text-sm font-medium text-zinc-300 mb-2">Product Image</label>
+  
+  <div className="relative">
+    <input
+      type="file"
+      accept="image/*"
+      onChange={(e) => setImage(e.target.files ? e.target.files[0] : null)}
+      id="product-image"
+      className="sr-only"
+    />
+    
+    <label
+      htmlFor="product-image"
+      className="inline-block px-4 py-2 text-sm font-medium text-zinc-200 bg-zinc-700 hover:bg-zinc-600 rounded cursor-pointer"
+    >
+      Upload Image
+    </label>
+
+    {image && (
+      <p className="mt-2 text-xs text-zinc-400 truncate">
+        Selected: {image.name}
+      </p>
+    )}
+  </div>
+</div>
+
       
       <div className="flex justify-end">
         <button

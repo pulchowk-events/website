@@ -8,6 +8,8 @@ import { RemoveButton } from '@/app/components/RemoveProduct';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/auth';
 import { createServerSupabaseClient } from '@/app/lib/supabase-server';
+import Image from 'next/image';
+
 
 interface Props {
   params: { slug: string };
@@ -31,7 +33,7 @@ export default async function ProductPage({ params }: Props) {
   // Get product data
   const { data: product, error } = await supabase
     .from('products')
-    .select('id, name, description, url, created_at')
+    .select('id, name, description, url, created_at, posted_by, image_url')
     .eq('url', slug)
     .single();
 
@@ -57,24 +59,51 @@ export default async function ProductPage({ params }: Props) {
     .single();
 
   const isAdmin = !!adminData;
+  const isOwner = session?.user?.id === product.posted_by;
 
-  return (
-    <Layout>
-      <div className="max-w-3xl mx-auto py-16 px-4">
-        <h1 className="text-4xl font-bold mb-4">{product.name}</h1>
-        <p className="text-lg text-gray-300 mb-6">{product.description}</p>
-        <p className="text-sm text-gray-400">Created on: {creationDate}</p>
-
-        <div className="mt-6 flex gap-4 text-white">
-          <ClientVoteButton productId={product.id} />
-          {isAdmin && (
-            <RemoveButton
-              productId={product.id}
-              productName={product.name}
+return (
+  <Layout>
+    <div className="max-w-6xl mx-auto py-16 px-4">
+      <div className="flex flex-col md:flex-row gap-8 mb-8">
+        {/* Image Section */}
+        <div className="w-full md:w-48 h-48 flex-shrink-0">
+          {product.image_url ? (
+            <Image
+              src={product.image_url}
+              alt={product.name}
+              width={48}
+              height={48}
+              unoptimized // Required if domain not added to next.config.js
+              className="rounded-lg object-cover w-full h-full"
             />
+          ) : (
+            <div className="w-full h-full bg-gray-700 rounded-lg flex items-center justify-center">
+              <span className="text-gray-400 text-sm">No Image</span>
+            </div>
           )}
         </div>
+
+        {/* Content Section */}
+        <div className="flex-grow">
+          <h1 className="text-4xl font-bold mb-4">{product.name}</h1>
+          <p className="text-lg text-gray-300 mb-6">{product.description}</p>
+          <p className="text-sm text-gray-400">
+            Created on: {new Date(product.created_at).toLocaleDateString()}
+          </p>
+
+          <div className="mt-6 flex gap-4 text-white">
+            <ClientVoteButton productId={product.id} />
+            {(isAdmin || isOwner) && (
+              <RemoveButton
+                productId={product.id}
+                productName={product.name}
+              />
+            )}
+          </div>
+        </div>
       </div>
-    </Layout>
-  );
+    </div>
+  </Layout>
+);
+
 }

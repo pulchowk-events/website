@@ -6,6 +6,7 @@ import { CheckCircle, XCircle, ExternalLink, User, Calendar } from 'lucide-react
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 
 interface Product {
   id: number;
@@ -16,6 +17,7 @@ interface Product {
   created_at: string;
   approved: boolean;
   posted_by: string;
+  image_url: string | null;
 }
 
 export default function PendingProducts() {
@@ -128,63 +130,92 @@ export default function PendingProducts() {
     );
   }
 
-  return (
-    <div className="grid gap-6 md:grid-cols-2">
-      {products.map((product) => (
-        <motion.div
-          key={product.id}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          className="bg-zinc-700/30 rounded-lg p-5 shadow-md min-h-64 flex flex-col justify-between"
-        >
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xl font-semibold text-white line-clamp-2">{product.name}</h3>
-              <a 
-                href={product.url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-blue-400 hover:text-blue-300 flex items-center ml-2 flex-shrink-0"
-              >
-                <ExternalLink className="h-5 w-5" />
-              </a>
+return (
+  <div className="grid gap-6 md:grid-cols-2">
+    {products.map((product) => (
+      <motion.div
+        key={product.id}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        className="bg-zinc-700/30 rounded-lg p-5 shadow-md flex flex-col justify-between"
+      >
+        <div className="space-y-4">
+          {/* Image and Header Section */}
+          <div className="flex items-start space-x-4">
+            <div className="w-24 h-24 flex-shrink-0">
+              {product.image_url ? (
+                <Image
+                  src={product.image_url}
+                  alt={product.name}
+                  width={96}
+                  height={96}
+                  unoptimized
+                  className="rounded-lg object-cover w-full h-full"
+                />
+              ) : (
+                <div className="w-full h-full bg-zinc-600 rounded-lg flex items-center justify-center">
+                  <span className="text-zinc-400 text-xs">No Image</span>
+                </div>
+              )}
             </div>
-            
-            <div className="flex items-center space-x-4 mb-3 text-sm text-zinc-400">
-              <div className="flex items-center">
-                <User className="h-4 w-4 mr-1" />
-                <span className="truncate">{usernames[product.posted_by] || 'Unknown user'}</span>
+
+            <div className="flex-grow min-w-0">
+              <div className="flex items-start justify-between mb-2">
+                <h3 className="text-xl font-semibold text-white line-clamp-2 pr-2">
+                  {product.name}
+                </h3>
+                <a
+                  href={product.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 hover:text-blue-300 flex items-center flex-shrink-0"
+                >
+                  <ExternalLink className="h-5 w-5" />
+                </a>
               </div>
-              <div className="flex items-center">
-                <Calendar className="h-4 w-4 mr-1" />
-                <span>{format(new Date(product.created_at), 'MMM dd, yyyy')}</span>
+
+              <div className="flex items-center space-x-4 mb-2 text-sm text-zinc-400">
+                <div className="flex items-center">
+                  <User className="h-4 w-4 mr-1" />
+                  <span className="truncate">
+                    {usernames[product.posted_by] || 'Unknown user'}
+                  </span>
+                </div>
+                <div className="flex items-center">
+                  <Calendar className="h-4 w-4 mr-1" />
+                  <span>{format(new Date(product.created_at), 'MMM dd, yyyy')}</span>
+                </div>
               </div>
             </div>
-            
-            <p className="text-zinc-300 mb-4 line-clamp-3">{product.description}</p>
           </div>
-          
-          <div className="flex justify-end gap-3 mt-auto">
-            <button
-              onClick={() => handleProductApproval(product.id, true)}
-              disabled={!!processing[product.id]}
-              className="p-2 rounded-full bg-green-100 text-green-600 hover:bg-green-200 disabled:opacity-50 transition-colors shadow-sm"
-              aria-label="Approve product"
-            >
-              <CheckCircle className="h-6 w-6" />
-            </button>
-            <button
-              onClick={() => handleProductApproval(product.id, false)}
-              disabled={!!processing[product.id]}
-              className="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-200 disabled:opacity-50 transition-colors shadow-sm"
-              aria-label="Reject product"
-            >
-              <XCircle className="h-6 w-6" />
-            </button>
-          </div>
-        </motion.div>
-      ))}
-    </div>
-  );
+
+          {/* Description */}
+          <p className="text-zinc-300 line-clamp-3">{product.description}</p>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-3 mt-4">
+          <button
+            onClick={() => handleProductApproval(product.id, true)}
+            disabled={!!processing[product.id]}
+            className="p-2 rounded-full bg-green-100 text-green-600 hover:bg-green-200 disabled:opacity-50 transition-colors shadow-sm"
+            aria-label="Approve product"
+          >
+            <CheckCircle className="h-6 w-6" />
+          </button>
+          <button
+            onClick={() => handleProductApproval(product.id, false)}
+            disabled={!!processing[product.id]}
+            className="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-200 disabled:opacity-50 transition-colors shadow-sm"
+            aria-label="Reject product"
+          >
+            <XCircle className="h-6 w-6" />
+          </button>
+        </div>
+      </motion.div>
+    ))}
+  </div>
+);
+
 }
