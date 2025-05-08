@@ -40,8 +40,9 @@ export function ProductCard({ product }: { product: Product }) {
             </h3>
             <p className="text-gray-400 mt-1">{product.description}</p>
             </div>
-            <ClientVoteButton productId={product.id} />
           </Link>
+            <ClientVoteButton productId={product.id} />
+
         </div>
       </div>
 

@@ -11,7 +11,7 @@ export default function Home() {
               <span className="text-white">All In One Place</span>
             </h1>
               <a href="https://discord.gg/cQ5gxusATk" target="_blank" rel="noopener noreferrer">
-                <button className="bg-green-700 text-white font-medium py-2 px-6 rounded-md transition hover:cursor-pointer">
+                <button className="bg-green-700 text-white font-medium py-2 px-6 rounded-md transition hover:bg-green-800 hover:cursor-pointer">
                   Join Discord
                 </button>
               </a>

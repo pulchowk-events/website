@@ -5,6 +5,8 @@ import { redirect } from 'next/navigation';
 import Layout from '@/app/components/layout/Layout';
 import { ClientVoteButton } from '@/app/components/ClientVoteButton';
 import { RemoveButton } from '@/app/components/RemoveProduct';
+import { EditButton } from '@/app/components/EditProduct';
+import { Comments } from '@/app/components/CommentSection';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/auth';
 import { createServerSupabaseClient } from '@/app/lib/supabase-server';
@@ -93,15 +95,19 @@ return (
 
           <div className="mt-6 flex gap-4 text-white">
             <ClientVoteButton productId={product.id} />
-            {(isAdmin || isOwner) && (
-              <RemoveButton
-                productId={product.id}
-                productName={product.name}
-              />
+            {(isAdmin || isOwner) && (<>
+                <EditButton product={product} />
+                <RemoveButton
+                  productId={product.id}
+                  productName={product.name}
+                />
+              </>
             )}
           </div>
         </div>
       </div>
+
+      <Comments productId={product.id} />
     </div>
   </Layout>
 );

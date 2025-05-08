@@ -36,7 +36,7 @@ export default function Navbar() {
 
 
   return (
-    <nav className="border-b border-gray-700 py-4 px-6">
+    <nav className="sticky top-0 z-50 border-b border-gray-700 py-4 px-6 bg-blackticky top-0 z-50 border-b border-gray-200/20 py-4 px-6 backdrop-blur-md bg-black/70 supports-[backdrop-filter]:bg-black/40">
       <div className="max-w-6xl mx-auto flex justify-between items-center">
         <Link href="/" className="text-2xl">
           <span className="text-white font-medium">Pulchowk Events</span>

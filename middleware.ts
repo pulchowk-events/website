@@ -1,14 +1,22 @@
 import { withAuth } from "next-auth/middleware";
 import { NextRequest, NextResponse } from "next/server";
+import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 
 // Configure protected routes
 export default withAuth(
-  function middleware(req: NextRequest) {
+  async function middleware(req: NextRequest) {
+    const res = NextResponse.next();
+    
+    // Initialize Supabase middleware client
+    const supabase = createMiddlewareClient({ req, res });
+    
+    // Refresh session if expired
+    await supabase.auth.getSession();
+
     // Optional: Add custom logic here
-    // Example: Log path access
     console.log("Accessing protected route:", req.nextUrl.pathname);
 
-    return NextResponse.next();
+    return res;
   },
   {
     callbacks: {
@@ -26,5 +34,7 @@ export const config = {
     "/dashboard/:path*",      // protect all dashboard routes
     "/profile",               // single protected page
     "/api/protected/:path*",  // protect certain API routes
+    "/admin/:path*",          // protect admin routes
+    "/product-hunt/submit",   // protect product submission
   ],
 };

@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
 
 interface RemoveButtonProps {
-  productId: number;        // use a number here to match your schema
+  productId: number;
   productName: string;
 }
 
@@ -20,7 +20,51 @@ export function RemoveButton({ productId, productName }: RemoveButtonProps) {
     setIsDeleting(true);
 
     try {
-      // 1️⃣ Delete votes for this product
+      const { data: product } = await supabase
+        .from('products')
+        .select('image_url')
+        .eq('id', productId)
+        .maybeSingle();
+
+      if (product?.image_url) {
+        try {
+          let filePath;
+
+          if (product.image_url.includes('/storage/v1/object/')) {
+            const publicBucketPath = product.image_url.split('/public/')[1];
+            if (publicBucketPath) {
+              const bucketAndPath = publicBucketPath.split('/');
+              filePath = bucketAndPath.slice(1).join('/');
+            }
+          } else if (product.image_url.includes('/product-images/')) {
+            filePath = product.image_url.split('/product-images/')[1];
+          } else {
+            const urlParts = product.image_url.split('/');
+            filePath = urlParts[urlParts.length - 1];
+          }
+
+          if (filePath) {
+            filePath = decodeURIComponent(filePath);
+          }
+
+          if (!filePath) {
+            throw new Error('Could not extract file path from URL');
+          }
+
+          const { error: storageError } = await supabase.storage
+            .from('product-images')
+            .remove([filePath]);
+
+          if (storageError) {
+            toast.error(`Failed to remove image: ${storageError.message}`);
+          } else {
+            toast.success('Product image removed');
+          }
+        } catch {
+          toast.error('Failed to extract file path or remove image');
+        }
+      }
+
       const { error: voteError } = await supabase
         .from('votes')
         .delete()
@@ -28,7 +72,6 @@ export function RemoveButton({ productId, productName }: RemoveButtonProps) {
 
       if (voteError) throw voteError;
 
-      // 2️⃣ Now delete the product
       const { error: productError } = await supabase
         .from('products')
         .delete()
@@ -36,10 +79,10 @@ export function RemoveButton({ productId, productName }: RemoveButtonProps) {
 
       if (productError) throw productError;
 
-      toast.success('Product and its votes removed successfully');
+      toast.success('Product and associated data removed successfully');
+      router.refresh();
       router.push('/admin');
-    } catch (error) {
-      console.error('Error removing product or votes:', error);
+    } catch {
       toast.error('Failed to remove product');
     } finally {
       setIsDeleting(false);
