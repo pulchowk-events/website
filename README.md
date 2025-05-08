@@ -66,7 +66,6 @@ pulchowk-events/
   - ESLint & Prettier
   - Husky for git hooks
 
-[Rest of the existing setup instructions and contribution guidelines remain the same...]
 
 ---
 
