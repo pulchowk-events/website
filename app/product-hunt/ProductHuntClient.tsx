@@ -2,9 +2,9 @@
 
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { ProductCard } from '@/app/components/ProductCard';
-import ClientVoteCooldownNotice from '@/app/components/ClientVoteCooldown';
-import AddProductModal from '@/app/components/AddProductModal'; // your modal
+import { ProductCard } from '@/app/components/product/ProductCard';
+import ClientVoteCooldownNotice from '@/app/components/vote/ClientVoteCooldown';
+import AddProductModal from '@/app/components/product/AddProductModal'; // your modal
 import { createPortal } from 'react-dom'; // Import React Portal
 
 interface Props {

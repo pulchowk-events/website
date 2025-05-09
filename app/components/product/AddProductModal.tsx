@@ -163,7 +163,6 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
                   id="product-image"
                   className="sr-only"
                 />
-                
                 <label
                   htmlFor="product-image"
                   className="inline-block px-4 py-2 text-sm font-medium text-zinc-200 bg-zinc-700 hover:bg-zinc-600 rounded cursor-pointer"

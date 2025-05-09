@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { ClientVoteButton } from './ClientVoteButton';
+import { ClientVoteButton } from '../vote/ClientVoteButton';
 
 interface Product {
   id: number;

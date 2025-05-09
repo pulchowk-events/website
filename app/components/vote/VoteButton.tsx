@@ -1,6 +1,6 @@
 'use client';
 
-import { useVotes } from '../lib/VoteContext';
+import { useVotes } from '@/app/lib/VoteContext';
 import { useSession } from 'next-auth/react';
 import { useEffect, useRef } from 'react';
 

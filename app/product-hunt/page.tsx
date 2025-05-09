@@ -1,34 +1,27 @@
-// app/product-hunt/page.tsx
+// server component
+
+import { supabase } from '@/app/lib/supabase';
 import Layout from '@/app/components/layout/Layout';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/auth';
 import ProductHuntClient from './ProductHuntClient';
 
 export const dynamic = 'force-dynamic';
 
 export default async function ProductHuntPage() {
-  let products = [];
-  let userId = null;
-  
-  try {
-    const response = await fetch(`${process.env.NEXTAUTH_URL}/api/products/approved`, {
-      next: { revalidate: 60 } // Optional: Revalidate every 60 seconds
-    });
+  const session = await getServerSession(authOptions);
 
-    if (response.ok) {
-      const data = await response.json();
-      products = data.products;
-      userId = data.userId;
-    } else {
-      console.error('Failed to fetch products:', response.status);
-    }
-  } catch (error) {
-    console.error('Error fetching products:', error);
-  }
+  const { data: products, error } = await supabase
+    .from('products')
+    .select('*')
+    .eq('approved', true)
+    .order('created_at', { ascending: false });
 
   return (
     <Layout>
       <ProductHuntClient
-        products={products}
-        userId={userId}
+        products={products || []}
+        userId={session?.user?.id}
       />
     </Layout>
   );

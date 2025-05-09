@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { authOptions } from '@/auth';
 import { createServerSupabaseClient } from '../lib/supabase-server';
 import Layout from '@/app/components/layout/Layout';
-import AdminDashboard from '@/app/components/AdminDashboard';
+import AdminDashboard from '@/app/components/admin/AdminDashboard';
 
 export default async function AdminPage() {
   // Get session server-side
