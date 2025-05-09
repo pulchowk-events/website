@@ -100,6 +100,7 @@ return (
                 <RemoveButton
                   productId={product.id}
                   productName={product.name}
+                  isOwner={isOwner}
                 />
               </>
             )}

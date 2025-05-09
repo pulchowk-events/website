@@ -8,9 +8,10 @@ import { toast } from 'sonner';
 interface RemoveButtonProps {
   productId: number;
   productName: string;
+  isOwner?: boolean;  // Add this prop
 }
 
-export function RemoveButton({ productId, productName }: RemoveButtonProps) {
+export function RemoveButton({ productId, productName, isOwner = false }: RemoveButtonProps) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
@@ -24,7 +25,7 @@ export function RemoveButton({ productId, productName }: RemoveButtonProps) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ productId }),
+        body: JSON.stringify({ productId, isOwner }),
       });
 
       const result = await response.json();
