@@ -1,10 +1,12 @@
+// components/CommentCard.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { supabase } from '../lib/supabase';
 import Image from 'next/image';
 import { User } from 'lucide-react';
+import { toast } from 'sonner';
+import { useSession } from 'next-auth/react';
 
 interface CommentCardProps {
   comment: {
@@ -14,25 +16,49 @@ interface CommentCardProps {
     user_id: string;
   };
   isOwner: boolean;
-  onDelete: (id: number) => void;
+  onDelete: (id: number) => Promise<void>; // Changed to async
 }
 
 export function CommentCard({ comment, isOwner, onDelete }: CommentCardProps) {
   const [userData, setUserData] = useState<{ name: string; image: string | null } | null>(null);
+  const { data: session } = useSession();
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     async function fetchUserData() {
-      const { data } = await supabase
-        .from('users')
-        .select('name, image')
-        .eq('id', comment.user_id)
-        .single();
-      
-      if (data) setUserData(data);
+      try {
+        const response = await fetch(`/api/users/${comment.user_id}`);
+        if (!response.ok) throw new Error('Failed to fetch user data');
+        const data = await response.json();
+        setUserData(data);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
     }
 
     fetchUserData();
   }, [comment.user_id]);
+
+  async function handleDelete() {
+    if (!session) {
+      toast.error('Please sign in to delete comments');
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await onDelete(comment.id);
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error('Failed to delete comment');
+      }
+    } finally {
+      setIsDeleting(false);
+    }
+  }
 
   return (
     <div className="flex gap-4 p-4 rounded-lg bg-zinc-800/50 border border-zinc-700">
@@ -64,10 +90,11 @@ export function CommentCard({ comment, isOwner, onDelete }: CommentCardProps) {
           </div>
           {isOwner && (
             <button
-              onClick={() => onDelete(comment.id)}
-              className="text-red-400 hover:text-red-300 text-sm"
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="text-red-400 hover:text-red-300 text-sm disabled:opacity-50"
             >
-              Delete
+              {isDeleting ? 'Deleting...' : 'Delete'}
             </button>
           )}
         </div>

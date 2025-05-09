@@ -1,143 +1,86 @@
-'use client';
+// app/components/forms/AdminProductForm.tsx
+'use client'
 
-import { useState } from 'react';
-import { supabase } from '../lib/supabase';
-import { toast } from 'sonner';
-import { useSession } from 'next-auth/react';
+import { useState } from 'react'
+import { toast } from 'sonner'
+import { useSession } from 'next-auth/react'
 
 export default function AdminProductForm() {
-  const { data: session } = useSession();
-  const [loading, setLoading] = useState(false);
+  const { data: session } = useSession()
+  const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     url: '',
-  });
-  const [image, setImage] = useState<File | null>(null);
+  })
+  const [image, setImage] = useState<File | null>(null)
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const checkImageDimensions = (file: File): Promise<boolean> => {
-    return new Promise((resolve) => {
-      const img = new Image();
-      const url = URL.createObjectURL(file);
-      
-      img.onload = () => {
-        const isSquare = img.width === img.height;
-        URL.revokeObjectURL(url);
-        resolve(isSquare);
-      };
-      
-      img.onerror = () => {
-        URL.revokeObjectURL(url);
-        resolve(false);
-      };
-      
-      img.src = url;
-    });
-  };
-
-  const handleImageUpload = async () => {
-    if (!image) return null;
-    
-    // Check image size
-    const imageSize = image.size / 1024; // Convert bytes to KB
-    if (imageSize > 100) {
-      toast.error('Image size must be less than 100 KB. SVG is recommended.');
-      return null;
-    }
-    
-    // Check aspect ratio
-    const isSquare = await checkImageDimensions(image);
-    if (!isSquare) {
-      toast.error('Image must have a 1:1 aspect ratio (square).');
-      return null;
-    }
-
-    // Upload to product_bucket
-    const { data, error } = await supabase.storage
-      .from('product-images')
-      .upload(`${Date.now()}_${image.name}`, image, {
-        cacheControl: '3600',
-        upsert: false,
-      });
-
-    if (error) {
-      toast.error('Failed to upload image.');
-      return null;
-    }
-
-    // Get the public URL for the uploaded image
-    const { data: publicUrl } = supabase.storage
-      .from('product-images')
-      .getPublicUrl(data.path);
-
-    return publicUrl.publicUrl;
-  };
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+    e.preventDefault()
+
     if (!formData.name || !formData.description || !formData.url) {
-      toast.error('Please fill all required fields');
-      return;
+      toast.error('Please fill all required fields')
+      return
     }
-    
+
     try {
-      setLoading(true);
-      
-      // Upload image if selected
-      const imagePath = image ? await handleImageUpload() : null;
-      
-      if (image && !imagePath) {
-        setLoading(false);
-        return;
+      setLoading(true)
+
+      const formDataToSend = new FormData()
+      formDataToSend.append('name', formData.name)
+      formDataToSend.append('description', formData.description)
+      formDataToSend.append('url', formData.url)
+      if (image) {
+        formDataToSend.append('image', image)
       }
 
-      const { error } = await supabase
-        .from('products')
-        .insert([
-          { 
-            name: formData.name,
-            description: formData.description,
-            url: formData.url,
-            image_url: imagePath,
-            posted_by: session?.user?.id || null,
-            approved: true,
-            votes: 0
-          }
-        ]);
-        
-      if (error) {
-        console.error('Error adding product:', error);
-        toast.error('Failed to add product');
-        return;
+      const response = await fetch('/api/products/submit', {
+        method: 'POST',
+        body: formDataToSend,
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to add product')
       }
-      
-      toast.success('Product added successfully');
+
+      toast.success('Product added successfully')
       setFormData({
         name: '',
         description: '',
         url: '',
-      });
-      setImage(null);
-      
-    } catch (err) {
-      console.error('Unexpected error:', err);
-      toast.error('Something went wrong');
-    } finally {
-      setLoading(false);
-    }
-  };
+      })
+      setImage(null)
+        } catch (err) {
+          console.error('Error:', err)
+
+          if (err instanceof Error) {
+            toast.error(err.message)
+          } else {
+            toast.error('Something went wrong')
+          }
+        } finally {
+          setLoading(false)
+        }
+
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-zinc-300 mb-2">
+          <label
+            htmlFor="name"
+            className="block text-sm font-medium text-zinc-300 mb-2"
+          >
             Product Name *
           </label>
           <input
@@ -150,9 +93,12 @@ export default function AdminProductForm() {
             required
           />
         </div>
-        
+
         <div>
-          <label htmlFor="url" className="block text-sm font-medium text-zinc-300 mb-2">
+          <label
+            htmlFor="url"
+            className="block text-sm font-medium text-zinc-300 mb-2"
+          >
             Product URL *
           </label>
           <input
@@ -166,9 +112,12 @@ export default function AdminProductForm() {
           />
         </div>
       </div>
-      
+
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-zinc-300 mb-2">
+        <label
+          htmlFor="description"
+          className="block text-sm font-medium text-zinc-300 mb-2"
+        >
           Description *
         </label>
         <textarea
@@ -181,35 +130,36 @@ export default function AdminProductForm() {
           required
         />
       </div>
-      
-<div>
-  <label className="block text-sm font-medium text-zinc-300 mb-2">Product Image</label>
-  
-  <div className="relative">
-    <input
-      type="file"
-      accept="image/*"
-      onChange={(e) => setImage(e.target.files ? e.target.files[0] : null)}
-      id="product-image"
-      className="sr-only"
-    />
-    
-    <label
-      htmlFor="product-image"
-      className="inline-block px-4 py-2 text-sm font-medium text-zinc-200 bg-zinc-700 hover:bg-zinc-600 rounded cursor-pointer"
-    >
-      Upload Image
-    </label>
 
-    {image && (
-      <p className="mt-2 text-xs text-zinc-400 truncate">
-        Selected: {image.name}
-      </p>
-    )}
-  </div>
-</div>
+      <div>
+        <label className="block text-sm font-medium text-zinc-300 mb-2">
+          Product Image
+        </label>
 
-      
+        <div className="relative">
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setImage(e.target.files ? e.target.files[0] : null)}
+            id="product-image"
+            className="sr-only"
+          />
+
+          <label
+            htmlFor="product-image"
+            className="inline-block px-4 py-2 text-sm font-medium text-zinc-200 bg-zinc-700 hover:bg-zinc-600 rounded cursor-pointer"
+          >
+            Upload Image
+          </label>
+
+          {image && (
+            <p className="mt-2 text-xs text-zinc-400 truncate">
+              Selected: {image.name}
+            </p>
+          )}
+        </div>
+      </div>
+
       <div className="flex justify-end">
         <button
           type="submit"
@@ -227,5 +177,5 @@ export default function AdminProductForm() {
         </button>
       </div>
     </form>
-  );
+  )
 }

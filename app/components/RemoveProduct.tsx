@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Trash2 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
 
 interface RemoveButtonProps {
@@ -20,70 +19,30 @@ export function RemoveButton({ productId, productName }: RemoveButtonProps) {
     setIsDeleting(true);
 
     try {
-      const { data: product } = await supabase
-        .from('products')
-        .select('image_url')
-        .eq('id', productId)
-        .maybeSingle();
+      const response = await fetch('/api/products/remove', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ productId }),
+      });
 
-      if (product?.image_url) {
-        try {
-          let filePath;
+      const result = await response.json();
 
-          if (product.image_url.includes('/storage/v1/object/')) {
-            const publicBucketPath = product.image_url.split('/public/')[1];
-            if (publicBucketPath) {
-              const bucketAndPath = publicBucketPath.split('/');
-              filePath = bucketAndPath.slice(1).join('/');
-            }
-          } else if (product.image_url.includes('/product-images/')) {
-            filePath = product.image_url.split('/product-images/')[1];
-          } else {
-            const urlParts = product.image_url.split('/');
-            filePath = urlParts[urlParts.length - 1];
-          }
-
-          if (filePath) {
-            filePath = decodeURIComponent(filePath);
-          }
-
-          if (!filePath) {
-            throw new Error('Could not extract file path from URL');
-          }
-
-          const { error: storageError } = await supabase.storage
-            .from('product-images')
-            .remove([filePath]);
-
-          if (storageError) {
-            toast.error(`Failed to remove image: ${storageError.message}`);
-          } else {
-            toast.success('Product image removed');
-          }
-        } catch {
-          toast.error('Failed to extract file path or remove image');
-        }
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to remove product');
       }
-
-      const { error: voteError } = await supabase
-        .from('votes')
-        .delete()
-        .eq('product_id', productId);
-
-      if (voteError) throw voteError;
-
-      const { error: productError } = await supabase
-        .from('products')
-        .delete()
-        .eq('id', productId);
-
-      if (productError) throw productError;
 
       toast.success('Product and associated data removed successfully');
       router.refresh();
       router.push('/admin');
-    } catch {
-      toast.error('Failed to remove product');
+    } catch (error) {
+      console.error('Removal error:', error);
+      toast.error(
+        error instanceof Error 
+          ? error.message 
+          : 'Failed to remove product'
+      );
     } finally {
       setIsDeleting(false);
       setIsConfirmOpen(false);

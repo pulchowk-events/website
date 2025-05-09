@@ -1,42 +1,44 @@
+// components/Navbar.tsx
+
 'use client';
 
 import Link from 'next/link';
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
 
 export default function Navbar() {
   const { data: session, status } = useSession();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null); // null indicates loading
 
-  useEffect(() => {
-    const checkAdminStatus = async () => {
-      if (!session?.user?.email) return setIsAdmin(false);
+useEffect(() => {
+  const checkAdminStatus = async () => {
+    if (!session?.user?.email) return setIsAdmin(false);
 
-      try {
-        const { data } = await supabase
-          .from('admins')
-          .select('email')
-          .eq('email', session.user.email)
-          .maybeSingle();
+    try {
+      const response = await fetch(`/api/admin/checkAdmin?email=${session.user.email}`);
 
-        setIsAdmin(!!data);
-      } catch (error) {
-        console.error('Error checking admin status:', error);
-        setIsAdmin(false);
-      }
-    };
+      // Log the response text to inspect it
+      const responseText = await response.text();
+      console.log('API Response:', responseText);
 
-    if (status === 'authenticated') {
-      checkAdminStatus();
+      // Attempt to parse as JSON
+      const data = JSON.parse(responseText);
+
+      setIsAdmin(data.isAdmin);
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      setIsAdmin(false);
     }
-  }, [session, status]);
+  };
 
-  // Show a loading state while checking admin status
+  if (status === 'authenticated') {
+    checkAdminStatus();
+  }
+}, [session, status]);
 
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-gray-700 py-4 px-6 bg-blackticky top-0 z-50 border-b border-gray-200/20 py-4 px-6 backdrop-blur-md bg-black/70 supports-[backdrop-filter]:bg-black/40">
+    <nav className="sticky top-0 z-50 border-b border-gray-700 py-4 px-6 bg-black">
       <div className="max-w-6xl mx-auto flex justify-between items-center">
         <Link href="/" className="text-2xl">
           <span className="text-white font-medium">Pulchowk Events</span>

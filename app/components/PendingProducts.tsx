@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
 import { CheckCircle, XCircle, ExternalLink, User, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -22,8 +21,8 @@ interface Product {
 
 export default function PendingProducts() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
   const [usernames, setUsernames] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
@@ -33,39 +32,18 @@ export default function PendingProducts() {
   async function fetchPendingProducts() {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('approved', false)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching pending products:', error);
-        toast.error('Failed to load pending products');
-        return;
-      }
-
-      setProducts(data || []);
+      const response = await fetch('/api/products/pending');
       
-      // Fetch usernames for all products
-      const userIds = [...new Set(data?.map(product => product.posted_by) || [])];
-      if (userIds.length > 0) {
-        const { data: users, error: userError } = await supabase
-          .from('users')
-          .select('id, name')
-          .in('id', userIds);
-          
-        if (!userError && users) {
-          const usernameMap: Record<string, string> = {};
-          users.forEach(user => {
-            usernameMap[user.id] = user.name;
-          });
-          setUsernames(usernameMap);
-        }
+      if (!response.ok) {
+        throw new Error('Failed to fetch products');
       }
+
+      const { products, usernames } = await response.json();
+      setProducts(products);
+      setUsernames(usernames);
     } catch (err) {
-      console.error('Unexpected error:', err);
-      toast.error('Something went wrong');
+      console.error('Error:', err);
+      toast.error('Failed to load pending products');
     } finally {
       setLoading(false);
     }
@@ -75,39 +53,32 @@ export default function PendingProducts() {
     try {
       setProcessing(prev => ({ ...prev, [id]: true }));
       
-      if (approved) {
-        // Approve the product
-        const { error } = await supabase
-          .from('products')
-          .update({ approved })
-          .eq('id', id);
+      const response = await fetch('/api/products/pending/approve', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ productId: id, approved }),
+      });
 
-        if (error) {
-          console.error('Error updating product:', error);
-          toast.error('Failed to approve product');
-          return;
-        }
-        toast.success('Product approved successfully');
-      } else {
-        // Delete the product when rejected
-        const { error } = await supabase
-          .from('products')
-          .delete()
-          .eq('id', id);
-
-        if (error) {
-          console.error('Error deleting product:', error);
-          toast.error('Failed to reject product');
-          return;
-        }
-        toast.success('Product rejected and removed successfully');
+      if (!response.ok) {
+        throw new Error(approved ? 'Failed to approve product' : 'Failed to reject product');
       }
+
+      toast.success(
+        approved 
+          ? 'Product approved successfully' 
+          : 'Product rejected and removed'
+      );
       
-      // Remove from list
       setProducts(products.filter(product => product.id !== id));
     } catch (err) {
-      console.error('Unexpected error:', err);
-      toast.error('Something went wrong');
+      console.error('Error:', err);
+      toast.error(
+        err instanceof Error 
+          ? err.message 
+          : 'Something went wrong'
+      );
     } finally {
       setProcessing(prev => ({ ...prev, [id]: false }));
     }

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -41,114 +40,57 @@ export default function EditProductModal({ product, onClose }: EditProductModalP
     return '';
   };
 
-  const checkImageDimensions = (file: File): Promise<boolean> => {
-    return new Promise((resolve) => {
-      const img = new Image();
-      const url = URL.createObjectURL(file);
-      
-      img.onload = () => {
-        const isSquare = img.width === img.height;
-        URL.revokeObjectURL(url);
-        resolve(isSquare);
-      };
-      
-      img.onerror = () => {
-        URL.revokeObjectURL(url);
-        resolve(false);
-      };
-      
-      img.src = url;
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  const errorMsg = validateUrl(url);
+  if (errorMsg) {
+    setUrlError(errorMsg);
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('description', description);
+    formData.append('url', url);
+    if (image) {
+      formData.append('image', image);
+    }
+
+    const response = await fetch(`/api/products/${product.id}`, {
+      method: 'PUT',
+      body: formData,
     });
-  };
 
-  const handleImageUpload = async () => {
-    if (!image) return product.image_url; // Keep existing image if no new one
-    
-    const imageSize = image.size / 1024;
-    if (imageSize > 100) {
-      toast.error('Image size must be less than 100 KB. SVG is recommended.');
-      return null;
-    }
-    
-    const isSquare = await checkImageDimensions(image);
-    if (!isSquare) {
-      toast.error('Image must have a 1:1 aspect ratio (square).');
-      return null;
+    // First check if response has content
+    const text = await response.text();
+    const data = text ? JSON.parse(text) : {};
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to update product');
     }
 
-    const { data, error } = await supabase.storage
-      .from('product-images')
-      .upload(`${Date.now()}_${image.name}`, image, {
-        cacheControl: '3600',
-        upsert: false,
-      });
-
-    if (error) {
-      toast.error('Failed to upload image.');
-      return null;
+    if (!data.success) {
+      throw new Error('Update operation failed');
     }
 
-    const { data: publicUrl } = supabase.storage
-      .from('product-images')
-      .getPublicUrl(data.path);
-
-    return publicUrl.publicUrl;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const errorMsg = validateUrl(url);
-    if (errorMsg) {
-      setUrlError(errorMsg);
-      return;
-    }
-
-    setLoading(true);
-    
-    try {
-      let imagePath = product.image_url;
-      
-      if (image) {
-        imagePath = await handleImageUpload();
-        if (!imagePath) {
-          setLoading(false);
-          return;
-        }
-
-        // Delete old image if exists and new image was uploaded
-        if (product.image_url) {
-          const oldFilePath = product.image_url.split('/product-images/').pop();
-          if (oldFilePath) {
-            await supabase.storage
-              .from('product-images')
-              .remove([decodeURIComponent(oldFilePath)]);
-          }
-        }
-      }
-
-      const { error } = await supabase
-        .from('products')
-        .update({
-          name,
-          description,
-          url,
-          image_url: imagePath,
-        })
-        .eq('id', product.id);
-
-      if (error) throw error;
-
-      toast.success('Product updated successfully!');
-      router.refresh();
-      onClose();
-    } catch (error) {
-      console.error('Error updating product:', error);
-      toast.error('Failed to update product');
-    } finally {
-      setLoading(false);
-    }
-  };
+    toast.success('Product updated successfully!');
+    router.refresh();
+    onClose();
+  } catch (error) {
+    console.error('Update error:', error);
+    toast.error(
+      error instanceof Error 
+        ? error.message 
+        : 'An unexpected error occurred'
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <AnimatePresence>

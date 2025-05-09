@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
 import { User, UserPlus, UserMinus, Search } from 'lucide-react';
 
@@ -28,43 +27,18 @@ export default function AdminUserForm() {
     try {
       setLoading(true);
       
-      // Fetch all admins first
-      const { data: admins, error: adminError } = await supabase
-        .from('admins')
-        .select('email');
+      const response = await fetch('/api/admin/users');
+      const data = await response.json();
       
-      if (adminError) {
-        console.error('Error fetching admins:', adminError);
-        toast.error('Failed to load admin users');
-        return;
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to load admin users');
       }
       
-      // Get the email addresses of all admins
-      const adminEmails = admins?.map(admin => admin.email) || [];
-      
-      // Fetch users with admin status
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('id, email, name')
-        .order('name');
-        
-      if (userError) {
-        console.error('Error fetching users:', userError);
-        toast.error('Failed to load users');
-        return;
-      }
-      
-      // Combine the data
-      const usersWithAdminStatus = userData?.map(user => ({
-        ...user,
-        isAdmin: adminEmails.includes(user.email)
-      })) || [];
-      
-      setUsers(usersWithAdminStatus);
+      setUsers(data.users);
       
     } catch (err) {
-      console.error('Unexpected error:', err);
-      toast.error('Something went wrong');
+      console.error('Error fetching admin users:', err);
+      toast.error(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
       setLoading(false);
     }
@@ -74,34 +48,21 @@ export default function AdminUserForm() {
     try {
       setProcessing(prev => ({ ...prev, [userId]: true }));
       
-      if (makeAdmin) {
-        // Add to admins table
-        const { error } = await supabase
-          .from('admins')
-          .insert([{ email }]);
-          
-        if (error) {
-          console.error('Error adding admin:', error);
-          toast.error('Failed to add admin privileges');
-          return;
-        }
-        
-        toast.success('Admin privileges granted');
-      } else {
-        // Remove from admins table
-        const { error } = await supabase
-          .from('admins')
-          .delete()
-          .eq('email', email);
-          
-        if (error) {
-          console.error('Error removing admin:', error);
-          toast.error('Failed to remove admin privileges');
-          return;
-        }
-        
-        toast.success('Admin privileges revoked');
+      const response = await fetch('/api/admin/update-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, makeAdmin }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || `Failed to ${makeAdmin ? 'add' : 'remove'} admin privileges`);
       }
+      
+      toast.success(data.message);
       
       // Update local state
       setUsers(users.map(user => 
@@ -109,8 +70,8 @@ export default function AdminUserForm() {
       ));
       
     } catch (err) {
-      console.error('Unexpected error:', err);
-      toast.error('Something went wrong');
+      console.error('Error updating admin status:', err);
+      toast.error(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
       setProcessing(prev => ({ ...prev, [userId]: false }));
     }
@@ -127,69 +88,41 @@ export default function AdminUserForm() {
     try {
       setAddingAdmin(true);
       
-      // Check if user exists
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('id, email, name')
-        .eq('email', newAdminEmail)
-        .maybeSingle();
-        
-      if (userError) {
-        console.error('Error checking user:', userError);
-        toast.error('Failed to verify user');
-        return;
+      const response = await fetch('/api/admin/add-admin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: newAdminEmail }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to add admin privileges');
       }
       
-      if (!userData) {
-        toast.error('User not found with this email');
-        return;
-      }
-      
-      // Check if already an admin
-      const { data: adminData, error: adminError } = await supabase
-        .from('admins')
-        .select('email')
-        .eq('email', newAdminEmail)
-        .maybeSingle();
-        
-      if (adminError) {
-        console.error('Error checking admin status:', adminError);
-        toast.error('Failed to verify admin status');
-        return;
-      }
-      
-      if (adminData) {
-        toast.info('This user is already an admin');
-        return;
-      }
-      
-      // Add to admins table
-      const { error } = await supabase
-        .from('admins')
-        .insert([{ email: newAdminEmail }]);
-        
-      if (error) {
-        console.error('Error adding admin:', error);
-        toast.error('Failed to add admin privileges');
-        return;
-      }
-      
-      toast.success('Admin privileges granted');
+      toast.success(data.message);
       setNewAdminEmail('');
       
-      // Update local state if user wasn't in the list before
-      const userExists = users.some(user => user.email === newAdminEmail);
-      if (userExists) {
-        setUsers(users.map(user => 
-          user.email === newAdminEmail ? { ...user, isAdmin: true } : user
-        ));
+      // Update local state
+      if (data.user) {
+        const userExists = users.some(user => user.email === newAdminEmail);
+        if (userExists) {
+          setUsers(users.map(user => 
+            user.email === newAdminEmail ? { ...user, isAdmin: true } : user
+          ));
+        } else {
+          setUsers([...users, data.user]);
+        }
       } else {
-        setUsers([...users, { ...userData, isAdmin: true }]);
+        // Refresh the list if we didn't get the user data back
+        fetchAdminUsers();
       }
       
     } catch (err) {
-      console.error('Unexpected error:', err);
-      toast.error('Something went wrong');
+      console.error('Error adding new admin:', err);
+      toast.error(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
       setAddingAdmin(false);
     }

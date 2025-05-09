@@ -2,9 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { supabase } from '../lib/supabase';
 import { CommentCard } from './CommentCard';
 import { toast } from 'sonner';
+
+interface Comment {
+  id: number;
+  comment: string;
+  product_id: number;
+  user_id: string;
+  created_at: string;
+  profiles?: {
+    username?: string;
+    avatar_url?: string;
+  };
+}
 
 interface CommentsProps {
   productId: number;
@@ -12,26 +23,37 @@ interface CommentsProps {
 
 export function Comments({ productId }: CommentsProps) {
   const { data: session } = useSession();
-  const [comments, setComments] = useState<any[]>([]);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchComments();
   }, [productId]);
 
   async function fetchComments() {
-    const { data } = await supabase
-      .from('comments')
-      .select('*')
-      .eq('product_id', productId)
-      .order('created_at', { ascending: false });
+    try {
+      setIsLoading(true);
+      const response = await fetch(`/api/comments?product_id=${productId}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch comments');
+      }
 
-    if (data) setComments(data);
+      const data = await response.json();
+      setComments(data);
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      toast.error('Failed to load comments');
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    
     if (!session) {
       toast.error('Please sign in to comment');
       return;
@@ -45,20 +67,33 @@ export function Comments({ productId }: CommentsProps) {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase.from('comments').insert({
-        comment: newComment.trim(),
-        product_id: productId,
-        user_id: session.user.id
+      const response = await fetch('/api/comments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          comment: newComment.trim(),
+          product_id: productId
+        }),
       });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to add comment');
+      }
 
-      toast.success('Comment added successfully');
+      const newCommentData = await response.json();
+      setComments(prev => [newCommentData, ...prev]);
       setNewComment('');
-      fetchComments();
+      toast.success('Comment added successfully');
     } catch (error) {
       console.error('Error adding comment:', error);
-      toast.error('Failed to add comment');
+      toast.error(
+        error instanceof Error 
+          ? error.message 
+          : 'Failed to add comment'
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -66,23 +101,40 @@ export function Comments({ productId }: CommentsProps) {
 
   async function handleDelete(commentId: number) {
     try {
-      const { error } = await supabase
-        .from('comments')
-        .delete()
-        .eq('id', commentId);
+      const response = await fetch(`/api/comments/${commentId}`, {
+        method: 'DELETE',
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete comment');
+      }
 
+      setComments(prev => prev.filter(c => c.id !== commentId));
       toast.success('Comment deleted');
-      setComments(comments.filter(c => c.id !== commentId));
     } catch (error) {
       console.error('Error deleting comment:', error);
-      toast.error('Failed to delete comment');
+      toast.error(
+        error instanceof Error 
+          ? error.message 
+          : 'Failed to delete comment'
+      );
     }
   }
 
+  if (isLoading) {
+    return (
+      <div className="mt-12">
+        <h2 className="text-2xl font-bold mb-6">Comments</h2>
+        <div className="flex justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-green-500"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="mt-12 ">
+    <div className="mt-12">
       <h2 className="text-2xl font-bold mb-6">Comments</h2>
 
       <div className="space-y-4">
@@ -95,31 +147,31 @@ export function Comments({ productId }: CommentsProps) {
           />
         ))}
         {comments.length === 0 && (
-          <p className="text-center text-zinc-400 py-8">No comments yet. Be the first to comment!</p>
+          <p className="text-center text-zinc-400 py-8">
+            No comments yet. Be the first to comment!
+          </p>
         )}
 
-         <form onSubmit={handleSubmit} className="mb-8">
-        <textarea
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          placeholder={session ? "Add a comment..." : "Sign in to comment"}
-          disabled={!session || isSubmitting}
-          className="w-full p-4 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-400 focus:border-green-500 focus:ring focus:ring-green-500 focus:ring-opacity-50 transition"
-          rows={3}
-        />
-        {session && (
-          <button
-            type="submit"
-            disabled={isSubmitting || !newComment.trim()}
-            className="mt-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 rounded-md text-white font-medium transition"
-          >
-            {isSubmitting ? 'Posting...' : 'Post Comment'}
-          </button>
-        )}
-      </form>
+        <form onSubmit={handleSubmit} className="mb-8">
+          <textarea
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            placeholder={session ? "Add a comment..." : "Sign in to comment"}
+            disabled={!session || isSubmitting}
+            className="w-full p-4 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-400 focus:border-green-500 focus:ring focus:ring-green-500 focus:ring-opacity-50 transition"
+            rows={3}
+          />
+          {session && (
+            <button
+              type="submit"
+              disabled={isSubmitting || !newComment.trim()}
+              className="mt-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 rounded-md text-white font-medium transition"
+            >
+              {isSubmitting ? 'Posting...' : 'Post Comment'}
+            </button>
+          )}
+        </form>
       </div>
-
-           
     </div>
   );
 }
