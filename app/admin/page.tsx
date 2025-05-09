@@ -36,9 +36,14 @@ export default async function AdminPage() {
   const { count: totalUsers, error: userCountError } = await supabase
     .from('users')
     .select('id', { count: 'exact', head: true });
+    
+  // Fetch events count
+  const { count: totalEvents, error: eventsCountError } = await supabase
+    .from('events')
+    .select('id', { count: 'exact', head: true });
 
-  if (productsError || userCountError) {
-    console.error('Error fetching stats:', productsError, userCountError);
+  if (productsError || userCountError || eventsCountError) {
+    console.error('Error fetching stats:', productsError, userCountError, eventsCountError);
     return redirect('/');
   }
 
@@ -47,6 +52,7 @@ export default async function AdminPage() {
     approvedProducts: productsData?.filter((p: any) => p.approved).length || 0,
     pendingProducts: productsData?.filter((p: any) => !p.approved).length || 0,
     totalUsers: totalUsers || 0,
+    totalEvents: totalEvents || 0,
   };
 
   return (

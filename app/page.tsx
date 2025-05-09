@@ -1,4 +1,5 @@
 import Layout from './components/layout/Layout'
+import  EventsPage  from '@/app/components/events/EventContainer'
 
 export default function Home() {
   return (
@@ -23,6 +24,7 @@ export default function Home() {
           </div>
         </div>
       </div>
+      <EventsPage/>
     </Layout>
   )
 }

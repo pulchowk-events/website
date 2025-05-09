@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import AdminProductForm from './AdminProductForm';
 import AdminUserForm from './AdminUserForm';
+import AdminEventForm from './AdminEventForm';
 import PendingProducts from './PendingProducts';
 import AdminStats from './AdminStats';
 
@@ -14,13 +15,13 @@ interface AdminDashboardProps {
     approvedProducts: number;
     pendingProducts: number;
     totalUsers: number;
+    totalEvents: number;
   };
 }
 
 export default function AdminDashboard({ session, dashboardStats }: AdminDashboardProps) {
   return (
     <div className="max-w-6xl mx-auto py-3 px-4 sm:px-6">
-
       
       <div className="mb-8">
         <AdminStats stats={dashboardStats} />
@@ -30,6 +31,7 @@ export default function AdminDashboard({ session, dashboardStats }: AdminDashboa
         <TabsList className="flex flex-row  w-full mb-6 bg-zinc-800 rounded-md shadow-md">
           <TabsTrigger value="pending">Pending Products</TabsTrigger>
           <TabsTrigger value="add-product">Add Product</TabsTrigger>
+          <TabsTrigger value="add-event">Add Event</TabsTrigger>
           <TabsTrigger value="manage-admins">Manage Admins</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
@@ -58,6 +60,20 @@ export default function AdminDashboard({ session, dashboardStats }: AdminDashboa
             </CardHeader>
             <CardContent>
               <AdminProductForm />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="add-event">
+          <Card className="border border-zinc-800 bg-zinc-800/50 shadow-md">
+            <CardHeader>
+              <CardTitle className="text-white">Add New Event</CardTitle>
+              <CardDescription className="text-zinc-400">
+                Schedule and publish new events to the platform
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AdminEventForm />
             </CardContent>
           </Card>
         </TabsContent>

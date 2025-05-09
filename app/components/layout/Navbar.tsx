@@ -1,5 +1,3 @@
-// components/Navbar.tsx
-
 'use client';
 
 import Link from 'next/link';
@@ -10,35 +8,35 @@ export default function Navbar() {
   const { data: session, status } = useSession();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null); // null indicates loading
 
-useEffect(() => {
-  const checkAdminStatus = async () => {
-    if (!session?.user?.email) return setIsAdmin(false);
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!session?.user?.email) return setIsAdmin(false);
 
-    try {
-      const response = await fetch(`/api/admin/checkAdmin?email=${session.user.email}`);
+      try {
+        const response = await fetch(`/api/admin/checkAdmin?email=${session.user.email}`);
 
-      // Log the response text to inspect it
-      const responseText = await response.text();
-      console.log('API Response:', responseText);
+        // Log the response text to inspect it
+        const responseText = await response.text();
+        console.log('API Response:', responseText);
 
-      // Attempt to parse as JSON
-      const data = JSON.parse(responseText);
+        // Attempt to parse as JSON
+        const data = JSON.parse(responseText);
 
-      setIsAdmin(data.isAdmin);
-    } catch (error) {
-      console.error('Error checking admin status:', error);
-      setIsAdmin(false);
+        setIsAdmin(data.isAdmin);
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdmin(false);
+      }
+    };
+
+    if (status === 'authenticated') {
+      checkAdminStatus();
     }
-  };
-
-  if (status === 'authenticated') {
-    checkAdminStatus();
-  }
-}, [session, status]);
+  }, [session, status]);
 
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-gray-700 py-4 px-6 bg-black">
+    <nav className="sticky top-0 z-50 border-b border-gray-700 py-4 px-6 bg-black bg-opacity-60 backdrop-blur-lg shadow-lg">
       <div className="max-w-6xl mx-auto flex justify-between items-center">
         <Link href="/" className="text-2xl">
           <span className="text-white font-medium">Pulchowk Events</span>
