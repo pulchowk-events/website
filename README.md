@@ -75,20 +75,16 @@ pulchowk-events/
 
 ## 📸 Screenshots
 
-### Initial Boilerplate UI (4/22/2025)  
+### Pulchowk Events First Demo Previews (5/10/2026)  
 
-#### Home Page
-![Home Page](https://i.ibb.co/PvZczfjN/image.png)
+#### Admin Dashboard Demo Preview
+![Demo Preview](https://s4.gifyu.com/images/bLJgM.gif)
 
-#### Product Hunt List Page
-![Product Hunt List Page](https://i.ibb.co/Gf5s24pP/image.png)
+#### Product Hunt Demo Preview
+![Demo Preview](https://s4.gifyu.com/images/bLJgK.gif)
 
-#### About Us Page
-![About Us Page](https://i.ibb.co/Tqmg8MTF/image.png)
-
-#### Nav Logged in Initial
-
-![Nav Logged in Page](https://i.ibb.co/ch3RgmDT/image.png)
+#### Login Demo Preview
+![Demo Preview](https://s4.gifyu.com/images/bLJgN.gif)
 
 ---
 
