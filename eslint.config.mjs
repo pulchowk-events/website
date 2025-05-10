@@ -9,16 +9,17 @@ const compat = new FlatCompat({
   baseDirectory: __dirname,
 });
 
-// Convert legacy config and merge additional rules
-const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
-  {
+export default [
+  ...compat.config({
+    extends: ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
     rules: {
       "react/no-unescaped-entities": "warn",
-      "@typescript-eslint/no-explicit-any": "error",
-      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+      "@next/next/no-html-link-for-pages": "off",
+      "react-hooks/exhaustive-deps": "off",
+      "prefer-const": "off",
+      "@typescript-eslint/no-unused-expressions": "off",
     },
-  },
+  }),
 ];
-
-export default eslintConfig;

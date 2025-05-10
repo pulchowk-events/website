@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import Image from 'next/image';
-import { User } from 'lucide-react';
+import { User, Edit2, X, Trash2, LoaderCircle, Loader } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSession } from 'next-auth/react';
 
@@ -23,6 +23,9 @@ export function CommentCard({ comment, isOwner, onDelete }: CommentCardProps) {
   const [userData, setUserData] = useState<{ name: string; image: string | null } | null>(null);
   const { data: session } = useSession();
   const [isDeleting, setIsDeleting] = useState(false);
+    const [editedComment, setEditedComment] = useState(comment.comment);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     async function fetchUserData() {
@@ -60,6 +63,42 @@ export function CommentCard({ comment, isOwner, onDelete }: CommentCardProps) {
     }
   }
 
+  async function handleEdit() {
+    if (!session) {
+      toast.error('Please sign in to edit comments');
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      const response = await fetch(`/api/comments/${comment.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ comment: editedComment }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update comment');
+      }
+
+      toast.success('Comment updated successfully');
+      setIsEditing(false);
+      // Update the local comment state
+      comment.comment = editedComment;
+    } catch (error) {
+      console.error('Error updating comment:', error);
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error('Failed to update comment');
+      }
+    } finally {
+      setIsUpdating(false);
+    }
+  }
+
   return (
     <div className="flex gap-4 p-4 rounded-lg bg-white/5 border border-zinc-800">
       <div className="flex-shrink-0">
@@ -88,18 +127,57 @@ export function CommentCard({ comment, isOwner, onDelete }: CommentCardProps) {
               {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
             </span>
           </div>
+
+
           {isOwner && (
-            <button
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="text-red-400 hover:text-red-300 text-sm disabled:opacity-50"
-            >
-              {isDeleting ? 'Deleting...' : 'Delete'}
-            </button>
+            <div className="flex items-center gap-2">
+              {isEditing ? (
+                <>
+                  <button
+                    onClick={() => setIsEditing(false)}
+                    className="text-zinc-400 hover:text-zinc-300 text-sm"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={handleEdit}
+                    disabled={isUpdating}
+                    className="text-green-400 hover:text-green-300 text-sm disabled:opacity-50"
+                  >
+                    {isUpdating ? 'Saving...' : 'Save'}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="text-blue-400 hover:text-blue-300 text-sm"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                    className="text-red-400 hover:text-red-300 text-sm disabled:opacity-50"
+                  >
+                    {isDeleting ? (<><Loader height={16} width={16}></Loader></>) : (<><Trash2 height={16} width={16}></Trash2></>)}
+                  </button>
+                </>
+              )}
+            </div>
           )}
         </div>
         
-        <p className="mt-1 text-zinc-300">{comment.comment}</p>
+        {isEditing ? (
+          <textarea
+            value={editedComment}
+            onChange={(e) => setEditedComment(e.target.value)}
+            className="mt-2 w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-md text-zinc-200 focus:outline-none focus:border-green-500"
+            rows={3}
+          />
+        ) : (
+          <p className="mt-1 text-zinc-300">{comment.comment}</p>
+        )}
       </div>
     </div>
   );
