@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useSession, signIn, signOut } from 'next-auth/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 import { Menu, X } from 'lucide-react';
 
@@ -11,6 +11,7 @@ export default function Navbar() {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null); // null indicates loading
   const [showMenu, setShowMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -40,8 +41,10 @@ export default function Navbar() {
 
   // Close dropdown when clicking outside
   useEffect(() => {
-    const handleClickOutside = () => {
-      setShowMenu(false);
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
+      }
     };
 
     document.addEventListener('click', handleClickOutside);
@@ -88,7 +91,7 @@ export default function Navbar() {
           ))}
           
           {session ? (
-            <div className="relative" onClick={handleAvatarClick}>
+            <div className="relative" ref={menuRef} onClick={handleAvatarClick}>
               {/* Avatar block */}
               <div className="flex items-center space-x-3 pl-8 cursor-pointer border-l border-zinc-900/80 dotted-border-vertical h-full">
                 {/* Avatar with green status dot */}
@@ -114,7 +117,10 @@ export default function Navbar() {
               {showMenu && (
                 <div className="absolute right-0 mt-2 w-40 bg-zinc-900 border border-zinc-800 rounded shadow-lg z-50">
                   <button
-                    onClick={() => signOut()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      signOut();
+                    }}
                     className="w-full px-4 py-2 text-sm text-center text-white hover:bg-zinc-800"
                   >
                     Sign Out
