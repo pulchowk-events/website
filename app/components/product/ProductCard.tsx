@@ -32,7 +32,7 @@ export default function ProductCard({ product }: { product: Product }) {
           )}
         </div>
         
-        <div className="flex-grow">
+        <div className="flex flex-col gap-2.5">
           <Link href={`/product-hunt/${product.url}`} className="block flex flex-col gap-2">
             <div className="flex flex-col">
             <h3 className="text-xl font-bold hover:text-white/80 transition-colors">
@@ -41,8 +41,7 @@ export default function ProductCard({ product }: { product: Product }) {
             <p className="text-gray-400 mt-1">{product.description}</p>
             </div>
           </Link>
-            <ClientVoteButton productId={product.id} />
-
+          <ClientVoteButton productId={product.id} />
         </div>
       </div>
 

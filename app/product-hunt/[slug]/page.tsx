@@ -86,12 +86,16 @@ return (
         </div>
 
         {/* Content Section */}
-        <div className="flex-grow">
-          <h1 className="text-4xl font-bold mb-4">{product.name}</h1>
-          <p className="text-lg text-gray-300 mb-6">{product.description}</p>
+
+        <div className="flex-col flex gap-1 sm:gap-10">
+          <div className='flex flex-col gap-1'>
+          <h1 className="text-4xl font-bold">{product.name}</h1>
+          <p className="text-lg text-gray-300">{product.description}</p>
           <p className="text-sm text-gray-400">
             Created on: {new Date(product.created_at).toLocaleDateString()}
           </p>
+          </div>
+ 
 
           <div className="mt-6 flex gap-4 text-white">
             <ClientVoteButton productId={product.id} />
