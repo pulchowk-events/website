@@ -63,8 +63,8 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 border-b h-16 dotted-border-horizontal border-gray-700 px-6 bg-black bg-opacity-60 backdrop-blur-lg shadow-lg">
-      <div className="max-w-7xl mx-auto flex h-full justify-between items-center border-x px-4 md:px-8 dotted-border-vertical">
+    <nav className="sticky top-0 z-50 border-b h-16 dotted-border-horizontal border-gray-700 sm:px-6 bg-black bg-opacity-60 backdrop-blur-lg shadow-lg">
+      <div className=" sm:max-w-7xl mx-auto flex h-full justify-between items-center border-x px-4 md:px-8 dotted-border-vertical">
         <Link href="/" className="text-2xl h-full items-center flex">
           <span className="text-white font-medium">Pulchowk Events</span>
         </Link>
