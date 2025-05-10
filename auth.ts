@@ -17,7 +17,7 @@ export const authOptions: AuthOptions = {
         params: {
           scope: "identify email",
           response_type: "code",
-          redirect_uri: "http://localhost:3000/api/auth/callback/discord",
+          redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/callback/discord`,
         },
       },
     }),
