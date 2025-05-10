@@ -4,6 +4,17 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+import { BorderBeam } from "@/components/magicui/border-beam";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface EditProductModalProps {
   product: {
@@ -106,90 +117,94 @@ const handleSubmit = async (e: React.FormEvent) => {
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
           transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-          className="relative w-full max-w-md bg-zinc-900 text-white p-6 sm:p-8 rounded-xl shadow-xl z-[1000]"
           onClick={(e) => e.stopPropagation()}
         >
-          <h2 className="text-xl sm:text-2xl font-bold mb-4">Edit Product</h2>
-          <form className="space-y-4" onSubmit={handleSubmit}>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Product Name"
-              required
-              className="w-full p-3 rounded bg-zinc-800 border border-zinc-700 text-sm sm:text-base"
-            />
+          <Card className="relative w-full max-w-md bg-black/90  text-white overflow-hidden">
+            <CardHeader>
+              <CardTitle>Edit Product</CardTitle>
+              <CardDescription>Update your product details.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form className="space-y-4" onSubmit={handleSubmit}>
+                <div className="space-y-1.5">
+                  <Label htmlFor="name">Product Name</Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Product Name"
+                    required
+                  />
+                </div>
 
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Description"
-              required
-              className="w-full p-3 rounded bg-zinc-800 border border-zinc-700 text-sm sm:text-base min-h-[100px]"
-            />
+                <div className="space-y-1.5">
+                  <Label htmlFor="description">Description</Label>
+                  <textarea
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Brief description"
+                    required
+                    className="w-full p-3 rounded bg-zinc-800 border border-zinc-800 text-sm min-h-[100px]"
+                  />
+                </div>
 
-            <div>
-              <input
-                type="text"
-                value={url}
-                onChange={(e) => {
-                  setUrl(e.target.value);
-                  if (urlError) setUrlError('');
-                }}
-                placeholder="Product URL (e.g. my-product-url)"
-                required
-                className="w-full p-3 rounded bg-zinc-800 border border-zinc-700 text-sm sm:text-base"
-              />
-              {urlError && <p className="mt-1 text-red-400 text-sm">{urlError}</p>}
-            </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="url">Product URL</Label>
+                  <Input
+                    id="url"
+                    type="text"
+                    value={url}
+                    onChange={(e) => {
+                      setUrl(e.target.value);
+                      if (urlError) setUrlError('');
+                    }}
+                    placeholder="e.g. my-product-url"
+                    required
+                  />
+                  {urlError && (
+                    <p className="text-sm text-red-400">{urlError}</p>
+                  )}
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">Update Image</label>
-              <div className="relative">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setImage(e.target.files ? e.target.files[0] : null)}
-                  id="product-image"
-                  className="sr-only"
-                />
-                <label
-                  htmlFor="product-image"
-                  className="inline-block px-4 py-2 text-sm font-medium text-zinc-200 bg-zinc-700 hover:bg-zinc-600 rounded cursor-pointer"
-                >
-                  Choose New Image
-                </label>
-                {image && (
-                  <p className="mt-2 text-xs text-zinc-400 truncate">
-                    Selected: {image.name}
-                  </p>
-                )}
-                {product.image_url && !image && (
-                  <p className="mt-2 text-xs text-zinc-400">
-                    Current image will be kept
-                  </p>
-                )}
-              </div>
-            </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="product-image">Update Image</Label>
+                  <Input
+                    id="product-image"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setImage(e.target.files ? e.target.files[0] : null)}
+                  />
+                  {image && (
+                    <p className="text-sm text-zinc-400 truncate">
+                      Selected: {image.name}
+                    </p>
+                  )}
+                  {product.image_url && !image && (
+                    <p className="text-sm text-zinc-400">
+                      Current image will be kept
+                    </p>
+                  )}
+                </div>
 
-            <div className="flex flex-col sm:flex-row justify-end gap-2 pt-2">
-              <button
-                type="button"
-                className="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500"
-                onClick={onClose}
-                disabled={loading}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-500 disabled:opacity-50"
-              >
-                {loading ? 'Updating...' : 'Update Product'}
-              </button>
-            </div>
-          </form>
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={onClose}
+                    disabled={loading}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={loading}>
+                    {loading ? 'Updating...' : 'Update'}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+            <BorderBeam duration={8} size={120} />
+          </Card>
         </motion.div>
       </motion.div>
     </AnimatePresence>

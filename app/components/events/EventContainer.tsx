@@ -37,9 +37,9 @@ export default async function EventsPage() {
   return (
 <>
 
-          <div className="max-w-6xl mx-auto py-16 px-6">
+          <div className="max-w-7xl mx-auto dotted-border-vertical border-x pb-12">
             {upcomingEvents.length > 0 && (
-              <div className="mb-12">
+              <div className="mb-12 py-8 dotted-border-horizontal border-y px-8">
                 <h2 className="text-2xl font-bold text-white mb-6">Upcoming Events</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {upcomingEvents.map((event) => (
@@ -54,8 +54,8 @@ export default async function EventsPage() {
             )}
             
             {pastEvents.length > 0 && (
-              <div>
-                <h2 className="text-2xl font-bold text-white mb-6">Past Events</h2>
+              <div className="px-8">
+                <h2 className="text-2xl font-bold text-white mb-6 ">Past Events</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {pastEvents.map((event) => (
                     <EventCard 

@@ -61,7 +61,7 @@ export function CommentCard({ comment, isOwner, onDelete }: CommentCardProps) {
   }
 
   return (
-    <div className="flex gap-4 p-4 rounded-lg bg-zinc-800/50 border border-zinc-700">
+    <div className="flex gap-4 p-4 rounded-lg bg-white/5 border border-zinc-800">
       <div className="flex-shrink-0">
         {userData?.image ? (
           <Image

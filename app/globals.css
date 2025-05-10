@@ -41,6 +41,18 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --animate-shine: shine var(--duration) infinite linear;
+  @keyframes shine {
+  0% {
+    background-position: 0% 0%;
+    }
+  50% {
+    background-position: 100% 100%;
+    }
+  to {
+    background-position: 0% 0%;
+    }
+  }
 }
 
 #modal-root {
@@ -156,8 +168,6 @@
   @apply fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 !m-0;
 }
 
-
-
 [data-radix-dialog-overlay] {
   position: fixed;
   inset: 0;
@@ -214,3 +224,26 @@
 [data-radix-dialog-content][data-state="closed"] {
   animation: slideOut 200ms ease-in;
 }
+
+.dotted-border-horizontal {
+  border-image: repeating-linear-gradient(
+    to right,
+    #313834 0px,
+    #313834 4px,
+    transparent 2px,
+    transparent 6px
+  );
+  border-image-slice: 1;
+}
+
+.dotted-border-vertical {
+  border-image: repeating-linear-gradient(
+    to bottom,
+    #313834 0px,
+    #313834 4px,
+    transparent 2px,
+    transparent 6px
+  );
+  border-image-slice: 1;
+}
+

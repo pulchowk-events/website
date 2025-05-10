@@ -158,7 +158,7 @@ export function Comments({ productId }: CommentsProps) {
             onChange={(e) => setNewComment(e.target.value)}
             placeholder={session ? "Add a comment..." : "Sign in to comment"}
             disabled={!session || isSubmitting}
-            className="w-full p-4 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-400 focus:border-green-500 focus:ring focus:ring-green-500 focus:ring-opacity-50 transition"
+            className="w-full p-4 rounded-lg bg-white/5 border border-zinc-800 text-white placeholder-zinc-400 focus:border-green-500 focus:ring focus:ring-green-500 focus:ring-opacity-50 transition"
             rows={3}
           />
           {session && (

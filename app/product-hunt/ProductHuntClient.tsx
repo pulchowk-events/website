@@ -2,7 +2,7 @@
 
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { ProductCard } from '@/app/components/product/ProductCard';
+import ProductCard from '@/app/components/product/ProductCard';
 import ClientVoteCooldownNotice from '@/app/components/vote/ClientVoteCooldown';
 import AddProductModal from '@/app/components/product/AddProductModal'; // your modal
 import { createPortal } from 'react-dom'; // Import React Portal
@@ -40,7 +40,7 @@ export default function ProductHuntClient({ products, userId }: Props) {
 }
 
 
-    <div className="max-w-4xl mx-auto py-10 px-4 relative">
+    <div className="max-w-7xl min-h-300 mx-auto py-10 px-8 relative dotted-border-vertical border-x">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Products</h1>
         <div className="flex items-center gap-4">

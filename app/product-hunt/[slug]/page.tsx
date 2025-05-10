@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import Layout from '@/app/components/layout/Layout';
 import { ClientVoteButton } from '@/app/components/vote/ClientVoteButton';
 import { RemoveButton } from '@/app/components/product/RemoveProduct';
-import { EditButton } from '@/app/components/product/EditProduct';
+import EditButton from '@/app/components/product/EditProduct';
 import { Comments } from '@/app/components/comments/CommentSection';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/auth';
@@ -65,7 +65,7 @@ export default async function ProductPage({ params }: Props) {
 
 return (
   <Layout>
-    <div className="max-w-6xl mx-auto py-16 px-4">
+    <div className="max-w-7xl mx-auto py-16 px-8 dotted-border-vertical border-x">
       <div className="flex flex-col md:flex-row gap-8 mb-8">
         {/* Image Section */}
         <div className="w-full md:w-48 h-48 flex-shrink-0">

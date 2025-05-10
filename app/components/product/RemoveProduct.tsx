@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -8,13 +8,30 @@ import { toast } from 'sonner';
 interface RemoveButtonProps {
   productId: number;
   productName: string;
-  isOwner?: boolean;  // Add this prop
+  isOwner?: boolean;
 }
 
 export function RemoveButton({ productId, productName, isOwner = false }: RemoveButtonProps) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const router = useRouter();
+
+  // Check for mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    
+    // Initial check
+    checkMobile();
+    
+    // Add resize listener
+    window.addEventListener('resize', checkMobile);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleRemove = async () => {
     setIsDeleting(true);
@@ -54,31 +71,31 @@ export function RemoveButton({ productId, productName, isOwner = false }: Remove
     <>
       <button
         onClick={() => setIsConfirmOpen(true)}
-        className="flex items-center gap-2 px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-500 rounded-lg transition-colors"
+        className="flex items-center gap-2 px-3 py-2 sm:px-4 bg-red-600/20 hover:bg-red-600/30 text-red-500 rounded-lg transition-colors"
         disabled={isDeleting}
       >
         <Trash2 className="w-4 h-4" />
-        Remove Product
+        {!isMobile && <span>Remove Product</span>}
       </button>
 
       {isConfirmOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-zinc-900 p-6 rounded-xl border border-zinc-800 max-w-md w-full mx-4">
-            <h3 className="text-xl font-semibold mb-4">Remove Product</h3>
-            <p className="text-zinc-400 mb-6">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-zinc-900 p-4 sm:p-6 rounded-xl border border-zinc-800 max-w-md w-full">
+            <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Remove Product</h3>
+            <p className="text-zinc-400 text-sm sm:text-base mb-4 sm:mb-6">
               Are you sure you want to remove &quot;{productName}&quot;? This action cannot be undone.
             </p>
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-2 sm:gap-3">
               <button
                 onClick={() => setIsConfirmOpen(false)}
-                className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg"
+                className="px-3 py-1.5 sm:px-4 sm:py-2 text-sm bg-zinc-800 hover:bg-zinc-700 rounded-lg"
                 disabled={isDeleting}
               >
                 Cancel
               </button>
               <button
                 onClick={handleRemove}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg"
+                className="px-3 py-1.5 sm:px-4 sm:py-2 text-sm bg-red-600 hover:bg-red-700 rounded-lg"
                 disabled={isDeleting}
               >
                 {isDeleting ? 'Removing...' : 'Yes, remove'}

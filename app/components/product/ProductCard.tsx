@@ -13,7 +13,7 @@ interface Product {
   image_url: string | null;
 }
 
-export function ProductCard({ product }: { product: Product }) {
+export default function ProductCard({ product }: { product: Product }) {
   return (
     <div className="bg-gray-800 p-6 rounded-lg flex flex-col gap-4 items-start">
       <div className="flex items-start space-x-4 w-full">
