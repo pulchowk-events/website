@@ -1,6 +1,6 @@
 'use client';
 
-import { Users, Package, CheckCircle, Clock } from 'lucide-react';
+import { Users, Heart, Package, CheckCircle, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface AdminStatsProps {
@@ -10,6 +10,7 @@ interface AdminStatsProps {
     pendingProducts: number;
     totalUsers: number;
     totalEvents: number;
+    totalDonations: number;
   };
 }
 
@@ -29,6 +30,11 @@ export default function AdminStats({ stats }: AdminStatsProps) {
       title: 'Pending Review',
       value: stats.pendingProducts,
       icon: <Clock className="h-6 w-6 text-yellow-300" />,
+    },
+    {
+      title: 'Total Donations',
+      value: `$` + stats.totalDonations,
+      icon: <Heart className="h-6 w-6 text-red-300" />,
     },
     {
       title: 'Total Users',

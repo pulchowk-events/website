@@ -1,5 +1,6 @@
 import { type AuthOptions, type Session } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
+import GoogleProvider from "next-auth/providers/google";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -21,6 +22,10 @@ export const authOptions: AuthOptions = {
         },
       },
     }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
   ],
   callbacks: {
     async signIn({ user }) {
@@ -36,7 +41,10 @@ export const authOptions: AuthOptions = {
           { onConflict: "id" }
         );
 
-      if (error) return false;
+      if (error) {
+        console.error("Error upserting user:", error);
+        return false;
+      }
       return true;
     },
 
@@ -66,5 +74,5 @@ export const authOptions: AuthOptions = {
     signIn: "/auth/signin",
     error: "/auth/error",
   },
-  debug: true,
+  debug: process.env.NODE_ENV === "development",
 };

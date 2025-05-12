@@ -7,6 +7,8 @@ import AdminUserForm from './AdminUserForm';
 import AdminEventForm from './AdminEventForm';
 import PendingProducts from './PendingProducts';
 import AdminStats from './AdminStats';
+import AdminEditDonations from './AdminEditDonations';
+
 
 interface AdminDashboardProps {
   session: any;
@@ -16,6 +18,7 @@ interface AdminDashboardProps {
     pendingProducts: number;
     totalUsers: number;
     totalEvents: number;
+    totalDonations: number;
   };
 }
 
@@ -29,10 +32,19 @@ export default function AdminDashboard({ session, dashboardStats }: AdminDashboa
         <AdminStats stats={dashboardStats} />
       </div>
       
-      <Tabs defaultValue="pending" className="mt-8">
+      <Tabs defaultValue="donations" className="mt-8">
           {/* Responsive Tabs Layout */}
           <div className="pb-2">
             <TabsList className="flex flex-col sm:flex-row flex-nowrap xs:min-w-max w-full mb-4 sm:mb-6 bg-zinc-800 rounded-md shadow-md">
+              
+                <TabsTrigger 
+                    value="donations" 
+                    className="whitespace-nowrap text-sm md:text-base py-3 sm:border-none border-b xs:border-b-0 xs:border-r border-zinc-700 last:border-0"
+                  >
+                    Manage Donations
+                </TabsTrigger>
+                
+
               <TabsTrigger 
                 value="pending" 
                 className="whitespace-nowrap text-sm md:text-base py-3 sm:border-none border-b xs:border-b-0 xs:border-r border-zinc-700 last:border-0"
@@ -65,6 +77,14 @@ export default function AdminDashboard({ session, dashboardStats }: AdminDashboa
               </TabsTrigger>
             </TabsList>
           </div>
+
+                <TabsContent value="donations">
+          <Card className="bg-zinc-800/50 shadow-md border border-zinc-800">
+            <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
+              <AdminEditDonations />
+            </CardContent>
+          </Card>
+        </TabsContent>
         
         <TabsContent value="pending">
           <Card className="bg-zinc-800/50 shadow-md border border-zinc-800">

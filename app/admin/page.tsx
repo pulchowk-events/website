@@ -4,6 +4,7 @@ import { authOptions } from '@/auth';
 import { createServerSupabaseClient } from '../lib/supabase-server';
 import Layout from '@/app/components/layout/Layout';
 import AdminDashboard from '@/app/components/admin/AdminDashboard';
+import { count } from 'console';
 
 export default async function AdminPage() {
   // Get session server-side
@@ -42,6 +43,14 @@ export default async function AdminPage() {
     .from('events')
     .select('id', { count: 'exact', head: true });
 
+const { data: donationsData, error: donationsError } = await supabase
+    .from('donations')
+    .select('amount')
+    .eq('verified', true);
+
+const totalDonations = donationsData?.reduce((sum, donation) => sum + donation.amount, 0) || 0;
+
+    
   if (productsError || userCountError || eventsCountError) {
     console.error('Error fetching stats:', productsError, userCountError, eventsCountError);
     return redirect('/');
@@ -53,6 +62,7 @@ export default async function AdminPage() {
     pendingProducts: productsData?.filter((p: any) => !p.approved).length || 0,
     totalUsers: totalUsers || 0,
     totalEvents: totalEvents || 0,
+    totalDonations: totalDonations || 0,
   };
 
   return (
