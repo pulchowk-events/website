@@ -18,7 +18,7 @@ export function VortexHero() {
           Introducing Product Hunt
         </h2>
         <p className="text-white text-sm md:text-2xl sm:w-1/2 mt-2 sm:mt-6 text-center">
-           Discover, celebrate, and vote for innovative projects by students and professionals!
+           Discover, celebrate, vote and get funded for innovative projects!
         </p>
         <div className="flex flex-col sm:flex-row items-center gap-4 mt-6">
             <a href="/product-hunt">

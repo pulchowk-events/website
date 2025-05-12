@@ -16,20 +16,35 @@ export default function Navbar() {
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const checkAdminStatus = async () => {
-      if (!session?.user?.email) return setIsAdmin(false);
+  const checkAdminStatus = async () => {
+    if (!session?.user?.email) {
+      setIsAdmin(false);
+      return;
+    }
 
-      try {
-        const response = await fetch(`/api/admin/checkAdmin?email=${session.user.email}`);
+        try {
+          const response = await fetch(
+            `/api/admin/checkAdmin?email=${encodeURIComponent(session.user.email)}`,
+            {
+              method: 'GET',
+              headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+              }
+            }
+          );
 
-        // Log the response text to inspect it
-        const responseText = await response.text();
-        console.log('API Response:', responseText);
+      if (!response.ok) {
+        console.error('Admin check failed:', response.status);
+        setIsAdmin(false);
+        return;
+      }
 
         // Attempt to parse as JSON
-        const data = JSON.parse(responseText);
-
-        setIsAdmin(data.isAdmin);
+        const data = await response.json();
+        // Explicitly check for boolean true
+        setIsAdmin(data.isAdmin === true);
       } catch (error) {
         console.error('Error checking admin status:', error);
         setIsAdmin(false);
@@ -38,6 +53,9 @@ export default function Navbar() {
 
     if (status === 'authenticated') {
       checkAdminStatus();
+    }
+    else {
+      setIsAdmin(false);
     }
   }, [session, status]);
 
@@ -62,11 +80,14 @@ export default function Navbar() {
     setShowSignInModal(true);
   };
 
-  const navLinks = [
-    { href: '/product-hunt', label: 'Product Hunt' },
-    { href: '/about', label: 'About' },
-    ...(isAdmin ? [{ href: '/admin', label: 'Admin Panel' }] : [])
-  ];
+// Update the navLinks array definition
+const baseNavLinks = [
+  { href: '/product-hunt', label: 'Product Hunt' },
+  { href: '/about', label: 'About' },
+];
+
+// Create a filtered navLinks array that depends on admin status
+const navLinks = isAdmin === true ? [...baseNavLinks, { href: '/admin', label: 'Admin Panel' }] : baseNavLinks;
 
   return (
     <>

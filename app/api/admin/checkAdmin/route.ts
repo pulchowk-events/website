@@ -1,25 +1,49 @@
-// app/api/checkAdmin/route.ts
 import { NextResponse } from 'next/server';
-import { supabase } from '@/app/lib/supabase'; // Update this path if necessary
+import { supabase } from '@/app/lib/supabase';
+
+export const dynamic = 'force-dynamic'; // Disable caching for this route
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const email = searchParams.get('email');
 
   if (!email) {
-    return NextResponse.json({ message: 'Email is required' }, { status: 400 });
+    return NextResponse.json({ isAdmin: false }, { status: 400 });
   }
 
   try {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('admins')
       .select('email')
       .eq('email', email)
       .maybeSingle();
 
-    return NextResponse.json({ isAdmin: !!data });
+    if (error || !data) {
+      console.error('Error checking admin status:', error);
+      return NextResponse.json({ isAdmin: false }, {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      });
+    }
+
+    return NextResponse.json({ isAdmin: true }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
+    });
   } catch (error) {
     console.error('Error checking admin status:', error);
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ isAdmin: false }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
+    });
   }
 }
