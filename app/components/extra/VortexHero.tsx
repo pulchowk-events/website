@@ -4,7 +4,8 @@ import { Vortex } from "@/components/ui/vortex";
 
 export function VortexHero() {
   return (
-    <div className="w-[calc(100%)] mx-auto rounded-md  h-[25rem] overflow-hidden dotted-border-vertical border-x">
+    <div className="w-[calc(100%)] mx-auto rounded-md h-[15rem] sm:h-[25rem] overflow-hidden dotted-border-vertical border-x">
+
       <Vortex
         backgroundColor="black"
         className="flex items-center flex-col justify-center px-2  md:px-10 py-4 w-full h-full"
@@ -12,6 +13,7 @@ export function VortexHero() {
         particleCount={500}
         baseHue={120}
       >
+
         <h2 className="text-white text-2xl md:text-6xl  font-bold text-center">
           Introducing Product Hunt
         </h2>
