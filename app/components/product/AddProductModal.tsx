@@ -161,7 +161,7 @@ return (
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="url">Product URL</Label>
+                <Label htmlFor="url">Product Slug</Label>
                 <Input
                   id="url"
                   type="text"
@@ -170,7 +170,7 @@ return (
                     setUrl(e.target.value);
                     if (urlError) setUrlError('');
                   }}
-                  placeholder="e.g. my-product-url"
+                  placeholder=".com/product-hunt/{your-slug}"
                   required
                 />
                 {urlError && (

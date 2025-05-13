@@ -82,6 +82,7 @@ export default function Navbar() {
 
 // Update the navLinks array definition
 const baseNavLinks = [
+  { href: '/lounge', label: 'Lounge' },
   { href: '/product-hunt', label: 'Product Hunt' },
   { href: '/about', label: 'About' },
 ];
