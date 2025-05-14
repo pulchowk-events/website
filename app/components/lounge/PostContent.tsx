@@ -8,6 +8,7 @@ import { ExternalLink, Pencil, Trash2 } from 'lucide-react';
 import { PostCategory, categoryDisplayMap, categoryIcons } from '@/types/posts';
 import EditPostModal from './EditPostModal';
 import DeletePostDialog from './DeletePostDialog';
+import { LoungeComments } from './comments/LoungeComments';
 
 interface Post {
   id: string;
@@ -34,6 +35,7 @@ export default function PostContent({ post, isAdmin, isAuthor }: PostContentProp
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   return (
+    <>
     <div className="flex flex-col md:flex-row gap-8">
       {/* Author Info Section */}
       <div className="w-full md:w-48 flex-shrink-0">
@@ -121,5 +123,10 @@ export default function PostContent({ post, isAdmin, isAuthor }: PostContentProp
         )}
       </div>
     </div>
+
+    <div className="mt-12">
+      <LoungeComments postId={post.id} />
+    </div>
+    </>
   );
 }

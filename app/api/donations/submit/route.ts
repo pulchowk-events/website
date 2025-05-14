@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/auth'
 import { supabase } from '@/app/lib/supabase'
 
+
 export async function POST(request: Request) {
   try {
     // Get session using next-auth
@@ -66,6 +67,8 @@ export async function POST(request: Request) {
         details: donationError.message
       }, { status: 500 })
     }
+
+
 
     return NextResponse.json({
       success: true,

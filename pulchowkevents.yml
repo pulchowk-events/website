@@ -1,0 +1,159 @@
+name: Pulchowk Events
+description: >
+  Pulchowk Events is a modern web platform for discovering, sharing, and managing events and student projects across Nepal's educational institutions. It features event listings, a Product Hunt section for student projects, a community lounge, voting, comments, donations, and an admin dashboard.
+
+version: 1.0.0
+author: Pulchowk Events Team
+
+tech_stack:
+  frontend:
+    - Next.js (App Router)
+    - React
+    - Tailwind CSS
+    - Lucide React Icons
+    - Framer Motion
+    - Sonner (toast notifications)
+    - Headless UI
+  backend:
+    - Supabase (database & storage)
+    - Next.js API Routes
+    - NextAuth (authentication)
+  language: TypeScript
+
+pages:
+  - path: /
+    file: app/page.tsx
+    description: Home page with hero, events, and quick links.
+  - path: /about
+    file: app/about/page.tsx
+    description: About the platform.
+  - path: /admin
+    file: app/admin/page.tsx
+    description: Admin dashboard for moderation and management.
+  - path: /donate
+    file: app/donate/page.tsx
+    description: Donation and prize pool page.
+  - path: /lounge
+    file: app/lounge/page.tsx
+    description: Community lounge for posts and discussions.
+  - path: /lounge/[id]
+    file: app/lounge/[id]/page.tsx
+    description: Lounge post detail page.
+  - path: /product-hunt
+    file: app/product-hunt/page.tsx
+    description: Product Hunt for student projects.
+  - path: /product-hunt/[slug]
+    file: app/product-hunt/[slug]/page.tsx
+    description: Product/project detail page.
+  - path: /auth/signin
+    file: app/auth/signin/page.tsx
+    description: Sign-in page (Discord, Google OAuth).
+
+components:
+  layout:
+    - Layout
+    - Navbar
+    - Footer
+  events:
+    - EventContainer
+    - EventCard
+  lounge:
+    - PostCard
+    - AddPostModal
+    - EditPostModal
+    - DeletePostDialog
+    - PostContent
+    - CategoryFilter
+    - LoungeComments
+  product:
+    - ProductHuntClient
+    - EditProduct
+    - RemoveProduct
+    - ClientVoteButton
+  donate:
+    - PrizePoolProgress
+    - TopDonators
+    - NeedDonationModal
+  admin:
+    - AdminDashboard
+  auth:
+    - AuthButton
+    - SignInModal
+  extra:
+    - VortexHero
+
+api_routes:
+  - /api/lounge/posts/get
+  - /api/lounge/posts/submit
+  - /api/lounge/posts/remove
+  - /api/lounge/posts/[id]
+  - /api/products/submit
+  - /api/products/remove
+  - /api/products/approved
+  - /api/products/pending
+  - /api/products/pending/approve
+  - /api/comments
+  - /api/donations
+  - /api/donations/submit
+  - /api/donations/prize-pool
+  - /api/donations/top
+  - /api/admin/add-admin
+  - /api/admin/donations
+  - /api/admin/donations/prize-pool
+  - /api/admin/donations/verified
+  - /api/admin/users
+  - /api/users/[userId]
+  - /api/votes
+  - /api/events
+
+middleware:
+  - NextAuth for authentication (Discord, Google)
+  - Route protection for admin and user-only actions
+  - API input validation (zod, manual checks)
+
+types_and_interfaces:
+  - Post, PostCategory, categoryDisplayMap, categoryIcons (see: [app/api/lounge/posts/get/route.ts](app/api/lounge/posts/get/route.ts), [@/types/posts])
+  - Product (id, name, description, url, image_url, posted_by, created_at, approved)
+  - User (id, name, image, email)
+  - Donation, PrizePool
+  - Admin (email)
+  - API response types (success, error, pagination)
+  - Props for all major components (e.g., LoungeClient, PostContent, ProductHuntClient)
+
+features:
+  - Event listing and management
+  - Product Hunt for student projects (showcase, vote, comment)
+  - Community lounge (posts, categories, comments, moderation)
+  - Voting system with cooldown
+  - Discord/Google OAuth authentication
+  - Admin dashboard for moderation, user and donation management
+  - Donation and prize pool tracking
+  - Responsive, modern UI with dark mode
+  - Toast notifications for feedback
+  - Image upload and validation
+  - Protected routes for admins and authenticated users
+
+env_variables:
+  - NEXT_PUBLIC_SUPABASE_URL
+  - NEXT_PUBLIC_SUPABASE_ANON_KEY
+  - SUPABASE_SERVICE_ROLE_KEY
+  - DISCORD_CLIENT_ID
+  - DISCORD_CLIENT_SECRET
+  - GOOGLE_CLIENT_ID
+  - GOOGLE_CLIENT_SECRET
+  - NEXTAUTH_URL
+  - NEXTAUTH_SECRET
+
+structure:
+  - app/
+    - pages and route handlers
+    - components/
+    - lib/ (supabase, context, helpers)
+    - utils/
+    - types/
+    - globals.css
+    - layout.tsx
+    - providers.tsx
+
+license: MIT
+repository: https://github.com/pulchowk-events/website

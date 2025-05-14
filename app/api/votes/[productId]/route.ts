@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/app/lib/supabase-server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/auth';
+import { insertNotification } from '@/lib/notifications';
+
 
 // Interface for Vote
 export interface Vote {
@@ -15,10 +17,10 @@ export interface Vote {
 // GET handler for retrieving votes for a specific product
 export async function GET(
   request: NextRequest,
-  context: { params: { productId: string } }
+  context: { params: Promise<{ productId: string }> }
 ) {
   // Access params safely
-  const { productId } = context.params;
+  const { productId } = await context.params;
   const productIdNum = parseInt(productId);
   
   if (isNaN(productIdNum)) {
@@ -57,22 +59,22 @@ export async function GET(
 // POST handler for adding a vote
 export async function POST(
   request: NextRequest,
-  context: { params: { productId: string } }
+  context: { params: Promise<{ productId: string }> }
 ) {
-  // Access params safely
-  const { productId } = context.params;
-  const productIdNum = parseInt(productId);
-  
-  if (isNaN(productIdNum)) {
-    return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
-  }
-
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-  }
-
   try {
+    // Await the params
+    const { productId } = await context.params;
+    const productIdNum = parseInt(productId);
+  
+    if (isNaN(productIdNum)) {
+      return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
+    }
+
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
     const { type } = await request.json();
     if (type !== 'upvote' && type !== 'downvote') {
       return NextResponse.json({ error: 'Invalid vote type' }, { status: 400 });
@@ -118,13 +120,37 @@ export async function POST(
     }
 
     // Insert the vote
-    const { error } = await supabase.from('votes').insert({
+    const { error: voteError } = await supabase.from('votes').insert({
       user_id: session.user.id,
       product_id: productIdNum,
       type,
     });
 
-    if (error) throw error;
+    if (voteError) throw voteError;
+
+        
+    const { data: product, error: productError } = await supabase
+      .from('products')
+      .select('posted_by, name, url')
+      .eq('id', productIdNum)
+      .single();
+
+    if (productError) {
+      console.error('Error fetching product details:', productError);
+    } else if (product && product.posted_by !== session.user.id) {
+      try {
+        await insertNotification(supabase, {
+          user_id: product.posted_by,
+          type: 'product_vote',
+          title: `${session.user.name} ${type}d your product "${product.name}"`,
+          link: `/product-hunt/${product.url}`,
+          source_user_id: session.user.id
+        });
+      } catch (notificationError) {
+        console.error('Error creating notification:', notificationError);
+        // Don't throw - we don't want to fail the vote if notification fails
+      }
+    }
 
     // Increment vote count - first try RPC for efficiency, fall back to manual count if RPC unavailable
     try {
@@ -170,6 +196,9 @@ export async function POST(
 
     const upvotes = updatedVotes?.filter(v => v.type === 'upvote').length || 0;
     const downvotes = updatedVotes?.filter(v => v.type === 'downvote').length || 0;
+
+
+
 
     return NextResponse.json({ 
       success: true, 

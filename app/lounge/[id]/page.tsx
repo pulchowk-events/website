@@ -5,9 +5,32 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/auth';
 import { createServerSupabaseClient } from '@/app/lib/supabase-server';
 import PostContent from '@/app/components/lounge/PostContent';
+import { Metadata } from 'next';
 
 interface Props {
   params: { id: string };
+}
+
+// Add generateMetadata function
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const postId = params?.id;
+
+  if (!postId) {
+    return {
+      title: 'Post Not Found | Pulchowk Events'
+    };
+  }
+
+  const supabase = createServerSupabaseClient();
+  const { data: post } = await supabase
+    .from('lounge_posts')
+    .select('title')
+    .eq('id', postId)
+    .single();
+
+  return {
+    title: post?.title ? `${post.title} | Pulchowk Events` : 'Loading... | Pulchowk Events'
+  };
 }
 
 export default async function PostPage({ params }: Props) {

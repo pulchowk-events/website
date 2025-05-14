@@ -4,10 +4,12 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import PostCard from '@/app/components/lounge/PostCard';
 import AddPostModal from '@/app/components/lounge/AddPostModal';
+import CategoryFilter from '@/app/components/lounge/CategoryFilter';
 import { createPortal } from 'react-dom';
 import SignInModal from '@/app/components/signIn/SignInModal';
 import { Post } from '@/app/api/lounge/posts/get/route';
 import { Loader2 } from 'lucide-react';
+import { PostCategory } from '@/types/posts';
 
 interface Props {
   initialPosts: Post[];
@@ -23,44 +25,65 @@ export default function LoungeClient({ initialPosts, userId }: Props) {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [selectedCategories, setSelectedCategories] = useState<PostCategory[]>([]);
   const isLoggedIn = !!userId;
 
   useEffect(() => {
     setShowModal(searchParams.get('showAddPost') === 'true');
   }, [searchParams]);
 
-  const fetchPosts = async (pageNum: number) => {
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/lounge/posts/get?page=${pageNum}&limit=6`);
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch posts');
-      }
-
-      // For first page, replace posts
-      if (pageNum === 1) {
-        setPosts(data.posts);
+   const handleCategoryToggle = (category: PostCategory) => {
+    setSelectedCategories(prev => {
+      if (prev.includes(category)) {
+        return prev.filter(c => c !== category);
       } else {
-        // For subsequent pages, append new posts
-        setPosts(prevPosts => {
-          // Filter out any duplicates by id
-          const newPosts = data.posts.filter(
-            (newPost: Post) => !prevPosts.some(existingPost => existingPost.id === newPost.id)
-          );
-          return [...prevPosts, ...newPosts];
-        });
+        return [...prev, category];
       }
-      
-      // Update hasMore based on current page and total pages
-      setHasMore(pageNum < data.totalPages);
-    } catch (error) {
-      console.error('Error fetching posts:', error);
-    } finally {
-      setLoading(false);
-    }
+    });
+    setPage(1); // Reset pagination when changing filters
   };
+
+const fetchPosts = async (pageNum: number) => {
+  try {
+    setLoading(true);
+
+    const categoryQuery = selectedCategories.length > 0 
+      ? `&categories=${selectedCategories.join(',')}`
+      : '';
+
+    // Add the categoryQuery to the fetch URL
+    const response = await fetch(`/api/lounge/posts/get?page=${pageNum}&limit=6${categoryQuery}`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to fetch posts');
+    }
+
+    // For first page, replace posts
+    if (pageNum === 1) {
+      setPosts(data.posts);
+    } else {
+      // For subsequent pages, append new posts
+      setPosts(prevPosts => {
+        const newPosts = data.posts.filter(
+          (newPost: Post) => !prevPosts.some(existingPost => existingPost.id === newPost.id)
+        );
+        return [...prevPosts, ...newPosts];
+      });
+    }
+    
+    setHasMore(pageNum < data.totalPages);
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+// Add dependency array to useEffect
+useEffect(() => {
+  fetchPosts(1);
+}, [selectedCategories]); // This will trigger when categories change
 
   const loadMore = () => {
     if (!loading && hasMore) {
@@ -127,15 +150,28 @@ export default function LoungeClient({ initialPosts, userId }: Props) {
           </button>
         </div>
 
-        <div className="grid grid-cols-2 gap-6">
-          {posts.length > 0 ? (
-            posts.map((post) => (
-              <PostCard key={post.id} post={post} />
-            ))
-          ) : (
-            <p className="text-center text-gray-400">No posts found.</p>
-          )}
-        </div>
+        <CategoryFilter
+          selectedCategories={selectedCategories}
+          onCategoryToggle={handleCategoryToggle}
+        />
+
+        {loading && posts.length === 0 ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-green-500" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-6">
+            {posts.length > 0 ? (
+              posts.map((post) => (
+                <PostCard key={post.id} post={post} />
+              ))
+            ) : (
+              <p className="text-center text-gray-400 col-span-2">
+                No posts found for selected categories.
+              </p>
+            )}
+          </div>
+        )}
 
         {hasMore && (
           <div className="mt-8 flex justify-center">

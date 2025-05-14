@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 import { authOptions } from '@/auth';
 import { supabase } from '@/app/lib/supabase'; // Regular Supabase client
+import { insertNotification } from '@/lib/notifications';
+
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
@@ -32,6 +34,24 @@ export async function POST(request: Request) {
       .single();
 
     if (error) throw error;
+
+        if (product_id) {
+      const { data: product } = await supabase
+        .from('products')
+        .select('posted_by, name, url')
+        .eq('id', product_id)
+        .single();
+
+      if (product) {
+        await insertNotification(supabase, {
+          user_id: product.posted_by,
+          type: 'product_comment',
+          title: `${session.user.name} commented on your product "${product.name}"`,
+          link: `/product-hunt/${product.url}`,
+          source_user_id: session.user.id
+        });
+      }
+    }
 
     return NextResponse.json(data);
   } catch (error) {

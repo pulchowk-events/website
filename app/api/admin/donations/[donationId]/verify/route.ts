@@ -2,6 +2,8 @@ import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 import { authOptions } from '@/auth';
 import { supabase } from '@/app/lib/supabase';
+import { insertNotification } from '@/lib/notifications';
+
 
 export const dynamic = 'force-dynamic';
 
@@ -54,7 +56,7 @@ export async function PUT(
     // Get current donation data
     const { data: donation, error: fetchError } = await supabase
       .from('donations')
-      .select('amount, verified')
+      .select('amount, verified, email')
       .eq('id', donationId)
       .single();
 
@@ -67,6 +69,16 @@ export async function PUT(
       return NextResponse.json({ error: 'Donation not found' }, { status: 404 });
     }
 
+        const { data: donorUser, error: userError } = await supabase
+      .from('users')
+      .select('id, email')
+      .eq('email', donation.email)
+      .single();
+
+    if (userError && userError.code !== 'PGRST116') {
+      console.error('Error fetching user:', userError);
+    }
+
     // Update donation verification fields
     const { error: updateError } = await supabase
       .from('donations')
@@ -77,7 +89,6 @@ export async function PUT(
       })
       .eq('id', donationId);
 
-
     if (updateError) {
       console.error('Error updating donation:', updateError);
       return NextResponse.json(
@@ -86,8 +97,51 @@ export async function PUT(
       );
     }
 
+
+
     // Only adjust prize pool if verification status has changed
     if (verified !== donation.verified) {
+      
+      
+      try {
+        // Notify donor if they're a registered user
+        if (verified && donorUser) {
+          await insertNotification(supabase, {
+            user_id: donorUser.id,
+            type: 'donation',
+            title: `Your donation of $${donation.amount} has been verified!`,
+            link: '/donate',
+            source_user_id: null
+          });
+        }
+
+        // Get all admin users (match admin emails with user accounts)
+const { data: adminUsers, error: adminError } = await supabase
+  .from('users')
+  .select('id, email, name')
+  .in('email', (await supabase.from('admins').select('email')).data?.map(a => a.email) || []);
+
+if (adminError) {
+  console.error('Error fetching admin users:', adminError);
+} else if (adminUsers?.length) {
+  // Notify other admins
+  for (const admin of adminUsers) {
+    if (!donorUser || admin.id !== donorUser.id) {
+      await insertNotification(supabase, {
+        user_id: admin.id,
+        type: 'donation',
+        title: `${donation.email} has ${verified ? 'received a' : 'had their'} $${donation.amount} donation verification ${verified ? '' : 'removed'} by ${admin.name}`,
+        link: '/admin',
+        source_user_id: donorUser?.id || null
+      });
+    }
+  }
+}
+      } catch (notifyError) {
+        console.error('Error sending notifications:', notifyError);
+        // Don't fail the verification if notifications fail
+      }
+      
       const prizeChange = verified ? donation.amount : -donation.amount;
       const donorChange = verified ? 1 : -1;
 

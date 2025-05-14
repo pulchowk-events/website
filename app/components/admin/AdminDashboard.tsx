@@ -8,6 +8,7 @@ import AdminEventForm from './AdminEventForm';
 import PendingProducts from './PendingProducts';
 import AdminStats from './AdminStats';
 import AdminEditDonations from './AdminEditDonations';
+import AdminNotificationAdder from './AdminNotificationAdder';
 
 
 interface AdminDashboardProps {
@@ -69,12 +70,9 @@ export default function AdminDashboard({ session, dashboardStats }: AdminDashboa
               >
                 Manage Admins
               </TabsTrigger>
-              <TabsTrigger 
-                value="settings" 
-                className="whitespace-nowrap text-sm md:text-base py-3  sm:border-none  border-b xs:border-b-0 xs:border-r border-zinc-700 last:border-0"
-              >
-                Settings
-              </TabsTrigger>
+                <TabsTrigger value="notifications" className="whitespace-nowrap text-sm md:text-base py-3  sm:border-none  border-b xs:border-b-0 xs:border-r border-zinc-700 last:border-0">
+                  Broadcast
+                </TabsTrigger>
             </TabsList>
           </div>
 
@@ -142,19 +140,21 @@ export default function AdminDashboard({ session, dashboardStats }: AdminDashboa
           </Card>
         </TabsContent>
         
-        <TabsContent value="settings">
-          <Card className="border border-zinc-800 bg-zinc-800/50 shadow-md">
-            <CardHeader className="p-4 sm:p-6">
-              <CardTitle className="text-lg sm:text-xl md:text-2xl text-white">Dashboard Settings</CardTitle>
-              <CardDescription className="text-sm sm:text-base text-zinc-400">
-                Configure your admin dashboard preferences
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
-              <p className="text-zinc-400">Settings panel coming soon</p>
-            </CardContent>
-          </Card>
-        </TabsContent>
+          <TabsContent value="notifications">
+            <Card className="bg-zinc-800/50 shadow-md border border-zinc-800">
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="text-lg sm:text-xl md:text-2xl text-white">
+                  Broadcast Notifications
+                </CardTitle>
+                <CardDescription className="text-sm sm:text-base text-zinc-400">
+                  Send notifications to all users
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
+                <AdminNotificationAdder />
+              </CardContent>
+            </Card>
+          </TabsContent>
       </Tabs>
     </div>
     </>

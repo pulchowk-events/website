@@ -8,6 +8,8 @@ import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { toast } from 'react-hot-toast';
 import { PostCategory, categoryDisplayMap, categoryIcons } from '@/types/posts';
+import { Image as ImageIcon } from 'lucide-react';
+import NeedDonationModal from './NeedDonationModal';
 
 
 interface AddPostModalProps {
@@ -18,6 +20,7 @@ export default function AddPostModal({ onClose }: AddPostModalProps) {
   const router = useRouter();
   const { data: session } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showDonationModal, setShowDonationModal] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -137,6 +140,25 @@ export default function AddPostModal({ onClose }: AddPostModalProps) {
               required
             />
 
+          <div className="flex flex-col gap-4">
+            {/* Image Upload Button */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowDonationModal(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-colors"
+              >
+                <ImageIcon size={20} />
+                <span>Add Image</span>
+              </button>
+            </div>
+
+              {/* Donation Modal */}
+              <NeedDonationModal 
+                isOpen={showDonationModal}
+                onClose={() => setShowDonationModal(false)}
+              />
+
             {/* URL Reference */}
             <div className="flex items-center gap-2 p-3 bg-zinc-800/30 border border-zinc-700 rounded-lg mb-6">
               <LinkIcon size={20} className="text-zinc-400" />
@@ -148,6 +170,7 @@ export default function AddPostModal({ onClose }: AddPostModalProps) {
                 className="w-full bg-transparent text-white placeholder:text-zinc-500 focus:outline-none"
               />
             </div>
+          </div>
 
             {/* Submit Button */}
             <button

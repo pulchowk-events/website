@@ -23,15 +23,10 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
+    const categories = searchParams.get('categories')?.split(',').filter(Boolean) || [];
     const offset = (page - 1) * limit;
 
-    // Get total count for pagination
-    const { count } = await supabase
-      .from('lounge_posts')
-      .select('*', { count: 'exact' });
-
-    // Fetch posts with author info
-    const { data: posts, error } = await supabase
+    let query = supabase
       .from('lounge_posts')
       .select(`
         *,
@@ -39,7 +34,15 @@ export async function GET(request: Request) {
           name,
           image
         )
-      `)
+      `, { count: 'exact' });
+
+    // Add category filter if categories are selected
+    if (categories.length > 0) {
+      query = query.in('category', categories);
+    }
+
+    // Get the final results with pagination
+    const { data: posts, error, count } = await query
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
