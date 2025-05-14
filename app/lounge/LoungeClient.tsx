@@ -160,7 +160,7 @@ useEffect(() => {
             <Loader2 className="w-8 h-8 animate-spin text-green-500" />
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid sm:grid-cols-2 gap-6">
             {posts.length > 0 ? (
               posts.map((post) => (
                 <PostCard key={post.id} post={post} />
