@@ -1,14 +1,39 @@
 import useSWR from 'swr';
+import { useEffect } from 'react';
 
 export default function useNotifications() {
-  const fetcher = (url: string) => fetch(url).then(res => res.json());
+  const fetcher = async (url: string) => {
+    const res = await fetch(url, {
+      // Prevent caching
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
+    if (!res.ok) throw new Error('Failed to fetch notifications');
+    return res.json();
+  };
 
-  const { data, mutate, error } = useSWR('/api/notifications', fetcher, {
-    refreshInterval: 30000, // Poll every 30 seconds
+  const { data, error, mutate } = useSWR('/api/notifications', fetcher, {
+    refreshInterval: 15000, // Poll every 15 seconds
+    revalidateOnFocus: true,
+    dedupingInterval: 5000, // Prevent duplicate requests within 5 seconds
+    shouldRetryOnError: true,
+    retry: 3
   });
+
+  useEffect(() => {
+    const onFocus = () => {
+      mutate();
+    };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [mutate]);
 
   const notifications = data?.notifications ?? [];
   const unread = notifications.filter((n: any) => !n.is_read);
+
 
   const markAsRead = async (notificationId: string) => {
     try {

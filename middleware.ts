@@ -16,6 +16,13 @@ export default withAuth(
     // Optional: Add custom logic here
     console.log("Accessing protected route:", req.nextUrl.pathname);
 
+    if (req.nextUrl.pathname.startsWith("/api/notifications")) {
+      // Set cache control headers for notifications API
+      res.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+      res.headers.set("Pragma", "no-cache");
+      res.headers.set("Expires", "0");
+    }
+
     return res;
   },
   {
@@ -36,5 +43,6 @@ export const config = {
     "/api/protected/:path*",  // protect certain API routes
     "/admin/:path*",          // protect admin routes
     "/product-hunt/submit",   // protect product submission
+    '/api/notifications/:path*', // protect notifications API
   ],
 };
