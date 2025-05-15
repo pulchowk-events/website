@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { User, Edit2, X, Trash2, LoaderCircle, Loader } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSession } from 'next-auth/react';
+import Link from 'next/link';
 
 interface CommentCardProps {
   comment: {
@@ -101,21 +102,26 @@ export function CommentCard({ comment, isOwner, onDelete }: CommentCardProps) {
 
   return (
     <div className="flex gap-4 p-4 rounded-lg bg-white/5 border border-zinc-800">
-      <div className="flex-shrink-0">
-        {userData?.image ? (
-          <Image
-            src={userData.image}
-            alt={userData.name || 'User'}
-            width={40}
-            height={40}
-            className="rounded-full"
-          />
-        ) : (
-          <div className="w-10 h-10 rounded-full bg-zinc-700 flex items-center justify-center">
-            <User className="w-6 h-6 text-zinc-400" />
-          </div>
-        )}
-      </div>
+      <Link 
+          href={`/profile/${comment.user_id}`}
+          className="hover:opacity-80 transition-opacity"
+      >
+            <div className="flex-shrink-0">
+              {userData?.image ? (
+                <Image
+                  src={userData.image}
+                  alt={userData.name || 'User'}
+                  width={40}
+                  height={40}
+                  className="rounded-full"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-zinc-700 flex items-center justify-center">
+                  <User className="w-6 h-6 text-zinc-400" />
+                </div>
+              )}
+            </div>
+      </Link>
       
       <div className="flex-grow">
         <div className="flex items-center justify-between">

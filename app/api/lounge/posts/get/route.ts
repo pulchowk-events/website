@@ -15,6 +15,7 @@ export interface Post {
   users: {
     name: string;
     image: string | null;
+    id: string;
   };
 }
 
@@ -32,7 +33,8 @@ export async function GET(request: Request) {
         *,
         users:author_id (
           name,
-          image
+          image,
+          id
         )
       `, { count: 'exact' });
 

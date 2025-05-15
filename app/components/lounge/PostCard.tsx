@@ -13,6 +13,7 @@ interface Post {
   users: {
     name: string;
     image: string | null;
+    id: string;
   };
 }
 
@@ -38,6 +39,10 @@ export default function PostCard({ post }: { post: Post }) {
       
       <div className="mt-auto pt-4 border-t border-zinc-700/30">
         <div className="flex items-center gap-3">
+          <Link 
+            href={`/profile/${post.users.id}`}
+            className="hover:opacity-80 transition-opacity"
+          >
           <div className="relative w-8 h-8 flex-shrink-0">
             <Image
               src={post.users.image || '/default-avatar.png'}
@@ -46,6 +51,7 @@ export default function PostCard({ post }: { post: Post }) {
               className="rounded-full object-cover"
             />
           </div>
+          </Link>
           
           <div className="flex-grow min-w-0">
             <div className="flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-2 text-xs">

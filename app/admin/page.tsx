@@ -4,13 +4,10 @@ import { authOptions } from '@/auth';
 import { createServerSupabaseClient } from '../lib/supabase-server';
 import Layout from '@/app/components/layout/Layout';
 import AdminDashboard from '@/app/components/admin/AdminDashboard';
-import { count } from 'console';
 
 export default async function AdminPage() {
-  // Get session server-side
   const session = await getServerSession(authOptions);
-
-  // Redirect if not authenticated
+  
   if (!session?.user?.email) {
     return redirect('/');
   }
@@ -25,49 +22,41 @@ export default async function AdminPage() {
     .single();
 
   if (adminError || !adminData) {
-    console.error('Admin check error:', adminError);
     return redirect('/');
   }
 
-  // Fetch stats for the dashboard
-  const { data: productsData, error: productsError } = await supabase
+  // Fetch stats
+  const { data: productsData } = await supabase
     .from('products')
     .select('approved');
 
-  const { count: totalUsers, error: userCountError } = await supabase
+  const { count: totalUsers } = await supabase
     .from('users')
-    .select('id', { count: 'exact', head: true });
-    
-  // Fetch events count
-  const { count: totalEvents, error: eventsCountError } = await supabase
-    .from('events')
-    .select('id', { count: 'exact', head: true });
+    .select('*', { count: 'exact', head: true });
 
-const { data: donationsData, error: donationsError } = await supabase
+  const { count: totalEvents } = await supabase
+    .from('events')
+    .select('*', { count: 'exact', head: true });
+
+  const { data: donations } = await supabase
     .from('donations')
     .select('amount')
     .eq('verified', true);
 
-const totalDonations = donationsData?.reduce((sum, donation) => sum + donation.amount, 0) || 0;
-
-    
-  if (productsError || userCountError || eventsCountError) {
-    console.error('Error fetching stats:', productsError, userCountError, eventsCountError);
-    return redirect('/');
-  }
+  const totalDonations = donations?.reduce((sum, d) => sum + d.amount, 0) || 0;
 
   const dashboardStats = {
     totalProducts: productsData?.length || 0,
-    approvedProducts: productsData?.filter((p: any) => p.approved).length || 0,
-    pendingProducts: productsData?.filter((p: any) => !p.approved).length || 0,
+    approvedProducts: productsData?.filter(p => p.approved).length || 0,
+    pendingProducts: productsData?.filter(p => !p.approved).length || 0,
     totalUsers: totalUsers || 0,
     totalEvents: totalEvents || 0,
-    totalDonations: totalDonations || 0,
+    totalDonations: totalDonations
   };
 
   return (
-    <Layout>
+
       <AdminDashboard session={session} dashboardStats={dashboardStats} />
-    </Layout>
+
   );
 }

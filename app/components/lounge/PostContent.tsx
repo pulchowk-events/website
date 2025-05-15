@@ -9,6 +9,9 @@ import { PostCategory, categoryDisplayMap, categoryIcons } from '@/types/posts';
 import EditPostModal from './EditPostModal';
 import DeletePostDialog from './DeletePostDialog';
 import { LoungeComments } from './comments/LoungeComments';
+import ReportModal from './ReportModal';
+import { Flag } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 
 interface Post {
   id: string;
@@ -21,6 +24,7 @@ interface Post {
   users: {
     name: string;
     image: string | null;
+    id: string;
   };
 }
 
@@ -33,6 +37,9 @@ interface PostContentProps {
 export default function PostContent({ post, isAdmin, isAuthor }: PostContentProps) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const { data: session } = useSession();
+  const [showReportModal, setShowReportModal] = useState(false);
+ 
 
   return (
     <>
@@ -41,6 +48,7 @@ export default function PostContent({ post, isAdmin, isAuthor }: PostContentProp
         <div className="w-full md:w-48 flex-shrink-0 mb-6 md:mb-0">
           <div className="md:sticky md:top-24">
             <div className="flex flex-row md:flex-col items-center text-center gap-4 md:gap-0">
+              <Link href={`/profile/${post.users.id}`}>
               <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 md:mb-4 flex-shrink-0">
                 <Image
                   src={post.users.image || '/default-avatar.png'}
@@ -49,6 +57,7 @@ export default function PostContent({ post, isAdmin, isAuthor }: PostContentProp
                   className="rounded-full object-cover border-2 border-gray-500/30 shadow-lg shadow-gray-800/10"
                 />
               </div>
+              </Link>
               <div className="md:w-full">
                 <h3 className="font-medium text-base sm:text-lg text-left md:text-center">{post.users.name}</h3>
                 <span className="text-xs sm:text-sm text-zinc-400 text-left md:text-center block">
@@ -124,6 +133,24 @@ export default function PostContent({ post, isAdmin, isAuthor }: PostContentProp
               </div>
             </div>
           )}
+
+            {!isAuthor && session?.user && (
+                <button
+                  onClick={() => setShowReportModal(true)}
+                  className="inline-flex items-center gap-2  mt-6 text-zinc-400 hover:text-zinc-300 transition-colors text-sm"
+                >
+                  <Flag className="w-4 h-4" />
+                  Report
+                </button>
+              )}
+
+            {showReportModal && (
+                <ReportModal
+                  postId={post.id}
+                  postTitle={post.title}
+                  onClose={() => setShowReportModal(false)}
+                />
+              )}
         </div>
       </div>
 

@@ -6,6 +6,8 @@ import Image from 'next/image';
 import { User, Edit2, X, Trash2, Loader } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSession } from 'next-auth/react';
+import Link from 'next/link';
+
 
 interface LoungeCommentCardProps {
   comment: {
@@ -90,6 +92,10 @@ export function LoungeCommentCard({ comment, isOwner, onDelete }: LoungeCommentC
 
   return (
     <div className="flex gap-4 p-4 rounded-lg bg-zinc-800/50 border border-zinc-700">
+      <Link 
+  href={`/profile/${comment.user_id}`}
+  className="hover:opacity-80 transition-opacity"
+>
       <div className="flex-shrink-0">
         {userData?.image ? (
           <Image
@@ -105,6 +111,7 @@ export function LoungeCommentCard({ comment, isOwner, onDelete }: LoungeCommentC
           </div>
         )}
       </div>
+      </Link>
       
       <div className="flex-grow">
         <div className="flex items-center justify-between">

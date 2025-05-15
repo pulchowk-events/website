@@ -189,12 +189,18 @@ export default function Navbar() {
                 {/* Dropdown Menu */}
                 {showMenu && (
                   <div className="absolute right-0 mt-2 w-40 bg-zinc-900 border border-zinc-800 rounded shadow-lg z-50">
+                    <Link
+                      href={`/profile/${session.user.id}`}
+                      className="block px-4 py-2 text-sm text-white hover:bg-zinc-800"
+                    >
+                      Profile
+                    </Link>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         signOut();
                       }}
-                      className="w-full px-4 py-2 text-sm text-center text-white hover:bg-zinc-800"
+                      className="w-full px-4 py-2 text-sm text-left text-white hover:bg-zinc-800 border-t border-zinc-800"
                     >
                       Sign Out
                     </button>
@@ -232,7 +238,8 @@ export default function Navbar() {
               
               {session ? (
                 <div className="pt-2 border-t border-gray-800">
-                  <div className="flex items-center space-x-3 py-2">
+                  <Link href={`/profile/${session.user.id}`}>
+                  <div className="flex items-center space-x-3 mb-10 border-b pb-4 border-gray-800  py-2">
                     <div className="relative w-8 h-8">
                       <Image
                         src={session.user.image || '/default-avatar.png'}
@@ -244,6 +251,7 @@ export default function Navbar() {
                     </div>
                     <span className="text-sm font-medium text-white">{session.user?.name || 'Anonymous'}</span>
                   </div>
+                  </Link>
                   <button
                     onClick={() => signOut()}
                     className="w-full mt-2 text-sm text-left text-red-400 py-2"

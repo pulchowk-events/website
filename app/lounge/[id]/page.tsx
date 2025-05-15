@@ -51,7 +51,8 @@ export default async function PostPage({ params }: Props) {
       users:author_id (
         name,
         image,
-        email
+        email,
+        id
       )
     `)
     .eq('id', postId)
