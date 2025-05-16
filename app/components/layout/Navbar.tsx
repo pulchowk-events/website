@@ -98,9 +98,11 @@ export default function Navbar() {
 
   // Update the navLinks array definition
   const baseNavLinks = [
+    { href: '/events', label: 'Events' },
     { href: '/lounge', label: 'Lounge' },
     { href: '/product-hunt', label: 'Product Hunt' },
     { href: '/about', label: 'About' },
+
   ];
 
   // Create a filtered navLinks array that depends on admin status

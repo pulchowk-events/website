@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'react-hot-toast'
+import { Trash2 } from 'lucide-react'
 import * as AlertDialog from '@radix-ui/react-alert-dialog'
 
 interface DeleteButtonProps {
@@ -46,26 +47,27 @@ export default function DeleteButton({
     <AlertDialog.Root>
       <AlertDialog.Trigger asChild>
         <button
-          className={`${className} bg-red-600 hover:bg-red-700 text-white py-1 px-3 rounded transition-colors`}
+          className={`${className} flex items-center justify-center gap-1.5 px-2.5 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-200 rounded-md backdrop-blur-sm transition-all duration-200 border border-red-500/10 shadow-sm group`}
+          aria-label="Delete event"
         >
-          Delete
+          <Trash2 className="w-3.5 h-3.5 text-red-200/90 group-hover:text-red-100" />
         </button>
       </AlertDialog.Trigger>
       
       <AlertDialog.Portal>
-        <AlertDialog.Overlay className="bg-black/50 fixed inset-0 animate-fade-in" />
-        <AlertDialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-zinc-900 rounded-lg p-6 w-[90vw] max-w-[500px] shadow-xl">
-          <AlertDialog.Title className="text-xl font-semibold mb-4 text-white">
+        <AlertDialog.Overlay className="fixed inset-0 bg-black/70 backdrop-blur-sm animate-in fade-in-0 z-50" />
+        <AlertDialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black border border-white/10 rounded-xl p-6 w-[90vw] max-w-[450px] shadow-xl animate-in fade-in-0 zoom-in-95 z-50">
+          <AlertDialog.Title className="text-xl font-semibold mb-3 text-white/90">
             Delete Event
           </AlertDialog.Title>
           
-          <AlertDialog.Description className="text-zinc-300 mb-6">
-            Are you sure you want to delete this event? This action cannot be undone.
+          <AlertDialog.Description className="text-zinc-300 mb-6 text-sm leading-relaxed">
+            Are you sure you want to delete this event? This action cannot be undone and will permanently remove the event from the system.
           </AlertDialog.Description>
           
-          <div className="flex justify-end gap-4">
+          <div className="flex justify-end gap-3">
             <AlertDialog.Cancel asChild>
-              <button className="px-4 py-2 rounded bg-zinc-700 text-white hover:bg-zinc-600 transition-colors">
+              <button className="px-4 py-2 rounded-md bg-white/5 text-white/80 hover:bg-white/10 hover:text-white transition-colors text-sm font-medium">
                 Cancel
               </button>
             </AlertDialog.Cancel>
@@ -74,9 +76,10 @@ export default function DeleteButton({
               <button
                 onClick={handleDelete}
                 disabled={isDeleting}
-                className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-50"
+                className="px-4 py-2 rounded-md bg-red-500/20 text-red-200 hover:bg-red-500/30 transition-colors disabled:opacity-50 text-sm font-medium flex items-center gap-2"
               >
-                {isDeleting ? 'Deleting...' : 'Delete'}
+                <Trash2 className="w-4 h-4" />
+                {isDeleting ? 'Deleting...' : 'Delete Event'}
               </button>
             </AlertDialog.Action>
           </div>

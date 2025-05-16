@@ -16,6 +16,7 @@ import {
   Bell, 
   Flag,
   Menu,
+  Calendar,
   X
 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -47,10 +48,11 @@ import AdminEventForm from './AdminEventForm';
 import AdminUserForm from './AdminUserForm';
 import AdminNotificationAdder from './AdminNotificationAdder';
 import AdminReports from './AdminReports';
-
+import AdminPendingEvents  from './AdminPendingEvents'
 
 const navItems = [
   { id: "dashboard", label: "General", icon: <LayoutDashboard size={18} /> },
+  { id: "pending-events", label: "Pending Events", icon: <Calendar size={18} /> },
   { id: "donations", label: "Donations", icon: <Heart size={18} /> },
   { id: "pending", label: "Pending Products", icon: <Clock size={18} /> },
   { id: "add-product", label: "Add Product", icon: <Gift size={18} /> },
@@ -208,6 +210,26 @@ export default function AdminDashboard({ session, dashboardStats}: AdminDashboar
                     </CardContent>
                   </Card>
                 </div>
+              </motion.div>
+            )}
+
+            {activeTab === "pending-events" && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Card className="bg-white/5 border-gray-700 dotted-border-horizontal">
+                  <CardHeader>
+                    <CardTitle className="text-white">Pending Events</CardTitle>
+                    <CardDescription className="text-zinc-400">
+                      Review and manage submitted events
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <AdminPendingEvents />
+                  </CardContent>
+                </Card>
               </motion.div>
             )}
 

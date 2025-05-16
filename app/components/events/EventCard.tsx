@@ -4,23 +4,52 @@ import Image from 'next/image'
 import { formatDistanceToNow, format } from 'date-fns'
 import Link from 'next/link'
 import DeleteButton from './DeleteButton'
+import { Code, LucideCircuitBoard, Gamepad, Music, Dumbbell, Plus, Calendar, ExternalLink, User } from 'lucide-react';
+import EditEventButton from './EditEventButton';
+
+interface Author {
+  id: string;
+  name?: string;
+  image?: string;
+}
 
 interface Event {
-  id: string
-  title: string
-  description: string
-  event_date: string
-  form_link: string
-  image_url: string | null
-  created_at: string
+  id: string;
+  title: string;
+  description: string;
+  event_date: string;
+  form_link: string;
+  image_url: string | null;
+  created_at: string;
+  category: keyof typeof categoryIcons;
+  created_by: string;
+  author?: Author;
 }
 
 interface EventCardProps {
-  event: Event
-  isPast?: boolean
-  isAdmin?: boolean
-  userId?: string 
+  event: Event;
+  isPast?: boolean;
+  isAdmin?: boolean;
+  userId?: string;
 }
+
+const categoryIcons = {
+  software: Code,
+  gaming: Gamepad,
+  music: Music,
+  hardware: LucideCircuitBoard,
+  sports: Dumbbell,
+  extra: Plus
+} as const;
+
+const categoryColors = {
+  software: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+  gaming: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+  music: 'bg-pink-500/10 text-pink-400 border-pink-500/20',
+  hardware: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
+  sports: 'bg-green-500/10 text-green-400 border-green-500/20',
+  extra: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
+} as const;
 
 export default function EventCard({ event, isPast = false, isAdmin = false, userId}: EventCardProps) {
   const eventDate = new Date(event.event_date)
@@ -28,80 +57,131 @@ export default function EventCard({ event, isPast = false, isAdmin = false, user
   const formattedTime = format(eventDate, 'p')
   const timeUntil = formatDistanceToNow(eventDate, { addSuffix: true })
   
+  const CategoryIcon = categoryIcons[event.category];
+  const categoryColor = categoryColors[event.category];
+
   const truncateDescription = (text: string, maxLength = 150) => {
     if (text.length <= maxLength) return text
     return text.slice(0, maxLength) + '...'
   }
 
+  // Author information with fallbacks
+  const authorName = event.author?.name || "Anonymous"
+  const authorImage = event.author?.image || "/default-avatar.png"
+  const authorId = event.created_by || "anonymous"
+
   return (
-    <div className="bg-zinc-800 rounded-lg overflow-hidden shadow-lg border border-zinc-700 flex flex-col h-full relative group">
-      {/* Image section */}
-      <div className="relative h-48 w-full">
+    <div className="bg-white/5 border border-white/5 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col h-full relative group">
+      {/* Image section with gradient overlay */}
+      <div className="relative h-52 w-full">
         {event.image_url ? (
-          <Image
-            src={event.image_url}
-            alt={event.title}
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="object-cover"
-          />
+          <>
+            <Image
+              src={event.image_url}
+              alt={event.title}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+          </>
         ) : (
-          <div className="bg-zinc-700 h-full w-full flex items-center justify-center">
-            <span className="text-zinc-500 text-lg">No Image</span>
+          <div className="bg-white/5 h-full w-full flex items-center justify-center">
+            <CategoryIcon className="w-16 h-16 text-white/20" />
           </div>
         )}
+
+        {/* Category badge */}
+        <div className="absolute top-3 left-3 z-2">
+          <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border backdrop-blur-lg ${categoryColor}`}>
+            <CategoryIcon className="w-3.5 h-3.5" />
+            <span className="text-xs font-medium capitalize">
+              {event.category}
+            </span>
+          </div>
+        </div>
         
-        {/* Admin delete button (shown only on hover for better UX) */}
-          {isAdmin && (
-            <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+        {/* Admin actions */}
+        <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+          {(isAdmin || event.created_by === userId) && (
+            <>
+              <EditEventButton event={event} />
               <DeleteButton 
                 eventId={event.id} 
-                onSuccess={() => window.location.reload()} // or your preferred refresh method
+                onSuccess={() => window.location.reload()}
               />
+            </>
+          )}
+        </div>
+
+        {/* Event status badge */}
+        <div className="absolute bottom-3 left-3">
+          {isPast ? (
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-red-500/20 text-red-300 border border-red-500/20 backdrop-blur-sm">
+              <span className="text-xs font-medium">Past Event</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-green-500/20 text-green-300 border border-green-500/20 backdrop-blur-sm">
+              <span className="text-xs font-medium">{timeUntil}</span>
             </div>
           )}
-        
-        {/* Event status badge */}
-        {isPast ? (
-          <div className="absolute top-2 right-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">
-            Past Event
-          </div>
-        ) : (
-          <div className="absolute top-2 right-2 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded">
-            {timeUntil}
-          </div>
-        )}
+        </div>
       </div>
       
       {/* Event details */}
-      <div className="p-6 flex-grow">
-        <h3 className="text-xl font-bold text-white mb-2">{event.title}</h3>
+      <div className="p-5 flex-grow">
+        <h3 className="text-xl font-bold text-white mb-3 line-clamp-2">{event.title}</h3>
         
-        <div className="flex items-center text-zinc-400 text-sm mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
+        <div className="flex items-center text-white/60 text-sm mb-4 gap-1.5">
+          <Calendar className="h-4 w-4" />
           <span>{formattedDate} at {formattedTime}</span>
         </div>
         
-        <p className="text-zinc-300 mb-6">
+        <p className="text-white/70 mb-5 text-sm leading-relaxed line-clamp-3">
           {truncateDescription(event.description)}
         </p>
+        
+        {/* Author info */}
+        <div className="flex items-center gap-3 mb-4 pt-3 border-t border-white/5">
+          <Link 
+            href={`/profile/${authorId}`}
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+          >
+            <div className="relative w-8 h-8 rounded-full overflow-hidden bg-white/10">
+              <Image 
+                src={authorImage}
+                alt={authorName}
+                fill
+                sizes="32px"
+                className="object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "/default-avatar.png";
+                }}
+              />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs text-white/80">Created by</span>
+              <span className="text-sm font-medium text-white">{authorName}</span>
+            </div>
+          </Link>
+        </div>
       </div>
       
       {/* Action section */}
-      <div className="p-6 pt-0 mt-auto">
+      <div className="p-5 pt-0 mt-auto">
         {!isPast ? (
           <Link 
             href={event.form_link}
             target="_blank"
             rel="noopener noreferrer"
-            className="block w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded font-medium text-center transition-colors"
+            className="flex items-center justify-center gap-2 w-full bg-white/10 hover:bg-white/15 text-white py-2.5 px-4 rounded-lg font-medium text-center transition-all duration-200 border border-white/5"
           >
+            <ExternalLink className="w-4 h-4" />
             Register for Event
           </Link>
         ) : (
-          <div className="text-zinc-500 text-center py-2">
+          <div className="flex items-center justify-center gap-2 w-full bg-white/5 text-white/40 py-2.5 px-4 rounded-lg font-medium text-center border border-white/5">
             This event has ended
           </div>
         )}

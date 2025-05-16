@@ -36,7 +36,7 @@ export default function PrizePoolProgress({
           <h2 className="text-xl font-bold text-white flex items-center">
             Investment Prize Pool
           </h2>
-          <p className="text-zinc-400 mt-1">Help fund the next generation of developers, entreprenuers & researchers — funds go to the top 3 products. </p>
+          <p className="text-zinc-400 mt-1">Help fund the next generation of developers, entreprenuers & researchers. </p>
         </div>
         
         <div className="mt-4 md:mt-0">

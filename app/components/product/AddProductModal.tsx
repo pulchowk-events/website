@@ -37,6 +37,8 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
   const [image, setImage] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [urlError, setUrlError] = useState('');
+    const [redirectUrl, setRedirectUrl] = useState('');
+
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -45,12 +47,24 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
     };
   }, []);
 
+  // slug validation
   const validateUrl = (value: string) => {
     const regex = /^[a-z0-9]+(-[a-z0-9]+)*$/;
     if (!regex.test(value)) {
       return 'Url must use lowercase letters and hyphens only, no spaces.';
     }
     return '';
+  };
+
+    // redirect url validation
+    const validateRedirectUrl = (value: string) => {
+    if (!value) return ''; // Optional field
+    try {
+      new URL(value);
+      return '';
+    } catch {
+      return 'Please enter a valid URL (including http:// or https://)';
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -75,9 +89,18 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
       formData.append('name', name);
       formData.append('description', description);
       formData.append('url', url);
+      formData.append('redirect_url', redirectUrl);
       if (image) {
         formData.append('image', image);
       }
+
+    if (redirectUrl) {
+                const redirectUrlError = validateRedirectUrl(redirectUrl);
+                if (redirectUrlError) {
+                  toast.error(redirectUrlError);
+                  return;
+                }
+              }
 
       const response = await fetch('/api/products/submit', {
         method: 'POST',
@@ -159,6 +182,20 @@ return (
                   className="w-full p-3 rounded bg-zinc-800 border border-zinc-800 text-sm"
                 />
               </div>
+
+                <div className="space-y-1.5">
+                    <Label htmlFor="redirect-url">View Product URL (Optional)</Label>
+                    <Input
+                      id="redirect-url"
+                      type="url"
+                      value={redirectUrl}
+                      onChange={(e) => setRedirectUrl(e.target.value)}
+                      placeholder="https://your-product-url.com"
+                    />
+                    <p className="text-xs text-zinc-400">
+                      Add a link to your product's website or repository
+                    </p>
+            </div>
 
               <div className="space-y-1.5">
                 <Label htmlFor="url">Product Slug</Label>

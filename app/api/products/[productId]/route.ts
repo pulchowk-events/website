@@ -70,6 +70,8 @@ export async function PUT(
     const description = formData.get('description') as string;
     const url = formData.get('url') as string;
     const imageFile = formData.get('image') as File | null;
+    const redirectUrl = formData.get('redirect_url') as string;
+
 
     // 7. Validate inputs
     if (!name || !description || !url) {
@@ -78,6 +80,17 @@ export async function PUT(
         { status: 400 }
       );
     }
+
+    if (redirectUrl) {
+  try {
+    new URL(redirectUrl);
+  } catch {
+    return NextResponse.json(
+      { error: 'Invalid redirect URL format' },
+      { status: 400 }
+    );
+  }
+}
 
     const urlRegex = /^[a-z0-9]+(-[a-z0-9]+)*$/;
     if (!urlRegex.test(url)) {
@@ -150,6 +163,7 @@ export async function PUT(
         description,
         url,
         image_url: imagePath,
+        redirect_url: redirectUrl || null,
       })
       .eq('id', numericProductId);
 

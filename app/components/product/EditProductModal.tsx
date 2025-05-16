@@ -23,6 +23,7 @@ interface EditProductModalProps {
     description: string;
     url: string;
     image_url: string | null;
+    redirect_url: string | null;
   };
   onClose: () => void;
 }
@@ -35,6 +36,20 @@ export default function EditProductModal({ product, onClose }: EditProductModalP
   const [image, setImage] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [urlError, setUrlError] = useState('');
+  const [redirectUrl, setRedirectUrl] = useState(product.redirect_url || '');
+
+
+
+    // Add the same URL validation as in AddProductModal
+  const validateRedirectUrl = (value: string) => {
+    if (!value) return '';
+    try {
+      new URL(value);
+      return '';
+    } catch {
+      return 'Please enter a valid URL (including http:// or https://)';
+    }
+  };
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -67,6 +82,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     formData.append('name', name);
     formData.append('description', description);
     formData.append('url', url);
+    formData.append('redirect_url', redirectUrl);
     if (image) {
       formData.append('image', image);
     }
@@ -150,8 +166,23 @@ const handleSubmit = async (e: React.FormEvent) => {
                   />
                 </div>
 
+                
+                                <div className="space-y-1.5">
+                    <Label htmlFor="redirect-url">View Product URL (Optional)</Label>
+                    <Input
+                      id="redirect-url"
+                      type="url"
+                      value={redirectUrl}
+                      onChange={(e) => setRedirectUrl(e.target.value)}
+                      placeholder="https://your-product-url.com"
+                    />
+                    <p className="text-xs text-zinc-400">
+                      Add a link to your product's website or repository
+                    </p>
+            </div>
+
                 <div className="space-y-1.5">
-                  <Label htmlFor="url">Product URL</Label>
+                  <Label htmlFor="url">Product Slug</Label>
                   <Input
                     id="url"
                     type="text"
@@ -167,6 +198,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                     <p className="text-sm text-red-400">{urlError}</p>
                   )}
                 </div>
+
 
                 <div className="space-y-1.5">
                   <Label htmlFor="product-image">Update Image</Label>

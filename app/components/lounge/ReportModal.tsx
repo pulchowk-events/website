@@ -76,7 +76,7 @@ export default function ReportModal({ postId, postTitle, onClose }: ReportModalP
           <div className="border-b border-zinc-800 px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-yellow-500" />
+                <AlertTriangle className="w-5 h-5 text-green-500" />
                 <Dialog.Title className="text-xl font-semibold text-white">
                   Report Post
                 </Dialog.Title>

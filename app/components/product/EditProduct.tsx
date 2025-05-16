@@ -11,6 +11,7 @@ interface EditButtonProps {
     description: string;
     url: string;
     image_url: string | null;
+     redirect_url: string | null;
   };
 }
 

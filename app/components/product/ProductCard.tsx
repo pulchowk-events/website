@@ -16,7 +16,7 @@ interface Product {
 
 export default function ProductCard({ product }: { product: Product }) {
   return (
-    <div className="bg-gray-800 hover:bg-gray-800/95 p-6 rounded-lg flex flex-col gap-4 items-start">
+    <div className="bg-gray-800 hover:bg-gray-800/95 p-6 rounded-lg  flex flex-col gap-4 items-start">
       <div className="flex items-start justify-between w-full">
         <div className="flex items-start space-x-4 flex-grow">
           <div className="w-24 h-24 flex-shrink-0">
@@ -37,7 +37,7 @@ export default function ProductCard({ product }: { product: Product }) {
           <div className="flex flex-col gap-2.5">
             <Link href={`/product-hunt/${product.url}`} className="block flex flex-col gap-2">
               <div className="flex flex-col">
-                <h3 className="text-xl font-bold hover:text-white/80 transition-colors">
+                <h3 className="text-xl w-1 sm:w-160 font-bold hover:text-white/80 transition-colors">
                   {product.name}
                 </h3>
                 <p className="text-gray-400 mt-1">{product.description}</p>

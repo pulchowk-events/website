@@ -11,6 +11,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/auth';
 import { createServerSupabaseClient } from '@/app/lib/supabase-server';
 import Image from 'next/image';
+import { ExternalLink } from 'lucide-react';
 
 
 interface Props {
@@ -35,7 +36,7 @@ export default async function ProductPage({ params }: Props) {
   // Get product data
   const { data: product, error } = await supabase
     .from('products')
-    .select('id, name, description, url, created_at, posted_by, image_url')
+    .select('id, name, description, url, created_at, posted_by, image_url, redirect_url')
     .eq('url', slug)
     .single();
 
@@ -108,6 +109,22 @@ return (
                 />
               </>
             )}
+
+              {product.redirect_url && (
+                <a
+                  href={product.redirect_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  <div className="hidden sm:block">
+                  View Product
+                  </div>
+                </a>
+              )}
+
+            
           </div>
         </div>
       </div>

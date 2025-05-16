@@ -12,7 +12,7 @@ function Tabs({
   return (
     <TabsPrimitive.Root
       data-slot="tabs"
-      className={cn("flex flex-col gap-2", className)}
+      className={cn("flex flex-col gap-2 ", className)}
       {...props}
     />
   )
@@ -45,7 +45,7 @@ function TabsTrigger({
         // Apply background color and active state colors
         "bg-charcoal-700 hover:bg-charcoal-600 focus:bg-charcoal-600 dark:bg-charcoal-800 dark:hover:bg-charcoal-700 dark:focus:bg-charcoal-700",
         "text-white dark:text-muted-foreground", // Text color for both light/dark mode
-        "inline-flex flex-1 items-center justify-center gap-1.5 sm:rounded-none rounded-lg px-2 py-2 text-sm font-medium whitespace-nowrap transition-all",
+        "rounded-full inline-flex flex-1 items-center justify-center gap-1.5  rounded-lg px-2 py-2 text-sm font-medium whitespace-nowrap transition-all",
         // Active state adjustments for bg-color, using Radix UI's data-state="active"
         "data-[state=active]:bg-charcoal-600 dark:data-[state=active]:bg-charcoal-700 hover:text-white/20",
         "focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",

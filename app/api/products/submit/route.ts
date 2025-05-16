@@ -17,6 +17,8 @@ export async function POST(request: Request) {
   const description = formData.get('description') as string
   const url = formData.get('url') as string
   const imageFile = formData.get('image') as File | null
+  const redirectUrl = formData.get('redirect_url') as string;
+
 
   // Basic validation
   if (!name || !description || !url) {
@@ -25,6 +27,17 @@ export async function POST(request: Request) {
       { status: 400 }
     )
   }
+
+  if (redirectUrl) {
+  try {
+    new URL(redirectUrl);
+  } catch {
+    return NextResponse.json(
+      { error: 'Invalid redirect URL format' },
+      { status: 400 }
+    );
+  }
+}
 
   // Check if request is coming from admin route
   const headersList = await headers()
@@ -88,6 +101,7 @@ export async function POST(request: Request) {
       posted_by: session.user?.id,
       approved: isAdminRequest,
       votes: 0,
+      redirect_url: redirectUrl || null,
     })
 
     if (insertError) {

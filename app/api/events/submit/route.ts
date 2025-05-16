@@ -16,10 +16,18 @@ export async function POST(request: Request) {
   const description = formData.get('description') as string
   const eventDate = formData.get('eventDate') as string
   const formLink = formData.get('formLink') as string
+  const category = formData.get('category') as string;
   const imageFile = formData.get('image') as File | null
 
   if (!title || !description || !eventDate || !formLink) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+  }
+
+  
+  // Validate category
+  const validCategories = ['software', 'gaming', 'hardware', 'sports', 'music', 'extra'];
+  if (!validCategories.includes(category)) {
+    return NextResponse.json({ error: 'Invalid category' }, { status: 400 });
   }
 
   // Create service role client directly
@@ -81,6 +89,8 @@ export async function POST(request: Request) {
         form_link: formLink,
         image_url: imageUrl,
         created_by: session.user.id,
+        category,
+        verified: false,
       })
       .select()
 
