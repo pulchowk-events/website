@@ -248,4 +248,60 @@
 }
 
 
+/* NProgress styling - improved version */
+#nprogress {
+  pointer-events: none;
+}
 
+#nprogress .bar {
+  background: linear-gradient(
+    to right,
+    rgba(34, 197, 94, 0.7),
+    rgba(34, 197, 94, 1)
+  );
+  position: fixed;
+  z-index: 1051; /* Higher z-index to ensure it's above everything */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px; /* Slightly thicker for better visibility */
+  animation: gradientMovement 2s infinite linear;
+}
+
+#nprogress .peg {
+  display: block;
+  position: absolute;
+  right: 0px;
+  width: 100px;
+  height: 100%;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.7), 0 0 5px rgba(34, 197, 94, 0.7);
+  opacity: 1.0;
+  transform: rotate(3deg) translate(0px, -4px);
+}
+
+#nprogress .spinner {
+  display: none; /* We're not using the spinner */
+}
+
+/* Add subtle animation for the gradient */
+@keyframes gradientMovement {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Ensure smooth transitions for progress bar */
+.nprogress-custom-parent {
+  overflow: hidden;
+  position: relative;
+}
+
+.nprogress-custom-parent #nprogress .bar {
+  position: absolute;
+}

@@ -45,6 +45,8 @@ export default function AddEventModal({ onClose }: AddEventModalProps) {
   });
   const [image, setImage] = useState<File | null>(null);
 
+  
+
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => {

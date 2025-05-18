@@ -5,6 +5,11 @@ import { useState, useEffect } from 'react';
 import { Pencil, Edit2 } from 'lucide-react';
 import EditEventModal from './EditEventModal';
 
+
+
+type EventCategory = 'all' | 'software' | 'gaming' | 'hardware' | 'music' | 'sports' | 'extra';
+
+
 interface EditEventButtonProps {
   event: {
     id: string;
@@ -13,10 +18,12 @@ interface EditEventButtonProps {
     event_date: string;
     form_link: string;
     image_url: string | null;
-    category: string;
+    category: Exclude<EventCategory, 'all'>;
     created_by: string;
   };
 }
+
+
 
 export default function EditEventButton({ event }: EditEventButtonProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);

@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import { authOptions } from '@/auth'
 import { getServerSession } from 'next-auth/next'
 
+
 export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
@@ -56,6 +57,14 @@ export async function PUT(
       console.error('Admin check failed:', error);
     }
 
+  if (!event) {
+      return NextResponse.json(
+        { error: 'Event not found' },
+        { status: 404 }
+      );
+    }
+
+
     // Authorization check
     if (!isAdmin && event.created_by !== session.user.id) {
       return NextResponse.json(
@@ -94,7 +103,7 @@ export async function PUT(
         }
 
         const fileExtension = imageFile.name.split('.').pop();
-        const fileName = `event-${eventId}-${Date.now()}.${fileExtension}`;
+        const fileName = `event-${id}-${Date.now()}.${fileExtension}`;
 
         // Upload new image
         const { data: uploadData, error: uploadError } = await supabase.storage
