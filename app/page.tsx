@@ -1,48 +1,347 @@
 import Layout from './components/layout/Layout'
-import  EventsPage  from '@/app/components/events/EventContainer'
-import { TrendingUp } from 'lucide-react'
-import { VortexHero } from './components/extra/VortexHero'
+import { TrendingUp, Users, Award } from 'lucide-react'
+import LoungeClient from './lounge/LoungeClient'
+import PrizePoolProgress from '@/app/components/donate/SmPrizePoolProgress'
+import TopDonators from '@/app/components/donate/TopDonators'
+import { supabase } from '@/app/lib/supabase'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/auth'
+import Link from 'next/link'
 
-export default function Home() {
-  return (
+// Modernized Facebook-style Home Page
+export default async function Home() {
+  const session = await getServerSession(authOptions);
+  
+  // Fetch lounge posts for feed
+  const { data: posts } = await supabase
+    .from('lounge_posts')
+    .select(`
+      *,
+      users:author_id (
+        name,
+        image
+      )
+    `)
+    .order('created_at', { ascending: false })
+    .limit(6);
+  
+  // Fetch upcoming events for sidebar
+  const { data: events } = await supabase
+    .from('events')
+    .select(`
+      id,
+      title,
+      event_date,
+      category,
+      author:created_by (
+        name,
+        image
+      )
+    `)
+    .eq('verified', true)
+    .gte('event_date', new Date().toISOString())
+    .order('event_date', { ascending: true })
+    .limit(3);
+  
+  // Get prize pool information
+  const { data: prizePool } = await supabase
+    .from('prize_pool')
+    .select('target_amount')
+    .single();
 
+  // Calculate current amount from verified donations
+  const { data: verifiedDonations } = await supabase
+    .from('donations')
+    .select('amount')
+    .eq('verified', true);
+
+  const current_amount = verifiedDonations?.reduce(
+    (sum, donation) => sum + donation.amount,
+    0
+  ) || 0;
+
+  // Get total verified donors count
+  const { count: total_donors } = await supabase
+    .from('donations')
+    .select('*', { count: 'exact' })
+    .eq('verified', true);
+
+  // Fetch top donators
+  const { data: topDonators } = await supabase
+    .from('donations')
+    .select('id, name, amount, avatar_url')
+    .eq('show_on_leaderboard', true)
+    .eq('verified', true)
+    .order('amount', { ascending: false })
+    .limit(5);
+  
+  // Fetch recent products
+  const { data: products } = await supabase
+    .from('products')
+    .select('id, name, image_url, created_at, url')
+    .eq('approved', true)
+    .order('created_at', { ascending: false })
+    .limit(3);
+
+ return (
     <Layout>
-      <div className="max-w-7xl mx-auto dotted-border-horizontal border-b  overflow-hidden">
-        <VortexHero/>
-      </div>
+      <div className="bg-black min-h-screen">
+        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+          
 
-      {//Minor Hero Section 
-}
-      <div className="max-w-7xl mx-auto py-8 px-8 dotted-border-vertical border-x  overflow-hidden">
-        <div className="flex flex-col md:flex-row items-center">
-          <div className="mb-0 flex flex-col gap-1">
-              <a className="group mb-2 inline-flex items-center gap-2 px-0.5 text-sm font-medium" href="/product-hunt">
-              <TrendingUp className="h-4 w-4 text-green-400" />
-              <span className="underline-offset-4 group-hover:underline">Get Started with Product Hunt</span>
-              </a>
-            <div>
-                <h1 className="text-4xl md:text-1xl font-bold mb-1">
-                  Nation Wide Events All In One Place
-                </h1>
-                <h1 className="mb-4 text-white/90">
-                  Dynamic portal to campus happenings, where news, events, and opportunities.
-                </h1>
-                            <a href="https://discord.gg/cQ5gxusATk" target="_blank" rel="noopener noreferrer">
-<button className="relative inline-flex h-10 overflow-hidden rounded-md p-[1px] focus:outline-none focus:ring-2 focus:ring-green-300 focus:ring-offset-2 focus:ring-offset-green-100">
-  <span className="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#d1fae5_0%,#047857_50%,#d1fae5_100%)]" />
-  <span className="inline-flex h-full w-full cursor-pointer items-center justify-center rounded-md bg-green-700 px-4  text-sm font-medium text-white backdrop-blur-3xl hover:bg-green-800">
-    Join Discord
-  </span>
-</button>
-</a>
+          <div className="flex flex-col lg:flex-row lg:gap-6">
+            {/* Left Sidebar - Hidden on mobile, shown on desktop */}
+            <div className="hidden lg:block lg:w-1/5 space-y-4 flex-shrink-0">
+              <div className="bg-white/5 rounded-xl p-5 shadow-lg sticky top-24">
+                <div className="flex items-center gap-3 mb-6">
+                  <TrendingUp className="h-6 w-6 text-green-400" />
+                  <h2 className="text-xl font-semibold text-white">Community</h2>
+                </div>
+                
+                <div className="space-y-4">
+                  <a href="https://discord.gg/cQ5gxusATk" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="flex items-center justify-between bg-white/5 hover:bg-white/10 transition-colors p-3 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-indigo-500 rounded-lg p-2">
+                        <Users className="h-5 w-5 text-white" />
+                      </div>
+                      <span className="font-medium">Join Discord</span>
+                    </div>
+                    <span className="bg-white/10 rounded-full px-2.5 py-1 text-xs">1,050</span>
+                  </a>
+                  
+                  <div className="pt-2">
+                    <PrizePoolProgress 
+                      currentAmount={current_amount}
+                      targetAmount={prizePool?.target_amount || 100000}
+                      totalDonors={total_donors || 0}
+                    />
+                  </div>
+                </div>
               </div>
-
+            </div>
+            
+            {/* Main Content Area (Feed) - Appears first on mobile */}
+            <div className="w-full  lg:mx-auto">
+              <div className="bg-white/5 rounded-xl shadow-lg overflow-hidden  mb-5">
+                
+                <div className="p-4 sm:p-5">
+                  <LoungeClient 
+                    initialPosts={posts || []} 
+                    userId={session?.user?.id} 
+                  />
+                </div>
+              </div>
+              
+              {/* Mobile View: Recent Events - Only shows on mobile */}
+              <div className="lg:hidden space-y-4">
+                <div className="bg-white/5 rounded-xl p-4 shadow-lg">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold text-white">Recent Events</h2>
+                    <Link href="/events" className="text-green-400 text-sm hover:underline">See All</Link>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {events && events.length > 0 ? (
+                      events.map(event => (
+                        <Link 
+                          href={`/events`} 
+                          key={event.id}
+                          className="flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 transition-colors rounded-lg">
+                          <div className={`bg-green-600 rounded-lg p-2 ${
+                            event.category === 'software' ? 'bg-blue-600' :
+                            event.category === 'gaming' ? 'bg-purple-600' :
+                            event.category === 'hardware' ? 'bg-amber-600' :
+                            event.category === 'music' ? 'bg-pink-600' :
+                            event.category === 'sports' ? 'bg-emerald-600' : 'bg-green-600'
+                          }`}>
+                            <span className="text-white text-xs font-bold">{event.category.charAt(0).toUpperCase()}</span>
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-sm line-clamp-1">{event.title}</p>
+                            <p className="text-gray-400 text-xs">
+                              {new Date(event.event_date).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric'
+                              })}
+                            </p>
+                          </div>
+                        </Link>
+                      ))
+                    ) : (
+                      <p className="text-gray-400 text-sm py-2">No upcoming events</p>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Mobile View: Top Donors */}
+                <div className="bg-white/5 rounded-xl p-4 shadow-lg">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <Award className="h-5 w-5 text-green-400" />
+                      <h2 className="text-lg font-semibold text-white">Top Donors</h2>
+                    </div>
+                    <Link href="/donate" className="text-green-400 text-sm hover:underline">Donate</Link>
+                  </div>
+                  
+                  <div>
+                    <TopDonators donators={topDonators || []} />
+                  </div>
+                </div>
+                
+                {/* Mobile View: Recent Products */}
+                <div className="bg-white/5 rounded-xl p-4 shadow-lg">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold text-white">Recent Projects</h2>
+                    <Link href="/product-hunt" className="text-green-400 text-sm hover:underline">See All</Link>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {products && products.length > 0 ? (
+                      products.map(product => (
+                        <Link 
+                          href={`/product-hunt/${product.url}`} 
+                          key={product.id}
+                          className="flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 transition-colors rounded-lg">
+                          <div className="w-10 h-10 bg-white/10 rounded-lg overflow-hidden">
+                            {product.image_url ? (
+                              <img 
+                                src={product.image_url} 
+                                alt={product.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-green-600">
+                                <span className="text-white text-sm font-bold">{product.name.charAt(0)}</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-sm line-clamp-1">{product.name}</p>
+                            <p className="text-gray-400 text-xs">
+                              {new Date(product.created_at).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric'
+                              })}
+                            </p>
+                          </div>
+                        </Link>
+                      ))
+                    ) : (
+                      <p className="text-gray-400 text-sm py-2">No recent projects</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Right Sidebar - Hidden on mobile, shown on desktop */}
+            <div className="hidden lg:block lg:w-1/5 space-y-4  flex-shrink-0">
+              <div className="sticky top-24 space-y-4">
+                {/* Recent Events */}
+                <div className="bg-white/5 rounded-xl p-5 shadow-lg">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold text-white">Events</h2>
+                    <Link href="/events" className="text-green-400 text-sm hover:underline">See All</Link>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {events && events.length > 0 ? (
+                      events.map(event => (
+                        <Link 
+                          href={`/events`} 
+                          key={event.id}
+                          className="flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 transition-colors rounded-lg">
+                          <div className={`bg-green-600 rounded-lg px-3 py-1 ${
+                            event.category === 'software' ? 'bg-blue-600' :
+                            event.category === 'gaming' ? 'bg-purple-600' :
+                            event.category === 'hardware' ? 'bg-amber-600' :
+                            event.category === 'music' ? 'bg-pink-600' :
+                            event.category === 'sports' ? 'bg-emerald-600' : 'bg-green-600'
+                          }`}>
+                            <span className="text-white text-xs font-bold">{event.category.charAt(0).toUpperCase()}</span>
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-sm line-clamp-1">{event.title}</p>
+                            <p className="text-gray-400 text-xs">
+                              {new Date(event.event_date).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric'
+                              })}
+                            </p>
+                          </div>
+                        </Link>
+                      ))
+                    ) : (
+                      <p className="text-gray-400 text-sm py-2">No upcoming events</p>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Top Donors */}
+                <div className="bg-white/5 rounded-xl py-4 px-6  justify-center shadow-lg">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-xl font-semibold text-white">Top Donors</h2>
+                    </div>
+                    <Link href="/donate" className="text-green-400 text-sm hover:underline">Donate</Link>
+                  </div>
+                  
+                  <div>
+                    <TopDonators donators={topDonators || []} />
+                  </div>
+                </div>
+                
+                {/* Recent Products */}
+                <div className="bg-white/5 rounded-xl p-5 shadow-lg ">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold text-white">Recent Projects</h2>
+                    <Link href="/product-hunt" className="text-green-400 text-sm hover:underline">See All</Link>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {products && products.length > 0 ? (
+                      products.map(product => (
+                        <Link 
+                          href={`/product-hunt/${product.url}`} 
+                          key={product.id}
+                          className="flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 transition-colors rounded-lg">
+                          <div className="w-10 h-10 bg-white/10 rounded-lg overflow-hidden">
+                            {product.image_url ? (
+                              <img 
+                                src={product.image_url} 
+                                alt={product.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-green-600">
+                                <span className="text-white text-sm font-bold">{product.name.charAt(0)}</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-sm line-clamp-1">{product.name}</p>
+                            <p className="text-gray-400 text-xs">
+                              {new Date(product.created_at).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric'
+                              })}
+                            </p>
+                          </div>
+                        </Link>
+                      ))
+                    ) : (
+                      <p className="text-gray-400 text-sm py-2">No recent projects</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-
-
-      <EventsPage/>
     </Layout>
   )
 }
