@@ -25,9 +25,9 @@ interface DonateClientProps {
 
 export default function DonateClient({ session, donators, prizePool }: DonateClientProps) {
   return (
-    <div className="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8 border-x dotted-border-vertical">
+    <div className="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
       <div className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Support Future Investors</h1>
+        <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Support Future Innovators</h1>
         <p className="text-zinc-400 md:text-lg max-w-3xl">
           Your contribution helps students learn real-world investing skills and provides funding for promising projects.
         </p>
@@ -42,7 +42,18 @@ export default function DonateClient({ session, donators, prizePool }: DonateCli
         </div>
 
         <div>
-          <TopDonators donators={donators} limit={5} />
+                          <div className="bg-white/5 rounded-xl py-4 px-6  justify-center shadow-lg">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-xl font-semibold text-white">Top Donors</h2>
+                    </div>
+
+                  </div>
+                  
+                  <div>
+                    <TopDonators donators={donators || []} />
+                  </div>
+                </div>
           <div className="bg-zinc-800/50 rounded-lg shadow-lg border border-zinc-800/20 p-6">
             <h3 className="text-xl font-bold text-white mb-4">About The Prize Pool</h3>
             <p className="text-zinc-300 mb-3">

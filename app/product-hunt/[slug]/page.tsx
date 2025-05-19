@@ -66,7 +66,7 @@ export default async function ProductPage({ params }: Props) {
 
 return (
   <Layout>
-    <div className="max-w-7xl mx-auto py-16 px-8 dotted-border-vertical border-x">
+    <div className="max-w-7xl mx-auto py-16 px-8">
       <div className="flex flex-col md:flex-row gap-8 mb-8">
         {/* Image Section */}
         <div className="w-full md:w-48 h-48 flex-shrink-0">

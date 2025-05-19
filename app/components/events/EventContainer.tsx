@@ -25,11 +25,12 @@ export default async function EventsPage() {
       .from('events')
       .select(`
         *,
-        author:created_by (
+        users:created_by (
           id,
           name,
           image
-        )
+        ),
+        created_by
       `)
       .eq('verified', true)
       .order('event_date', { ascending: true });
@@ -53,7 +54,7 @@ export default async function EventsPage() {
   const pastEvents = events?.filter(event => new Date(event.event_date) < now) || [];
 
   return (
-    <div className="max-w-7xl mx-auto dotted-border-vertical border-x pt-8 pb-12">
+    <div className="max-w-7xl mx-auto pt-8 pb-12">
       <EventsClient
         upcomingEvents={upcomingEvents}
         pastEvents={pastEvents}

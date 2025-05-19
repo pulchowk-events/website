@@ -4,9 +4,30 @@ import { supabase } from '@/app/lib/supabase';
 import Layout from '@/app/components/layout/Layout';
 import ProfileContent from '@/app/components/profile/ProfileContent'
 import { redirect } from 'next/navigation';
+import { Metadata } from 'next';
 
 interface Props {
   params: { userId: string };
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const userId = params?.userId;
+
+  if (!userId) {
+    return {
+      title: 'Profile Not Found | Pulchowk Events'
+    };
+  }
+
+  const { data: userData } = await supabase
+    .from('users')
+    .select('name')
+    .eq('id', userId)
+    .single();
+
+  return {
+    title: userData?.name ? `${userData.name}'s Profile | Pulchowk Events` : 'Profile | Pulchowk Events'
+  };
 }
 
 export default async function ProfilePage({ params }: Props) {
@@ -45,7 +66,8 @@ export default async function ProfilePage({ params }: Props) {
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto   dotted-border-vertical border-x min-h-250 px-4 sm:px-6 lg:px-8  py-8">
+      <div id="portal-root"></div>
+      <div className="max-w-7xl mx-auto min-h-200 px-4 sm:px-6 lg:px-8 py-8">
         <ProfileContent 
           user={userData}
           stats={{

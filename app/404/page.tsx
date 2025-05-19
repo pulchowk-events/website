@@ -8,7 +8,7 @@ import { ChevronLeft } from 'lucide-react';
 export default function NotFound() {
   return (
     <Layout>
-      <div className="min-h-[80vh] flex flex-col items-center dotted-border-horizontal border-x justify-center px-4">
+      <div className="min-h-[80vh] flex flex-col items-center  justify-center px-4">
         <div className="max-w-md w-full text-center space-y-8">
           {/* Large 404 Number */}
           <h1 className="text-8xl sm:text-9xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-500 to-green-600">

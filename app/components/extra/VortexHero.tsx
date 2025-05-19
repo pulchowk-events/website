@@ -4,7 +4,7 @@ import { Vortex } from "@/components/ui/vortex";
 
 export function VortexHero() {
   return (
-    <div className="w-[calc(100%)] mx-auto rounded-md h-[15rem] sm:h-[25rem] overflow-hidden dotted-border-vertical border-x">
+    <div className="w-[calc(100%)] mx-auto rounded-md h-[15rem] sm:h-[25rem] overflow-hidden">
 
       <Vortex
         backgroundColor="black"

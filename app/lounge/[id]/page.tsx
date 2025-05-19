@@ -75,7 +75,7 @@ export default async function PostPage({ params }: Props) {
 
   return (
     <Layout>
-      <div className="max-w-7xl min-h-200 mx-auto py-16 px-8 dotted-border-vertical border-x">
+      <div className="max-w-7xl min-h-200 mx-auto py-16 px-8">
         <PostContent 
           post={post} 
           isAdmin={isAdmin} 

@@ -25,9 +25,9 @@ interface Event {
   event_date: string;
   form_link: string;
   image_url: string | null;
-  created_by: string;
   created_at: string;
   category: Exclude<EventCategory, 'all'>;
+  created_by: string;
 }
 
 interface EventsClientProps {
