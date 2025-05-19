@@ -10,6 +10,9 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: "Pulchowk Events",
   description: "A platform for Nation Wide Campus events & products.",
+  icons: {
+    icon: '/logo.svg', 
+  }
 };
 
 export default function RootLayout({
@@ -19,6 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+
       <body className={`${inter.className} bg-black text-white`}>
         <LoadingBar />
         <Providers>{children}</Providers>
