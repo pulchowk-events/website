@@ -25,7 +25,7 @@ export default async function LoungePage() {
   return (
     <Layout>
       <div id="portal-root"></div>
-      <div className='max-w-7xl mx-auto dotted-border-vertical border-x'>
+      <div className='max-w-7xl mx-auto'>
         <div className="px-8 py-8  min-h-200">
           <LoungeClient 
             initialPosts={posts || []} 

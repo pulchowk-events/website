@@ -18,12 +18,9 @@ export default function ProductHuntClient({ products, userId }: Props) {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const isLoggedIn = !!userId;
-  const [showSignInModal, setShowSignInModal] = useState(!userId);
+  const [showSignInModal, setShowSignInModal] = useState(false);
 
   useEffect(() => {
-
-    setShowSignInModal(!userId);
-
     // Check if the URL has the query string 'showAddProduct=true'
     setShowModal(searchParams.get('showAddProduct') === 'true');
   }, [searchParams]);
@@ -57,26 +54,28 @@ export default function ProductHuntClient({ products, userId }: Props) {
       }
 
       <div className="relative">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Products</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-semibold text-white">Product List</h1>
           <div className="flex items-center gap-4">
             <ClientVoteCooldownNotice />
             <button
               onClick={openAddProductModal}
-              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
             >
               Add Product
             </button>
           </div>
         </div>
 
-        <div className="grid gap-6">
+        <div className="space-y-4">
           {products.length > 0 ? (
             products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))
           ) : (
-            <p className="text-center text-gray-400">No products found.</p>
+            <div className="text-center py-12 bg-white/5 rounded-lg">
+              <p className="text-gray-400">No products found.</p>
+            </div>
           )}
         </div>
       </div>

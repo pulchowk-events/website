@@ -5,17 +5,11 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BorderBeam } from "@/components/magicui/border-beam";
+import { Dialog } from '@headlessui/react';
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { X } from 'lucide-react';
 
 type EventCategory = 'software' | 'gaming' | 'hardware' | 'music' | 'sports' | 'extra';
 
@@ -23,7 +17,7 @@ const categories: { value: EventCategory; label: string }[] = [
   { value: 'software', label: 'Software' },
   { value: 'hardware', label: 'Hardware' },
   { value: 'music', label: 'Music' },
-    { value: 'sports', label: 'Sports' },
+  { value: 'sports', label: 'Sports' },
   { value: 'gaming', label: 'Gaming' },
   { value: 'extra', label: 'Extra' }
 ];
@@ -44,8 +38,6 @@ export default function AddEventModal({ onClose }: AddEventModalProps) {
     category: 'software' as EventCategory
   });
   const [image, setImage] = useState<File | null>(null);
-
-  
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -98,45 +90,57 @@ export default function AddEventModal({ onClose }: AddEventModalProps) {
   };
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[999] min-h-screen flex items-center justify-center bg-black/50 px-4 sm:px-0"
-        onClick={onClose}
-      >
+    <Dialog
+      open={true}
+      onClose={onClose}
+      className="fixed inset-0 z-50 overflow-y-auto"
+    >
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <Dialog.Title className="fixed inset-0 bg-black/70 backdrop-blur-sm" />
+
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
           transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-          onClick={(e) => e.stopPropagation()}
+          className="relative bg-black border border-white/5 rounded-xl w-full max-w-5xl shadow-2xl"
         >
-          <Card className="relative w-full max-w-md bg-black/90 text-white overflow-hidden">
-            <CardHeader>
-              <CardTitle>Add New Event</CardTitle>
-              <CardDescription>Submit a new event for verification.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="title">Event Title</Label>
+          <div className="border-b border-white/10 px-6 py-4">
+            <div className="flex items-center justify-between">
+              <Dialog.Title className="text-xl font-semibold text-white">
+                Add New Event
+              </Dialog.Title>
+              <button
+                onClick={onClose}
+                className="text-zinc-400 hover:text-white transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <p className="text-zinc-400 text-sm mt-1">Submit a new event for verification</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="title" className="text-white">Event Title</Label>
                   <Input
                     id="title"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    className="mt-1 bg-white/5 border-white/10 text-white"
                     required
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="category">Category</Label>
+                <div>
+                  <Label htmlFor="category" className="text-white">Category</Label>
                   <select
                     id="category"
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value as EventCategory })}
-                    className="w-full p-2 rounded bg-zinc-800 border border-zinc-700 text-white"
+                    className="w-full mt-1 p-2 rounded bg-white/5 border border-white/10 text-white"
                     required
                   >
                     {categories.map((category) => (
@@ -147,72 +151,79 @@ export default function AddEventModal({ onClose }: AddEventModalProps) {
                   </select>
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="description">Description</Label>
-                  <textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full p-2 rounded bg-zinc-800 border border-zinc-700 text-white min-h-[100px]"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="eventDate">Event Date</Label>
+                <div>
+                  <Label htmlFor="eventDate" className="text-white">Event Date</Label>
                   <Input
                     id="eventDate"
                     type="datetime-local"
                     value={formData.eventDate}
                     onChange={(e) => setFormData({ ...formData, eventDate: e.target.value })}
+                    className="mt-1 bg-white/5 border-white/10 text-white"
                     required
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="formLink">Registration Form Link</Label>
+                <div>
+                  <Label htmlFor="formLink" className="text-white">Registration Form Link</Label>
                   <Input
                     id="formLink"
                     type="url"
                     value={formData.formLink}
                     onChange={(e) => setFormData({ ...formData, formLink: e.target.value })}
                     placeholder="https://"
+                    className="mt-1 bg-white/5 border-white/10 text-white"
                     required
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="image">Event Image</Label>
+                <div>
+                  <Label htmlFor="image" className="text-white">Event Image</Label>
                   <Input
                     id="image"
                     type="file"
                     accept="image/*"
                     onChange={(e) => setImage(e.target.files?.[0] || null)}
+                    className="mt-1 bg-white/5 border-white/10 text-white"
                   />
                   {image && (
-                    <p className="text-sm text-zinc-400">Selected: {image.name}</p>
+                    <p className="text-sm text-zinc-400 mt-1">Selected: {image.name}</p>
                   )}
                 </div>
+              </div>
 
-                <div className="flex justify-end gap-2 pt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={onClose}
-                    disabled={loading}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={loading}>
-                    {loading ? 'Submitting...' : 'Submit Event'}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-            <BorderBeam duration={8} size={120} />
-          </Card>
+              <div>
+                <Label htmlFor="description" className="text-white">Description</Label>
+                <textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full mt-1 p-3 rounded bg-white/5 border border-white/10 text-white min-h-[330px] resize-none"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={loading}
+                className="bg-white/5 hover:bg-white/10 border-white/10"
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={loading}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                {loading ? 'Submitting...' : 'Submit Event'}
+              </Button>
+            </div>
+          </form>
         </motion.div>
-      </motion.div>
-    </AnimatePresence>
+      </div>
+    </Dialog>
   );
 }

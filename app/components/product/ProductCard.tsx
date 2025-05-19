@@ -16,7 +16,7 @@ interface Product {
 
 export default function ProductCard({ product }: { product: Product }) {
   return (
-    <div className="bg-gray-800 hover:bg-gray-800/95 p-6 rounded-lg  flex flex-col gap-4 items-start">
+    <div className="bg-white/5 hover:bg-white/10 p-5 rounded-xl transition-colors">
       <div className="flex items-start justify-between w-full">
         <div className="flex items-start space-x-4 flex-grow">
           <div className="w-24 h-24 flex-shrink-0">
@@ -30,17 +30,19 @@ export default function ProductCard({ product }: { product: Product }) {
                 className="rounded-lg object-cover w-full h-full"
               />
             ) : (
-              <div className="w-full h-full bg-gray-700 rounded-lg" />
+              <div className="w-full h-full bg-white/10 rounded-lg flex items-center justify-center">
+                <span className="text-white text-xl font-bold">{product.name.charAt(0)}</span>
+              </div>
             )}
           </div>
           
           <div className="flex flex-col gap-2.5">
             <Link href={`/product-hunt/${product.url}`} className="block flex flex-col gap-2">
               <div className="flex flex-col">
-                <h3 className="text-xl w-1 sm:w-160 font-bold hover:text-white/80 transition-colors">
+                <h3 className="text-xl font-semibold text-white hover:text-white/90 transition-colors">
                   {product.name}
                 </h3>
-                <p className="text-gray-400 mt-1">{product.description}</p>
+                <p className="text-gray-400 mt-1 line-clamp-2">{product.description}</p>
               </div>
             </Link>
             <ClientVoteButton productId={product.id} />
@@ -49,10 +51,10 @@ export default function ProductCard({ product }: { product: Product }) {
 
         <Link 
           href={`/product-hunt/${product.url}`}
-          className="ml-4 p-2 rounded-full hover:bg-gray-700 transition-colors group"
+          className="ml-4 p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors group"
         >
           <ArrowUpRight 
-            className="w-6 h-6 text-gray-400 group-hover:text-white transition-colors" 
+            className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" 
           />
         </Link>
       </div>

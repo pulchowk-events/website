@@ -3,16 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { motion, AnimatePresence } from 'framer-motion';
-import { BorderBeam } from "@/components/magicui/border-beam";
+import { Dialog } from '@headlessui/react';
+import { X } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -60,84 +53,89 @@ export default function EditEventModal({ event, onClose }: EditEventModalProps) 
     };
   }, []);
 
-// Update the handleSubmit function
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setLoading(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
 
-  try {
-    const formDataToSend = new FormData();
-    formDataToSend.append('title', formData.title);
-    formDataToSend.append('description', formData.description);
-    formDataToSend.append('eventDate', formData.eventDate);
-    formDataToSend.append('formLink', formData.formLink);
-    formDataToSend.append('category', formData.category);
-    if (image) {
-      formDataToSend.append('image', image);
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append('title', formData.title);
+      formDataToSend.append('description', formData.description);
+      formDataToSend.append('eventDate', formData.eventDate);
+      formDataToSend.append('formLink', formData.formLink);
+      formDataToSend.append('category', formData.category);
+      if (image) {
+        formDataToSend.append('image', image);
+      }
+
+      const response = await fetch(`/api/events/${event.id}`, {
+        method: 'PUT',
+        body: formDataToSend,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update event');
+      }
+
+      toast.success('Event updated successfully!');
+      router.refresh();
+      onClose();
+    } catch (error) {
+      console.error('Update error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to update event');
+    } finally {
+      setLoading(false);
     }
-
-    const response = await fetch(`/api/events/${event.id}`, {
-      method: 'PUT',
-      body: formDataToSend,
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Failed to update event');
-    }
-
-    toast.success('Event updated successfully!');
-    router.refresh();
-    onClose();
-  } catch (error) {
-    console.error('Update error:', error);
-    toast.error(error instanceof Error ? error.message : 'Failed to update event');
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[9999999] min-h-screen flex items-center justify-center bg-black/50 px-4 sm:px-0"
-        onClick={onClose}
-      >
-        <motion.div
-          initial={{ scale: 0.95, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.95, opacity: 0 }}
-          transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Card className="relative w-full bg-black text-white overflow-hidden">
-            <CardHeader>
-              <CardTitle>Edit Event</CardTitle>
-              <CardDescription>Update event details</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4 space-x-4 grid  grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label htmlFor="title">Event Title</Label>
+    <Dialog
+      open={true}
+      onClose={onClose}
+      className="fixed inset-0 z-50 overflow-y-auto"
+    >
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <Dialog.Title className="fixed inset-0 bg-black/70 backdrop-blur-sm" />
+
+        <div className="relative bg-black border border-white/5 rounded-xl w-full max-w-5xl shadow-2xl">
+          <div className="border-b border-white/10 px-6 py-4">
+            <div className="flex items-center justify-between">
+              <Dialog.Title className="text-xl font-semibold text-white">
+                Edit Event
+              </Dialog.Title>
+              <button
+                onClick={onClose}
+                className="text-zinc-400 hover:text-white transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <p className="text-zinc-400 text-sm mt-1">Update event details</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="title" className="text-white">Event Title</Label>
                   <Input
                     id="title"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    className="mt-1 bg-white/5 border-white/10 text-white"
                     required
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="category">Category</Label>
+                <div>
+                  <Label htmlFor="category" className="text-white">Category</Label>
                   <select
                     id="category"
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value as EventCategory })}
-                    className="w-full p-2 rounded bg-zinc-800 border border-zinc-700 text-white"
+                    className="w-full mt-1 p-2 rounded bg-white/5 border border-white/10 text-white"
                     required
                   >
                     {categories.map((category) => (
@@ -148,77 +146,84 @@ const handleSubmit = async (e: React.FormEvent) => {
                   </select>
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="description">Description</Label>
-                  <textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full p-2 rounded bg-zinc-800 border border-zinc-700 text-white min-h-[100px]"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="eventDate">Event Date</Label>
+                <div>
+                  <Label htmlFor="eventDate" className="text-white">Event Date</Label>
                   <Input
                     id="eventDate"
                     type="datetime-local"
                     value={formData.eventDate}
                     onChange={(e) => setFormData({ ...formData, eventDate: e.target.value })}
+                    className="mt-1 bg-white/5 border-white/10 text-white"
                     required
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="formLink">Registration Form Link</Label>
+                <div>
+                  <Label htmlFor="formLink" className="text-white">Registration Form Link</Label>
                   <Input
                     id="formLink"
                     type="url"
                     value={formData.formLink}
                     onChange={(e) => setFormData({ ...formData, formLink: e.target.value })}
                     placeholder="https://"
+                    className="mt-1 bg-white/5 border-white/10 text-white"
                     required
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="image">Update Event Image</Label>
+                <div>
+                  <Label htmlFor="image" className="text-white">Update Event Image</Label>
                   <Input
                     id="image"
                     type="file"
                     accept="image/*"
                     onChange={(e) => setImage(e.target.files?.[0] || null)}
+                    className="mt-1 bg-white/5 border-white/10 text-white"
                   />
                   {image && (
-                    <p className="text-sm text-zinc-400">Selected: {image.name}</p>
+                    <p className="text-sm text-zinc-400 mt-1">Selected: {image.name}</p>
                   )}
                   {event.image_url && !image && (
-                    <p className="text-sm text-zinc-400">
+                    <p className="text-sm text-zinc-400 mt-1">
                       Current image will be kept
                     </p>
                   )}
                 </div>
+              </div>
 
-                <div className="flex justify-end gap-2 pt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={onClose}
-                    disabled={loading}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={loading}>
-                    {loading ? 'Updating...' : 'Update Event'}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-            <BorderBeam duration={8} size={120} />
-          </Card>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+              <div>
+                <Label htmlFor="description" className="text-white">Description</Label>
+                <textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full mt-1 p-3 rounded bg-white/5 border border-white/10 text-white min-h-[330px] resize-none"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={loading}
+                className="bg-white/5 hover:bg-white/10 border-white/10"
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={loading}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                {loading ? 'Updating...' : 'Update Event'}
+              </Button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </Dialog>
   );
 }

@@ -2,14 +2,13 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+
 export default function ErrorContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
 
   return (
-    <Suspense fallback={<div className="text-center text-gray-400">Loading...</div>}>
-    <div className="min-h-screen flex items-center justify-center bg-charcoal">
+  <div className="min-h-screen flex items-center justify-center bg-charcoal">
       <div className="bg-gray-800 p-8 rounded-lg max-w-md w-full">
         <h1 className="text-2xl font-bold mb-6 text-center text-red-400">
           Authentication Error
@@ -29,6 +28,6 @@ export default function ErrorContent() {
         </div>
       </div>
     </div>
-    </Suspense>
+
   );
 }
