@@ -8,12 +8,11 @@ import PostContent from '@/app/components/lounge/PostContent';
 import { Metadata } from 'next';
 
 interface Props {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-// Add generateMetadata function
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const postId = params?.id;
+  const { id: postId } = await params;
 
   if (!postId) {
     return {
@@ -34,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function PostPage({ params }: Props) {
-  const postId = params?.id;
+  const { id: postId } = await params;
 
   if (!postId || typeof postId !== 'string') {
     return notFound();
@@ -43,7 +42,6 @@ export default async function PostPage({ params }: Props) {
   const supabase = createServerSupabaseClient();
   const session = await getServerSession(authOptions);
 
-  // Get post data with author info
   const { data: post, error } = await supabase
     .from('lounge_posts')
     .select(`
@@ -63,7 +61,6 @@ export default async function PostPage({ params }: Props) {
     return notFound();
   }
 
-  // Check if user is admin
   const { data: adminData } = await supabase
     .from('admins')
     .select('email')

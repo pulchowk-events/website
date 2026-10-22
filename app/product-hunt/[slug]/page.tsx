@@ -1,4 +1,4 @@
-// app/products/[slug]/page.tsx
+// app/product-hunt/[slug]/page.tsx
 
 import React from 'react';
 import { redirect } from 'next/navigation';
@@ -13,13 +13,12 @@ import { createServerSupabaseClient } from '@/app/lib/supabase-server';
 import Image from 'next/image';
 import { ExternalLink } from 'lucide-react';
 
-
 interface Props {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export default async function ProductPage({ params }: Props) {
-  const slug = params?.slug;
+  const { slug } = await params;
 
   if (!slug || typeof slug !== 'string') {
     return (
@@ -33,7 +32,6 @@ export default async function ProductPage({ params }: Props) {
 
   const supabase = createServerSupabaseClient();
 
-  // Get product data
   const { data: product, error } = await supabase
     .from('products')
     .select('id, name, description, url, created_at, posted_by, image_url, redirect_url')
@@ -51,8 +49,6 @@ export default async function ProductPage({ params }: Props) {
     );
   }
 
-  const creationDate = new Date(product.created_at).toDateString();
-
   const session = await getServerSession(authOptions);
 
   const { data: adminData } = await supabase
@@ -64,51 +60,48 @@ export default async function ProductPage({ params }: Props) {
   const isAdmin = !!adminData;
   const isOwner = session?.user?.id === product.posted_by;
 
-return (
-  <Layout>
-    <div className="max-w-7xl mx-auto py-16 px-8">
-      <div className="flex flex-col md:flex-row gap-8 mb-8">
-        {/* Image Section */}
-        <div className="w-full md:w-48 h-48 flex-shrink-0">
-          {product.image_url ? (
-            <Image
-              src={product.image_url}
-              alt={product.name}
-              width={48}
-              height={48}
-              unoptimized // Required if domain not added to next.config.js
-              className="rounded-lg object-cover w-full h-full"
-            />
-          ) : (
-            <div className="w-full h-full bg-gray-700 rounded-lg flex items-center justify-center">
-              <span className="text-gray-400 text-sm">No Image</span>
-            </div>
-          )}
-        </div>
-
-        {/* Content Section */}
-
-        <div className="flex-col flex gap-1 sm:gap-10">
-          <div className='flex flex-col gap-1'>
-          <h1 className="text-4xl font-bold">{product.name}</h1>
-          <p className="text-lg text-gray-300">{product.description}</p>
-          <p className="text-sm text-gray-400">
-            Created on: {new Date(product.created_at).toLocaleDateString()}
-          </p>
-          </div>
- 
-
-          <div className="mt-6 flex gap-4 text-white">
-            <ClientVoteButton productId={product.id} />
-            {(isAdmin || isOwner) && (<>
-                <EditButton product={product} />
-                <RemoveButton
-                  productId={product.id}
-                  productName={product.name}
-                  isOwner={isOwner}
-                />
-              </>
+  return (
+    <Layout>
+      <div className="max-w-7xl mx-auto py-16 px-8">
+        <div className="flex flex-col md:flex-row gap-8 mb-8">
+          <div className="w-full md:w-48 h-48 flex-shrink-0">
+            {product.image_url ? (
+              <Image
+                src={product.image_url}
+                alt={product.name}
+                width={48}
+                height={48}
+                unoptimized
+                className="rounded-lg object-cover w-full h-full"
+              />
+            ) : (
+              <div className="w-full h-full bg-gray-700 rounded-lg flex items-center justify-center">
+                <span className="text-gray-400 text-sm">No Image</span>
+              </div>
             )}
+          </div>
+
+          <div className="flex-col flex gap-1 sm:gap-10">
+            <div className='flex flex-col gap-1'>
+              <h1 className="text-4xl font-bold">{product.name}</h1>
+              <p className="text-lg text-gray-300">{product.description}</p>
+              <p className="text-sm text-gray-400">
+                Created on: {new Date(product.created_at).toLocaleDateString()}
+              </p>
+            </div>
+
+            <div className="mt-6 flex gap-4 text-white">
+              <ClientVoteButton productId={product.id} />
+              {(isAdmin || isOwner) && (
+                <>
+                  <EditButton product={product} />
+                  <RemoveButton
+                    productId={product.id}
+                    productName={product.name}
+                    isOwner={isOwner}
+                  />
+                </>
+              )}
 
               {product.redirect_url && (
                 <a
@@ -119,19 +112,16 @@ return (
                 >
                   <ExternalLink className="w-4 h-4" />
                   <div className="hidden sm:block">
-                  View Product
+                    View Product
                   </div>
                 </a>
               )}
-
-            
+            </div>
           </div>
         </div>
+
+        <Comments productId={product.id} />
       </div>
-
-      <Comments productId={product.id} />
-    </div>
-  </Layout>
-);
-
+    </Layout>
+  );
 }
