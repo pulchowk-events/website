@@ -4,6 +4,8 @@ A web platform for discovering, sharing, and managing events and student project
 
 The app runs on Next.js 16 with Supabase for data and storage, and NextAuth for Discord and Google sign-in. Everything is server-rendered where it matters and interactive where it should be.
 
+[Join the Discord](https://discord.gg/cQ5gxusATk)
+
 <img width="1920" height="400" alt="PULCHOWK_EVENTS" src="https://github.com/user-attachments/assets/4aeb44d8-af5e-46cf-9084-1d2857360c45" />
 
 ## Features
