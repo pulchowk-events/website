@@ -8,23 +8,10 @@ The app runs on Next.js 16 with Supabase for data and storage, and NextAuth for 
 
 <img width="1920" height="400" alt="PULCHOWK_EVENTS" src="https://github.com/user-attachments/assets/4aeb44d8-af5e-46cf-9084-1d2857360c45" />
 
-## Features
-
-- Discord and Google OAuth login via NextAuth
-- Event listings with add and remove from the admin side
-- Product Hunt for student projects, with vote, comment, edit and remove
-- Community lounge with categories, posts and threaded comments
-- Voting cooldown to keep the leaderboard fair
-- Admin dashboard for moderation, users and donations
-- Donation and prize pool tracking with verified entries
-- Image upload with size and dimension validation
-- Protected routes for admin and authenticated actions
-- Responsive UI with Tailwind CSS and dark theme
-- Toast notifications for every user action
-
 ## Tech stack
 
 Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4, Radix UI, Framer Motion, Headless UI and Sonner for the interface. Supabase for database and storage, NextAuth for authentication, Zod for input validation.
+
 
 ## Project structure
 
@@ -144,6 +131,51 @@ For self-hosting, `npm run build && npm start` behind a reverse proxy works the 
 | `Module not found: @supabase/auth-helpers-nextjs` | The package is deprecated and was removed. Replace imports with `createServerClient` from `@supabase/ssr`. |
 | `upstream image response failed` for an avatar | The user's Discord or Google avatar URL is stale. The page still renders; refresh the session to pick up the new URL. |
 | Build fails on a route that calls `getServerSession` | Add `export const dynamic = 'force-dynamic'` to that route, or move the session read into a route handler instead of a static page. |
+
+## Features
+
+- Admin dashboard for moderation, users and donations
+<img width="1905" height="963" alt="image" src="https://github.com/user-attachments/assets/bc6668db-f6da-4b0c-a3e9-847b51bc1e2d" />
+
+---
+
+- Responsive UI with Tailwind CSS and dark theme
+<img width="515" height="915" alt="image" src="https://github.com/user-attachments/assets/2cb08d4d-dce7-4e26-bd4d-0ad500be5eef" />
+
+---
+
+- Discord and Google OAuth login via NextAuth
+<img width="662" height="402" alt="image" src="https://github.com/user-attachments/assets/b5b1610c-94fe-4be6-bebb-d02da8d2ff41" />
+
+---
+
+- Event listings with add and remove from the admin side
+<img width="1057" height="776" alt="image" src="https://github.com/user-attachments/assets/687c8b50-ec3f-4fe4-b9e1-30289416b539" />
+
+---
+
+- Product Hunt for student projects, with vote, comment, edit and remove
+<img width="1063" height="350" alt="image" src="https://github.com/user-attachments/assets/cb8f612f-e0aa-4dc3-941f-ac421999d610" />
+
+---
+
+- Community lounge with categories, posts and threaded comments
+<img width="1043" height="872" alt="image" src="https://github.com/user-attachments/assets/44d54edc-8d2a-49e4-a080-313d5cfa36a2" />
+
+---
+
+- Toast notifications for every user action
+<img width="480" height="301" alt="image" src="https://github.com/user-attachments/assets/2d8c4609-63ae-4d86-bba7-4ee979fc1cfa" />
+
+---
+
+- Voting cooldown to keep the leaderboard fair
+- Donation and prize pool tracking with verified entries
+- Image upload with size and dimension validation
+- Protected routes for admin and authenticated actions
+
+---
+
 
 ## Contributing
 
