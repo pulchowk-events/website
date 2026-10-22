@@ -4,6 +4,7 @@ import './globals.css'
 import { Providers } from './providers'
 import { Toaster } from '@/components/ui/sonner'
 import LoadingBar from '@/app/components/extra/LoadingBar';
+import { ColdStartNotice } from '@/app/components/extra/ColdStartNotice'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -27,6 +28,7 @@ export default function RootLayout({
         <LoadingBar />
         <Providers>{children}</Providers>
         <Toaster richColors position="top-right" />
+        <ColdStartNotice />
       </body>
     </html>
   );
