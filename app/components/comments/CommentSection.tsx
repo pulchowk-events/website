@@ -36,7 +36,7 @@ export function Comments({ productId }: CommentsProps) {
     try {
       setIsLoading(true);
       const response = await fetch(`/api/comments?product_id=${productId}`);
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch comments');
       }
@@ -53,7 +53,7 @@ export function Comments({ productId }: CommentsProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    
+
     if (!session) {
       toast.error('Please sign in to comment');
       return;
@@ -90,8 +90,8 @@ export function Comments({ productId }: CommentsProps) {
     } catch (error) {
       console.error('Error adding comment:', error);
       toast.error(
-        error instanceof Error 
-          ? error.message 
+        error instanceof Error
+          ? error.message
           : 'Failed to add comment'
       );
     } finally {
@@ -115,8 +115,8 @@ export function Comments({ productId }: CommentsProps) {
     } catch (error) {
       console.error('Error deleting comment:', error);
       toast.error(
-        error instanceof Error 
-          ? error.message 
+        error instanceof Error
+          ? error.message
           : 'Failed to delete comment'
       );
     }
@@ -125,7 +125,7 @@ export function Comments({ productId }: CommentsProps) {
   if (isLoading) {
     return (
       <div className="mt-12">
-        <h2 className="text-2xl font-bold mb-6">Comments</h2>
+        <h2 className="text-2xl font-bold mb-6 text-foreground">Comments</h2>
         <div className="flex justify-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-green-500"></div>
         </div>
@@ -135,7 +135,7 @@ export function Comments({ productId }: CommentsProps) {
 
   return (
     <div className="mt-12">
-      <h2 className="text-2xl font-bold mb-6">Comments</h2>
+      <h2 className="text-2xl font-bold mb-6 text-foreground">Comments</h2>
 
       <div className="space-y-4">
         {comments.map((comment) => (
@@ -147,7 +147,7 @@ export function Comments({ productId }: CommentsProps) {
           />
         ))}
         {comments.length === 0 && (
-          <p className="text-center text-zinc-400 py-8">
+          <p className="text-center text-muted-foreground py-8">
             No comments yet. Be the first to comment!
           </p>
         )}
@@ -158,7 +158,7 @@ export function Comments({ productId }: CommentsProps) {
             onChange={(e) => setNewComment(e.target.value)}
             placeholder={session ? "Add a comment..." : "Sign in to comment"}
             disabled={!session || isSubmitting}
-            className="w-full p-4 rounded-lg bg-white/5 border border-zinc-800 text-white placeholder-zinc-400 focus:border-green-500 focus:ring focus:ring-green-500 focus:ring-opacity-50 transition"
+            className="w-full p-4 rounded-lg bg-background border border-border text-foreground placeholder:text-muted-foreground focus:border-green-500 focus:ring focus:ring-green-500 transition"
             rows={3}
           />
           {session && (

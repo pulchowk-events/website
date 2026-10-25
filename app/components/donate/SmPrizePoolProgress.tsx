@@ -27,35 +27,32 @@ export default function PrizePoolProgress({
     return () => clearTimeout(timer);
   }, [progressPercentage]);
 
-return (
-  <div className="bg-zinc-800/50 rounded-lg shadow-md border border-zinc-800 p-3 space-y-3 w-full">
-    
-    <div className="flex flex-col gap-1">
-      <h2 className="text-base font-semibold text-white">Investment Prize Pool</h2>
-      <p className="text-xs text-zinc-400">
-        Help fund the next generation of developers & entrepreneurs.
-      </p>
-    </div>
-
-    <div className="flex justify-between items-center text-sm">
-      <div className="flex flex-col">
-        <span className="text-white text-lg font-bold">
-          ${currentAmount.toLocaleString()}
-        </span>
-        <span className="text-zinc-400 text-xs">
-          raised of ${targetAmount.toLocaleString()} goal
-        </span>
+  return (
+    <div className="bg-card/50 rounded-lg shadow-md border border-border p-3 space-y-3 w-full">
+      <div className="flex flex-col gap-1">
+        <h2 className="text-base font-semibold text-foreground">Investment Prize Pool</h2>
+        <p className="text-xs text-muted-foreground">
+          Help fund the next generation of developers & entrepreneurs.
+        </p>
       </div>
 
-    </div>
+      <div className="flex justify-between items-center text-sm">
+        <div className="flex flex-col">
+          <span className="text-foreground text-lg font-bold">
+            ${currentAmount.toLocaleString()}
+          </span>
+          <span className="text-muted-foreground text-xs">
+            raised of ${targetAmount.toLocaleString()} goal
+          </span>
+        </div>
+      </div>
 
-    <div className="relative h-2 bg-zinc-700 rounded-full overflow-hidden">
-      <div
-        className="absolute h-full bg-gradient-to-r from-green-600 to-green-400 rounded-full transition-all duration-1000 ease-out"
-        style={{ width: `${animatedWidth}%` }}
-      />
+      <div className="relative h-2 bg-muted rounded-full overflow-hidden">
+        <div
+          className="absolute h-full bg-gradient-to-r from-green-600 to-green-400 rounded-full transition-all duration-1000 ease-out"
+          style={{ width: `${animatedWidth}%` }}
+        />
+      </div>
     </div>
-  </div>
-);
-
+  );
 }

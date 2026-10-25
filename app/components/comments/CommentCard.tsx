@@ -1,4 +1,3 @@
-// components/CommentCard.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -17,14 +16,14 @@ interface CommentCardProps {
     user_id: string;
   };
   isOwner: boolean;
-  onDelete: (id: number) => Promise<void>; // Changed to async
+  onDelete: (id: number) => Promise<void>;
 }
 
 export function CommentCard({ comment, isOwner, onDelete }: CommentCardProps) {
   const [userData, setUserData] = useState<{ name: string; image: string | null } | null>(null);
   const { data: session } = useSession();
   const [isDeleting, setIsDeleting] = useState(false);
-    const [editedComment, setEditedComment] = useState(comment.comment);
+  const [editedComment, setEditedComment] = useState(comment.comment);
   const [isEditing, setIsEditing] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -86,7 +85,6 @@ export function CommentCard({ comment, isOwner, onDelete }: CommentCardProps) {
 
       toast.success('Comment updated successfully');
       setIsEditing(false);
-      // Update the local comment state
       comment.comment = editedComment;
     } catch (error) {
       console.error('Error updating comment:', error);
@@ -101,39 +99,38 @@ export function CommentCard({ comment, isOwner, onDelete }: CommentCardProps) {
   }
 
   return (
-    <div className="flex gap-4 p-4 rounded-lg bg-white/5 border border-zinc-800">
-      <Link 
-          href={`/profile/${comment.user_id}`}
-          className="hover:opacity-80 transition-opacity"
+    <div className="flex gap-4 p-4 rounded-lg bg-card/50 border border-border">
+      <Link
+        href={`/profile/${comment.user_id}`}
+        className="hover:opacity-80 transition-opacity"
       >
-            <div className="flex-shrink-0">
-              {userData?.image ? (
-                <Image
-                  src={userData.image}
-                  alt={userData.name || 'User'}
-                  width={40}
-                  height={40}
-                  className="rounded-full"
-                />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-zinc-700 flex items-center justify-center">
-                  <User className="w-6 h-6 text-zinc-400" />
-                </div>
-              )}
+        <div className="flex-shrink-0">
+          {userData?.image ? (
+            <Image
+              src={userData.image}
+              alt={userData.name || 'User'}
+              width={40}
+              height={40}
+              className="rounded-full"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+              <User className="w-6 h-6 text-muted-foreground" />
             </div>
+          )}
+        </div>
       </Link>
-      
+
       <div className="flex-grow">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="font-medium text-zinc-200">
+            <span className="font-medium text-foreground">
               {userData?.name || 'Anonymous'}
             </span>
-            <span className="text-xs text-zinc-400">
+            <span className="text-xs text-muted-foreground">
               {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
             </span>
           </div>
-
 
           {isOwner && (
             <div className="flex items-center gap-2">
@@ -141,14 +138,14 @@ export function CommentCard({ comment, isOwner, onDelete }: CommentCardProps) {
                 <>
                   <button
                     onClick={() => setIsEditing(false)}
-                    className="text-zinc-400 hover:text-zinc-300 text-sm"
+                    className="text-muted-foreground hover:text-foreground text-sm"
                   >
                     <X className="w-4 h-4" />
                   </button>
                   <button
                     onClick={handleEdit}
                     disabled={isUpdating}
-                    className="text-green-400 hover:text-green-300 text-sm disabled:opacity-50"
+                    className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 text-sm disabled:opacity-50"
                   >
                     {isUpdating ? 'Saving...' : 'Save'}
                   </button>
@@ -157,14 +154,14 @@ export function CommentCard({ comment, isOwner, onDelete }: CommentCardProps) {
                 <>
                   <button
                     onClick={() => setIsEditing(true)}
-                    className="text-blue-400 hover:text-blue-300 text-sm"
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm"
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={handleDelete}
                     disabled={isDeleting}
-                    className="text-red-400 hover:text-red-300 text-sm disabled:opacity-50"
+                    className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-sm disabled:opacity-50"
                   >
                     {isDeleting ? (<><Loader height={16} width={16}></Loader></>) : (<><Trash2 height={16} width={16}></Trash2></>)}
                   </button>
@@ -173,16 +170,16 @@ export function CommentCard({ comment, isOwner, onDelete }: CommentCardProps) {
             </div>
           )}
         </div>
-        
+
         {isEditing ? (
           <textarea
             value={editedComment}
             onChange={(e) => setEditedComment(e.target.value)}
-            className="mt-2 w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-md text-zinc-200 focus:outline-none focus:border-green-500"
+            className="mt-2 w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:border-green-500"
             rows={3}
           />
         ) : (
-          <p className="mt-1 text-zinc-300">{comment.comment}</p>
+          <p className="mt-1 text-foreground">{comment.comment}</p>
         )}
       </div>
     </div>
