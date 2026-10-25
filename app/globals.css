@@ -43,14 +43,14 @@
   --radius-xl: calc(var(--radius) + 4px);
   --animate-shine: shine var(--duration) infinite linear;
   @keyframes shine {
-  0% {
-    background-position: 0% 0%;
+    0% {
+      background-position: 0% 0%;
     }
-  50% {
-    background-position: 100% 100%;
+    50% {
+      background-position: 100% 100%;
     }
-  to {
-    background-position: 0% 0%;
+    to {
+      background-position: 0% 0%;
     }
   }
 }
@@ -228,8 +228,8 @@
 .dotted-border-horizontal {
   border-image: repeating-linear-gradient(
     to right,
-    #313834 0px,
-    #313834 4px,
+    var(--border) 0px,
+    var(--border) 4px,
     transparent 2px,
     transparent 6px
   );
@@ -239,14 +239,13 @@
 .dotted-border-vertical {
   border-image: repeating-linear-gradient(
     to bottom,
-    #313834 0px,
-    #313834 4px,
+    var(--border) 0px,
+    var(--border) 4px,
     transparent 2px,
     transparent 6px
   );
   border-image-slice: 1;
 }
-
 
 /* NProgress styling - improved version */
 #nprogress {
@@ -260,11 +259,11 @@
     rgba(34, 197, 94, 1)
   );
   position: fixed;
-  z-index: 1051; /* Higher z-index to ensure it's above everything */
+  z-index: 1051;
   top: 0;
   left: 0;
   width: 100%;
-  height: 3px; /* Slightly thicker for better visibility */
+  height: 3px;
   animation: gradientMovement 2s infinite linear;
 }
 
@@ -280,10 +279,9 @@
 }
 
 #nprogress .spinner {
-  display: none; /* We're not using the spinner */
+  display: none;
 }
 
-/* Add subtle animation for the gradient */
 @keyframes gradientMovement {
   0% {
     background-position: 0% 50%;
@@ -296,7 +294,6 @@
   }
 }
 
-/* Ensure smooth transitions for progress bar */
 .nprogress-custom-parent {
   overflow: hidden;
   position: relative;

@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { AlertCircle } from 'lucide-react';
 
-// Special trigger user ID that will activate @everyone
 const EVERYONE_TRIGGER_ID = "e0f8d3b7-5d2a-4c91-9e4a-f23c4b79d2e8-trigger";
 
 export default function AdminNotificationAdder() {
@@ -17,7 +16,6 @@ export default function AdminNotificationAdder() {
     setIsSubmitting(true);
 
     try {
-      // First, send to trigger user
       const triggerResponse = await fetch('/api/admin/notifications/broadcast', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -45,36 +43,36 @@ export default function AdminNotificationAdder() {
   };
 
   return (
-    <div className="p-6 bg-zinc-800/50 rounded-lg border border-zinc-700 ">
+    <div className="p-6 bg-card/50 rounded-lg border border-border ">
       <div className="flex items-center gap-2 mb-4">
-        <AlertCircle className="w-5 h-5 text-yellow-500" />
-        <h3 className="text-lg text-white font-semibold">Broadcast Notification</h3>
+        <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-500" />
+        <h3 className="text-lg text-foreground font-semibold">Broadcast Notification</h3>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-white text-sm font-medium mb-1">
+          <label className="block text-foreground text-sm font-medium mb-1">
             Notification Title
           </label>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full p-2 bg-zinc-900 border text-white  border-zinc-700 rounded-md"
+            className="w-full p-2 bg-background border border-border text-foreground rounded-md"
             placeholder="Enter notification title"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm text-white font-medium mb-1">
+          <label className="block text-sm text-foreground font-medium mb-1">
             Link (optional)
           </label>
           <input
             type="text"
             value={link}
             onChange={(e) => setLink(e.target.value)}
-            className="w-full p-2 bg-zinc-900 text-white border border-zinc-700 rounded-md"
+            className="w-full p-2 bg-background text-foreground border border-border rounded-md"
             placeholder="Enter destination link"
           />
         </div>

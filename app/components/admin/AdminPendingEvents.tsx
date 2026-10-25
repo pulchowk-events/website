@@ -33,7 +33,7 @@ export default function AdminPendingEvents() {
     try {
       setLoading(true);
       const response = await fetch('/api/admin/events/pending');
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch events');
       }
@@ -52,7 +52,7 @@ export default function AdminPendingEvents() {
   async function handleEventAction(id: string, approve: boolean) {
     try {
       setProcessing(prev => ({ ...prev, [id]: true }));
-      
+
       const endpoint = approve ? '/api/admin/events/verify' : '/api/events/remove';
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -67,17 +67,17 @@ export default function AdminPendingEvents() {
       }
 
       toast.success(
-        approve 
-          ? 'Event verified successfully' 
+        approve
+          ? 'Event verified successfully'
           : 'Event removed successfully'
       );
-      
+
       setEvents(events.filter(event => event.id !== id));
     } catch (err) {
       console.error('Error:', err);
       toast.error(
-        err instanceof Error 
-          ? err.message 
+        err instanceof Error
+          ? err.message
           : 'Something went wrong'
       );
     } finally {
@@ -96,8 +96,8 @@ export default function AdminPendingEvents() {
   if (events.length === 0) {
     return (
       <div className="text-center py-12">
-        <h3 className="text-lg font-medium text-zinc-300">No pending events</h3>
-        <p className="text-zinc-500 mt-2">All events have been reviewed</p>
+        <h3 className="text-lg font-medium text-foreground">No pending events</h3>
+        <p className="text-muted-foreground mt-2">All events have been reviewed</p>
       </div>
     );
   }
@@ -110,11 +110,10 @@ export default function AdminPendingEvents() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
-          className="bg-zinc-800/50 rounded-lg overflow-hidden"
+          className="bg-card/50 rounded-lg overflow-hidden border border-border"
         >
           <div className="p-6">
             <div className="flex flex-col md:flex-row gap-6">
-              {/* Image */}
               <div className="w-full md:w-48 h-48 flex-shrink-0">
                 {event.image_url ? (
                   <Image
@@ -125,27 +124,26 @@ export default function AdminPendingEvents() {
                     className="rounded-lg object-cover w-full h-full"
                   />
                 ) : (
-                  <div className="w-full h-full bg-zinc-700 rounded-lg flex items-center justify-center">
-                    <span className="text-zinc-400">No Image</span>
+                  <div className="w-full h-full bg-muted rounded-lg flex items-center justify-center">
+                    <span className="text-muted-foreground">No Image</span>
                   </div>
                 )}
               </div>
 
-              {/* Content */}
               <div className="flex-grow space-y-4">
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-zinc-700 text-zinc-300">
+                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-muted text-muted-foreground">
                       {event.category}
                     </span>
-                    <span className="text-xs text-zinc-400">
+                    <span className="text-xs text-muted-foreground">
                       by {usernames[event.created_by] || 'Unknown user'}
                     </span>
                   </div>
-                  <h3 className="text-xl font-semibold text-white">{event.title}</h3>
+                  <h3 className="text-xl font-semibold text-foreground">{event.title}</h3>
                 </div>
 
-                <div className="flex items-center gap-4 text-sm text-zinc-400">
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Calendar className="w-4 h-4" />
                     <span>{format(new Date(event.event_date), 'PPP')}</span>
@@ -156,14 +154,14 @@ export default function AdminPendingEvents() {
                   </div>
                 </div>
 
-                <p className="text-zinc-300">{event.description}</p>
+                <p className="text-foreground">{event.description}</p>
 
                 <div className="flex items-center gap-4">
                   <a
                     href={event.form_link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300"
+                    className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
                   >
                     <ExternalLink className="w-4 h-4" />
                     Registration Form
@@ -172,19 +170,18 @@ export default function AdminPendingEvents() {
               </div>
             </div>
 
-            {/* Action Buttons */}
             <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={() => handleEventAction(event.id, true)}
                 disabled={!!processing[event.id]}
-                className="p-2 rounded-full bg-green-100 text-green-600 hover:bg-green-200 disabled:opacity-50 transition-colors"
+                className="p-2 rounded-full bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 disabled:opacity-50 transition-colors"
               >
                 <CheckCircle className="h-6 w-6" />
               </button>
               <button
                 onClick={() => handleEventAction(event.id, false)}
                 disabled={!!processing[event.id]}
-                className="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-200 disabled:opacity-50 transition-colors"
+                className="p-2 rounded-full bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-500/30 disabled:opacity-50 transition-colors"
               >
                 <XCircle className="h-6 w-6" />
               </button>

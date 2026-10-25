@@ -65,7 +65,7 @@ export default function AdminReports() {
       if (!response.ok) throw new Error('Failed to delete post');
 
       toast.success('Post deleted successfully');
-      fetchReports(); // Refresh the reports list
+      fetchReports();
     } catch (error) {
       console.error('Error deleting post:', error);
       toast.error('Failed to delete post');
@@ -93,12 +93,12 @@ export default function AdminReports() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2 mb-4">
-        <Flag className="h-5 w-5 text-yellow-500" />
-        <h2 className="text-lg font-semibold">Reported Posts</h2>
+        <Flag className="h-5 w-5 text-yellow-600 dark:text-yellow-500" />
+        <h2 className="text-lg font-semibold text-foreground">Reported Posts</h2>
       </div>
 
       {reports.length === 0 ? (
-        <div className="text-center py-8 text-zinc-400">
+        <div className="text-center py-8 text-muted-foreground">
           No reports found
         </div>
       ) : (
@@ -106,24 +106,24 @@ export default function AdminReports() {
           {reports.map((report) => (
             <div
               key={report.id}
-              className="bg-zinc-800/50 border border-zinc-700 rounded-lg overflow-hidden"
+              className="bg-card/50 border border-border rounded-lg overflow-hidden"
             >
               <div className="p-4 sm:p-6">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-grow">
                     <div className="flex items-center gap-2 mb-2">
-                      <AlertTriangle className="h-4 w-4 text-yellow-500" />
-                      <span className="text-sm font-medium text-yellow-500">
+                      <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-500" />
+                      <span className="text-sm font-medium text-yellow-700 dark:text-yellow-500">
                         {report.type}
                       </span>
-                      <span className="text-xs text-zinc-400">
+                      <span className="text-xs text-muted-foreground">
                         {formatDistanceToNow(new Date(report.created_at))} ago
                       </span>
                     </div>
-                    <h3 className="text-lg font-medium text-white mb-2">
+                    <h3 className="text-lg font-medium text-foreground mb-2">
                       {report.post.title}
                     </h3>
-                    <div className="flex flex-wrap gap-4 text-sm text-zinc-400">
+                    <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                       <span>Reporter: {report.reporter.name}</span>
                       <span>Author: {report.post.author.name}</span>
                     </div>
@@ -131,14 +131,14 @@ export default function AdminReports() {
                   <div className="flex items-center gap-2">
                     <Link
                       href={`/lounge/${report.post_id}`}
-                      className="p-2 text-zinc-400 hover:text-white transition-colors"
+                      className="p-2 text-muted-foreground hover:text-foreground transition-colors"
                       target="_blank"
                     >
                       <ExternalLink className="h-5 w-5" />
                     </Link>
                     <button
                       onClick={() => handleDeletePost(report.post_id)}
-                      className="p-2 text-red-400 hover:text-red-300 transition-colors"
+                      className="p-2 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
                     >
                       <Trash2 className="h-5 w-5" />
                     </button>
@@ -147,24 +147,24 @@ export default function AdminReports() {
 
                 <button
                   onClick={() => toggleExpand(report.id)}
-                  className="mt-4 text-sm text-zinc-400 hover:text-white transition-colors"
+                  className="mt-4 text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {expandedReports.has(report.id) ? 'Show less' : 'Show more'}
                 </button>
 
                 {expandedReports.has(report.id) && (
                   <div className="mt-4 space-y-4">
-                    <div className="bg-zinc-900 rounded-lg p-4">
-                      <h4 className="text-sm font-medium text-zinc-300 mb-2">
+                    <div className="bg-muted/50 rounded-lg p-4">
+                      <h4 className="text-sm font-medium text-foreground mb-2">
                         Report Reason
                       </h4>
-                      <p className="text-sm text-zinc-400">{report.reason}</p>
+                      <p className="text-sm text-muted-foreground">{report.reason}</p>
                     </div>
-                    <div className="bg-zinc-900 rounded-lg p-4">
-                      <h4 className="text-sm font-medium text-zinc-300 mb-2">
+                    <div className="bg-muted/50 rounded-lg p-4">
+                      <h4 className="text-sm font-medium text-foreground mb-2">
                         Post Content
                       </h4>
-                      <p className="text-sm text-zinc-400 whitespace-pre-wrap">
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                         {report.post.content}
                       </p>
                     </div>

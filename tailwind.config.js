@@ -1,6 +1,5 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: false,
   content: [
     "./app/**/*.{js,ts,jsx,tsx}",
     "./components/**/*.{js,ts,jsx,tsx}",
@@ -24,16 +23,16 @@ module.exports = {
           700: "#1b1b1b",
           800: "#161616",
           900: "#0f0f0f",
-          DEFAULT: "#1a1a1a", // optional default
+          DEFAULT: "#1a1a1a",
         },
         background: {
           DEFAULT: "#1a1a1a",
         },
         foreground: {
-          DEFAULT: "#f4f4f5", // near-white text
+          DEFAULT: "#f4f4f5",
         },
         border: {
-          DEFAULT: "#3f3f46", // subtle border
+          DEFAULT: "#3f3f46",
         },
         primary: {
           DEFAULT: "#10B981",

@@ -22,69 +22,68 @@ export default function AdminEventForm() {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault()
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
 
-  if (!formData.title || !formData.description || !formData.eventDate || !formData.formLink) {
-    toast.error('Please fill all required fields')
-    return
-  }
-
-  try {
-    setLoading(true)
-
-    const formDataToSend = new FormData()
-    formDataToSend.append('title', formData.title)
-    formDataToSend.append('description', formData.description)
-    formDataToSend.append('eventDate', formData.eventDate)
-    formDataToSend.append('formLink', formData.formLink)
-    
-    // Add the image file if it exists (matching ProductForm approach)
-    if (image instanceof File) {
-      formDataToSend.append('image', image, image.name)
-    }
-
-    const response = await fetch('/api/events/submit', {
-      method: 'POST',
-      body: formDataToSend,
-    })
-
-    const result = await response.json()
-
-    if (!response.ok) {
-      throw new Error(result.error || 'Failed to add event')
-    }
-
-    toast.success('Event added successfully')
-    setFormData({
-      title: '',
-      description: '',
-      eventDate: '',
-      formLink: '',
-    })
-    setImage(null)
-  } catch (err) {
-    console.error('Error:', err)
-    if (err instanceof Error) {
-      toast.error(err.message)
-    } else {
-      toast.error('Something went wrong')
-    }
-  } finally {
-    setLoading(false)
-  }
-}
-
-const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  if (e.target.files && e.target.files[0]) {
-    const file = e.target.files[0]
-    if (file.size > 1024 * 1024) { // 1MB limit
-      toast.error('Image must be less than 1MB')
+    if (!formData.title || !formData.description || !formData.eventDate || !formData.formLink) {
+      toast.error('Please fill all required fields')
       return
     }
-    setImage(file)
+
+    try {
+      setLoading(true)
+
+      const formDataToSend = new FormData()
+      formDataToSend.append('title', formData.title)
+      formDataToSend.append('description', formData.description)
+      formDataToSend.append('eventDate', formData.eventDate)
+      formDataToSend.append('formLink', formData.formLink)
+
+      if (image instanceof File) {
+        formDataToSend.append('image', image, image.name)
+      }
+
+      const response = await fetch('/api/events/submit', {
+        method: 'POST',
+        body: formDataToSend,
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to add event')
+      }
+
+      toast.success('Event added successfully')
+      setFormData({
+        title: '',
+        description: '',
+        eventDate: '',
+        formLink: '',
+      })
+      setImage(null)
+    } catch (err) {
+      console.error('Error:', err)
+      if (err instanceof Error) {
+        toast.error(err.message)
+      } else {
+        toast.error('Something went wrong')
+      }
+    } finally {
+      setLoading(false)
+    }
   }
-}
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0]
+      if (file.size > 1024 * 1024) {
+        toast.error('Image must be less than 1MB')
+        return
+      }
+      setImage(file)
+    }
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -92,7 +91,7 @@ const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         <div>
           <label
             htmlFor="title"
-            className="block text-sm font-medium text-zinc-300 mb-2"
+            className="block text-sm font-medium text-foreground mb-2"
           >
             Event Title *
           </label>
@@ -102,7 +101,7 @@ const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
             name="title"
             value={formData.title}
             onChange={handleChange}
-            className="w-full bg-zinc-700 border-transparent rounded-md shadow-sm focus:border-green-500 focus:ring focus:ring-green-500 focus:ring-opacity-50 text-zinc-100 px-4 py-2"
+            className="w-full bg-background border border-border rounded-md shadow-sm focus:border-green-500 focus:ring focus:ring-green-500 text-foreground px-4 py-2"
             required
           />
         </div>
@@ -110,7 +109,7 @@ const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         <div>
           <label
             htmlFor="eventDate"
-            className="block text-sm font-medium text-zinc-300 mb-2"
+            className="block text-sm font-medium text-foreground mb-2"
           >
             Event Date *
           </label>
@@ -120,7 +119,7 @@ const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
             name="eventDate"
             value={formData.eventDate}
             onChange={handleChange}
-            className="w-full bg-zinc-700 border-transparent rounded-md shadow-sm focus:border-green-500 focus:ring focus:ring-green-500 focus:ring-opacity-50 text-zinc-100 px-4 py-2"
+            className="w-full bg-background border border-border rounded-md shadow-sm focus:border-green-500 focus:ring focus:ring-green-500 text-foreground px-4 py-2"
             required
           />
         </div>
@@ -129,7 +128,7 @@ const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       <div>
         <label
           htmlFor="formLink"
-          className="block text-sm font-medium text-zinc-300 mb-2"
+          className="block text-sm font-medium text-foreground mb-2"
         >
           Registration Form Link *
         </label>
@@ -139,7 +138,7 @@ const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
           name="formLink"
           value={formData.formLink}
           onChange={handleChange}
-          className="w-full bg-zinc-700 border-transparent rounded-md shadow-sm focus:border-green-500 focus:ring focus:ring-green-500 focus:ring-opacity-50 text-zinc-100 px-4 py-2"
+          className="w-full bg-background border border-border rounded-md shadow-sm focus:border-green-500 focus:ring focus:ring-green-500 text-foreground px-4 py-2"
           required
         />
       </div>
@@ -147,7 +146,7 @@ const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       <div>
         <label
           htmlFor="description"
-          className="block text-sm font-medium text-zinc-300 mb-2"
+          className="block text-sm font-medium text-foreground mb-2"
         >
           Description *
         </label>
@@ -157,34 +156,34 @@ const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
           value={formData.description}
           onChange={handleChange}
           rows={4}
-          className="w-full bg-zinc-700 border-transparent rounded-md shadow-sm focus:border-green-500 focus:ring focus:ring-green-500 focus:ring-opacity-50 text-zinc-100 px-4 py-2 resize-y"
+          className="w-full bg-background border border-border rounded-md shadow-sm focus:border-green-500 focus:ring focus:ring-green-500 text-foreground px-4 py-2 resize-y"
           required
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-zinc-300 mb-2">
+        <label className="block text-sm font-medium text-foreground mb-2">
           Event Image
         </label>
 
         <div className="relative">
-                <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                id="event-image"
-                className="sr-only"
-                />
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            id="event-image"
+            className="sr-only"
+          />
 
           <label
             htmlFor="event-image"
-            className="inline-block px-4 py-2 text-sm font-medium text-zinc-200 bg-zinc-700 hover:bg-zinc-600 rounded cursor-pointer"
+            className="inline-block px-4 py-2 text-sm font-medium text-foreground bg-secondary hover:bg-accent rounded cursor-pointer"
           >
             Upload Image
           </label>
 
           {image && (
-            <p className="mt-2 text-xs text-zinc-400 truncate">
+            <p className="mt-2 text-xs text-muted-foreground truncate">
               Selected: {image.name}
             </p>
           )}

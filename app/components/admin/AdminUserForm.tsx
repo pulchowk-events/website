@@ -26,16 +26,16 @@ export default function AdminUserForm() {
   async function fetchAdminUsers() {
     try {
       setLoading(true);
-      
+
       const response = await fetch('/api/admin/users');
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.error || 'Failed to load admin users');
       }
-      
+
       setUsers(data.users);
-      
+
     } catch (err) {
       console.error('Error fetching admin users:', err);
       toast.error(err instanceof Error ? err.message : 'Something went wrong');
@@ -47,7 +47,7 @@ export default function AdminUserForm() {
   async function handleAdminStatus(userId: string, email: string, makeAdmin: boolean) {
     try {
       setProcessing(prev => ({ ...prev, [userId]: true }));
-      
+
       const response = await fetch('/api/admin/update-status', {
         method: 'POST',
         headers: {
@@ -55,20 +55,19 @@ export default function AdminUserForm() {
         },
         body: JSON.stringify({ email, makeAdmin }),
       });
-      
+
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.error || `Failed to ${makeAdmin ? 'add' : 'remove'} admin privileges`);
       }
-      
+
       toast.success(data.message);
-      
-      // Update local state
-      setUsers(users.map(user => 
+
+      setUsers(users.map(user =>
         user.id === userId ? { ...user, isAdmin: makeAdmin } : user
       ));
-      
+
     } catch (err) {
       console.error('Error updating admin status:', err);
       toast.error(err instanceof Error ? err.message : 'Something went wrong');
@@ -79,15 +78,15 @@ export default function AdminUserForm() {
 
   async function handleAddNewAdmin(e: React.FormEvent) {
     e.preventDefault();
-    
+
     if (!newAdminEmail) {
       toast.error('Please enter an email address');
       return;
     }
-    
+
     try {
       setAddingAdmin(true);
-      
+
       const response = await fetch('/api/admin/add-admin', {
         method: 'POST',
         headers: {
@@ -95,31 +94,29 @@ export default function AdminUserForm() {
         },
         body: JSON.stringify({ email: newAdminEmail }),
       });
-      
+
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.error || 'Failed to add admin privileges');
       }
-      
+
       toast.success(data.message);
       setNewAdminEmail('');
-      
-      // Update local state
+
       if (data.user) {
         const userExists = users.some(user => user.email === newAdminEmail);
         if (userExists) {
-          setUsers(users.map(user => 
+          setUsers(users.map(user =>
             user.email === newAdminEmail ? { ...user, isAdmin: true } : user
           ));
         } else {
           setUsers([...users, data.user]);
         }
       } else {
-        // Refresh the list if we didn't get the user data back
         fetchAdminUsers();
       }
-      
+
     } catch (err) {
       console.error('Error adding new admin:', err);
       toast.error(err instanceof Error ? err.message : 'Something went wrong');
@@ -128,8 +125,8 @@ export default function AdminUserForm() {
     }
   }
 
-  const filteredUsers = users.filter(user => 
-    user.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  const filteredUsers = users.filter(user =>
+    user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -146,7 +143,7 @@ export default function AdminUserForm() {
       <form onSubmit={handleAddNewAdmin} className="mb-8">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-grow">
-            <label htmlFor="newAdminEmail" className="block text-sm font-medium text-zinc-300 mb-2">
+            <label htmlFor="newAdminEmail" className="block text-sm font-medium text-foreground mb-2">
               Add New Admin By Email
             </label>
             <input
@@ -154,7 +151,7 @@ export default function AdminUserForm() {
               id="newAdminEmail"
               value={newAdminEmail}
               onChange={(e) => setNewAdminEmail(e.target.value)}
-              className="w-full bg-zinc-700 border-transparent rounded-md shadow-sm focus:border-green-500 focus:ring focus:ring-green-500 focus:ring-opacity-50 text-zinc-100 px-4 py-2"
+              className="w-full bg-background border border-border rounded-md shadow-sm focus:border-green-500 focus:ring focus:ring-green-500 text-foreground placeholder:text-muted-foreground px-4 py-2"
               placeholder="user@example.com"
             />
           </div>
@@ -179,51 +176,51 @@ export default function AdminUserForm() {
           </div>
         </div>
       </form>
-      
+
       <div className="relative mb-6">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Search className="h-5 w-5 text-zinc-400" />
+          <Search className="h-5 w-5 text-muted-foreground" />
         </div>
         <input
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full bg-zinc-700 border-transparent rounded-md shadow-sm pl-10 focus:border-green-500 focus:ring focus:ring-green-500 focus:ring-opacity-50 text-zinc-100 px-4 py-2"
+          className="w-full bg-background border border-border rounded-md shadow-sm pl-10 focus:border-green-500 focus:ring focus:ring-green-500 text-foreground placeholder:text-muted-foreground px-4 py-2"
           placeholder="Search users by name or email"
         />
       </div>
-      
-      <div className="bg-zinc-700/30 rounded-lg shadow-md overflow-hidden">
+
+      <div className="bg-card/50 rounded-lg shadow-md overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-zinc-600">
-            <thead className="bg-zinc-800">
+          <table className="min-w-full divide-y divide-border">
+            <thead className="bg-muted">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-zinc-300 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   User
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-zinc-300 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Email
                 </th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-zinc-300 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Admin Status
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-zinc-800/30 divide-y divide-zinc-700">
+            <tbody className="bg-card divide-y divide-border">
               {filteredUsers.length > 0 ? (
                 filteredUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-zinc-700/50 transition-colors">
+                  <tr key={user.id} className="hover:bg-accent/50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10 bg-zinc-700 rounded-full flex items-center justify-center">
-                          <User className="h-5 w-5 text-zinc-400" />
+                        <div className="flex-shrink-0 h-10 w-10 bg-muted rounded-full flex items-center justify-center">
+                          <User className="h-5 w-5 text-muted-foreground" />
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-zinc-200">{user.name || 'Unnamed User'}</div>
+                          <div className="text-sm font-medium text-foreground">{user.name || 'Unnamed User'}</div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-300">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                       {user.email}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -231,7 +228,7 @@ export default function AdminUserForm() {
                         <button
                           onClick={() => handleAdminStatus(user.id, user.email, false)}
                           disabled={!!processing[user.id]}
-                          className="text-red-400 hover:text-red-300 inline-flex items-center"
+                          className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 inline-flex items-center"
                         >
                           <UserMinus className="h-4 w-4 mr-1" />
                           {processing[user.id] ? 'Processing...' : 'Remove Admin'}
@@ -240,7 +237,7 @@ export default function AdminUserForm() {
                         <button
                           onClick={() => handleAdminStatus(user.id, user.email, true)}
                           disabled={!!processing[user.id]}
-                          className="text-green-400 hover:text-green-300 inline-flex items-center"
+                          className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 inline-flex items-center"
                         >
                           <UserPlus className="h-4 w-4 mr-1" />
                           {processing[user.id] ? 'Processing...' : 'Make Admin'}
@@ -251,7 +248,7 @@ export default function AdminUserForm() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={3} className="px-6 py-8 text-center text-zinc-400">
+                  <td colSpan={3} className="px-6 py-8 text-center text-muted-foreground">
                     {searchTerm ? 'No users match your search' : 'No users found'}
                   </td>
                 </tr>

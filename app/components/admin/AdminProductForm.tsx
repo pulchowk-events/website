@@ -1,4 +1,3 @@
-// app/components/forms/AdminProductForm.tsx
 'use client'
 
 import { useState } from 'react'
@@ -59,18 +58,16 @@ export default function AdminProductForm() {
         url: '',
       })
       setImage(null)
-        } catch (err) {
-          console.error('Error:', err)
-
-          if (err instanceof Error) {
-            toast.error(err.message)
-          } else {
-            toast.error('Something went wrong')
-          }
-        } finally {
-          setLoading(false)
-        }
-
+    } catch (err) {
+      console.error('Error:', err)
+      if (err instanceof Error) {
+        toast.error(err.message)
+      } else {
+        toast.error('Something went wrong')
+      }
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -79,7 +76,7 @@ export default function AdminProductForm() {
         <div>
           <label
             htmlFor="name"
-            className="block text-sm font-medium text-zinc-300 mb-2"
+            className="block text-sm font-medium text-foreground mb-2"
           >
             Product Name *
           </label>
@@ -89,7 +86,7 @@ export default function AdminProductForm() {
             name="name"
             value={formData.name}
             onChange={handleChange}
-            className="w-full bg-zinc-700 border-transparent rounded-md shadow-sm focus:border-green-500 focus:ring focus:ring-green-500 focus:ring-opacity-50 text-zinc-100 px-4 py-2"
+            className="w-full bg-background border border-border rounded-md shadow-sm focus:border-green-500 focus:ring focus:ring-green-500 text-foreground px-4 py-2"
             required
           />
         </div>
@@ -97,7 +94,7 @@ export default function AdminProductForm() {
         <div>
           <label
             htmlFor="url"
-            className="block text-sm font-medium text-zinc-300 mb-2"
+            className="block text-sm font-medium text-foreground mb-2"
           >
             Product URL *
           </label>
@@ -107,7 +104,7 @@ export default function AdminProductForm() {
             name="url"
             value={formData.url}
             onChange={handleChange}
-            className="w-full bg-zinc-700 border-transparent rounded-md shadow-sm focus:border-green-500 focus:ring focus:ring-green-500 focus:ring-opacity-50 text-zinc-100 px-4 py-2"
+            className="w-full bg-background border border-border rounded-md shadow-sm focus:border-green-500 focus:ring focus:ring-green-500 text-foreground px-4 py-2"
             required
           />
         </div>
@@ -116,7 +113,7 @@ export default function AdminProductForm() {
       <div>
         <label
           htmlFor="description"
-          className="block text-sm font-medium text-zinc-300 mb-2"
+          className="block text-sm font-medium text-foreground mb-2"
         >
           Description *
         </label>
@@ -126,13 +123,13 @@ export default function AdminProductForm() {
           value={formData.description}
           onChange={handleChange}
           rows={4}
-          className="w-full bg-zinc-700 border-transparent rounded-md shadow-sm focus:border-green-500 focus:ring focus:ring-green-500 focus:ring-opacity-50 text-zinc-100 px-4 py-2 resize-y"
+          className="w-full bg-background border border-border rounded-md shadow-sm focus:border-green-500 focus:ring focus:ring-green-500 text-foreground px-4 py-2 resize-y"
           required
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-zinc-300 mb-2">
+        <label className="block text-sm font-medium text-foreground mb-2">
           Product Image
         </label>
 
@@ -147,13 +144,13 @@ export default function AdminProductForm() {
 
           <label
             htmlFor="product-image"
-            className="inline-block px-4 py-2 text-sm font-medium text-zinc-200 bg-zinc-700 hover:bg-zinc-600 rounded cursor-pointer"
+            className="inline-block px-4 py-2 text-sm font-medium text-foreground bg-secondary hover:bg-accent rounded cursor-pointer"
           >
             Upload Image
           </label>
 
           {image && (
-            <p className="mt-2 text-xs text-zinc-400 truncate">
+            <p className="mt-2 text-xs text-muted-foreground truncate">
               Selected: {image.name}
             </p>
           )}
