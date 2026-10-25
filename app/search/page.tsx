@@ -9,83 +9,84 @@ import TopDonators from '@/app/components/donate/TopDonators';
 
 export const revalidate = 0;
 
-interface SearchResult {
-  type: 'post' | 'event' | 'product';
-  id: string;
-  title: string | null;
-  description?: string | null;
-  created_at: string;
-  url?: string;
-  image_url?: string | null;
-  users?: {
-    name: string;
-    image: string;
-  } | null;
-  event_date?: string;
-}
-
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: { q: string };
+  searchParams: Promise<{ q?: string | string[] }>;
 }) {
-  const query = searchParams.q;
+  // --- Next.js 16: searchParams is a Promise. Await it. ---
+  const params = await searchParams;
+  const rawQuery = Array.isArray(params.q) ? params.q[0] : params.q;
+  const query = (rawQuery ?? '').trim();
+  const hasQuery = query.length > 0;
 
-  const { data: posts } = await supabase
-    .from('lounge_posts')
-    .select(`
-      id,
-      title,
-      content,
-      created_at,
-      users:author_id (
-        name,
-        image
-      )
-    `)
-    .or(`title.ilike.%${query}%,content.ilike.%${query}%`)
-    .order('created_at', { ascending: false })
-    .limit(5);
+  // Escape SQL ILIKE wildcards so a user typing "%" or "_"
+  // doesn't turn their search into a wildcard.
+  const safeQuery = query.replace(/[%_\\]/g, '\\$&');
 
-  const { data: events } = await supabase
-    .from('events')
-    .select(`
-      id,
-      title,
-      description,
-      event_date,
-      created_at,
-      category,
-      image_url,
-      users:created_by (
-        name,
-        image
-      )
-    `)
-    .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
-    .eq('verified', true)
-    .order('event_date', { ascending: true })
-    .limit(5);
+  // --- Search results: only run when there's an actual query ---
+  const { data: posts } = hasQuery
+    ? await supabase
+        .from('lounge_posts')
+        .select(`
+          id,
+          title,
+          content,
+          created_at,
+          users:author_id (
+            name,
+            image
+          )
+        `)
+        .or(`title.ilike.%${safeQuery}%,content.ilike.%${safeQuery}%`)
+        .order('created_at', { ascending: false })
+        .limit(5)
+    : { data: [] };
 
-  const { data: products } = await supabase
-    .from('products')
-    .select(`
-      id,
-      name,
-      description,
-      url,
-      image_url,
-      created_at,
-      users:posted_by (
-        name,
-        image
-      )
-    `)
-    .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
-    .eq('approved', true)
-    .order('created_at', { ascending: false })
-    .limit(5);
+  const { data: events } = hasQuery
+    ? await supabase
+        .from('events')
+        .select(`
+          id,
+          title,
+          description,
+          event_date,
+          created_at,
+          category,
+          image_url,
+          users:created_by (
+            name,
+            image
+          )
+        `)
+        .or(`title.ilike.%${safeQuery}%,description.ilike.%${safeQuery}%`)
+        .eq('verified', true)
+        .order('event_date', { ascending: true })
+        .limit(5)
+    : { data: [] };
 
+  const { data: products } = hasQuery
+    ? await supabase
+        .from('products')
+        .select(`
+          id,
+          name,
+          description,
+          url,
+          image_url,
+          created_at,
+          users:posted_by (
+            name,
+            image
+          )
+        `)
+        .or(`name.ilike.%${safeQuery}%,description.ilike.%${safeQuery}%`)
+        .eq('approved', true)
+        .order('created_at', { ascending: false })
+        .limit(5)
+    : { data: [] };
+
+  // --- Sidebar data: always load regardless of query ---
   const { data: upcomingEvents } = await supabase
     .from('events')
     .select(`
@@ -182,27 +183,41 @@ export default async function SearchPage({
             <div className="w-full lg:mx-auto">
               <div className="bg-card border border-border rounded-xl shadow-lg overflow-hidden mb-5 p-5">
                 <h1 className="text-2xl font-bold text-foreground mb-6">
-                  Search results for "{query || ''}"
+                  {hasQuery ? (
+                    <>
+                      Search results for{' '}
+                      <span className="text-green-600 dark:text-green-400">
+                        &ldquo;{query}&rdquo;
+                      </span>
+                    </>
+                  ) : (
+                    'Search'
+                  )}
                 </h1>
 
-                {!query && (
-                  <p className="text-muted-foreground text-center py-8">Enter a search term to begin</p>
+                {!hasQuery && (
+                  <p className="text-muted-foreground text-center py-8">
+                    Enter a search term to begin
+                  </p>
                 )}
 
-                {query && (
+                {hasQuery && (
                   <div className="space-y-8">
                     {/* Posts Section */}
                     <section>
                       <div className="flex items-center gap-2 mb-4">
                         <MessageSquare className="w-5 h-5 text-green-600 dark:text-green-500" />
                         <h2 className="text-xl font-semibold text-foreground">Lounge Posts</h2>
+                        <span className="text-sm text-muted-foreground">
+                          ({posts?.length || 0})
+                        </span>
                       </div>
                       <div className="space-y-4">
                         {posts?.length ? (
                           posts.map((post) => (
                             <Link
                               key={post.id}
-                              href={`/lounge?postId=${post.id}`}
+                              href={`/lounge/${post.id}`}
                               className="block bg-muted/30 hover:bg-accent rounded-xl p-4 transition-colors"
                             >
                               <div className="flex items-start gap-3">
@@ -231,7 +246,7 @@ export default async function SearchPage({
                         )}
                         {posts?.length ? (
                           <Link
-                            href={`/lounge?search=${query}`}
+                            href={`/lounge?search=${encodeURIComponent(query)}`}
                             className="inline-block text-green-600 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400 text-sm mt-2"
                           >
                             View all posts →
@@ -245,6 +260,9 @@ export default async function SearchPage({
                       <div className="flex items-center gap-2 mb-4">
                         <Calendar className="w-5 h-5 text-green-600 dark:text-green-500" />
                         <h2 className="text-xl font-semibold text-foreground">Events</h2>
+                        <span className="text-sm text-muted-foreground">
+                          ({events?.length || 0})
+                        </span>
                       </div>
                       <div className="space-y-4">
                         {events?.length ? (
@@ -286,6 +304,9 @@ export default async function SearchPage({
                       <div className="flex items-center gap-2 mb-4">
                         <Box className="w-5 h-5 text-green-600 dark:text-green-500" />
                         <h2 className="text-xl font-semibold text-foreground">Projects</h2>
+                        <span className="text-sm text-muted-foreground">
+                          ({products?.length || 0})
+                        </span>
                       </div>
                       <div className="space-y-4">
                         {products?.length ? (
