@@ -28,14 +28,14 @@ export default function UserPosts({ userId }: { userId: string }) {
   if (loading) {
     return (
       <div className="flex justify-center py-12">
-        <Loader2 className="w-6 h-6 animate-spin text-zinc-400" />
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   if (posts.length === 0) {
     return (
-      <div className="text-center py-12 text-zinc-400">
+      <div className="text-center py-12 text-muted-foreground">
         No posts yet
       </div>
     );

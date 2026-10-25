@@ -38,14 +38,14 @@ export default function UserComments({ userId }: { userId: string }) {
   if (loading) {
     return (
       <div className="flex justify-center py-12">
-        <Loader2 className="w-6 h-6 animate-spin text-zinc-400" />
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   if (comments.length === 0) {
     return (
-      <div className="text-center py-12 text-zinc-400">
+      <div className="text-center py-12 text-muted-foreground">
         No comments yet
       </div>
     );
@@ -54,19 +54,19 @@ export default function UserComments({ userId }: { userId: string }) {
   return (
     <div className="space-y-4">
       {comments.map((comment) => (
-        <div 
+        <div
           key={comment.id}
-          className="bg-zinc-800/50 border border-zinc-700 rounded-lg p-4"
+          className="bg-card border border-border rounded-lg p-4"
         >
-          <Link 
+          <Link
             href={`/lounge/${comment.post.id}`}
-            className="text-sm text-zinc-400 hover:text-zinc-300 mb-2 flex items-center gap-2"
+            className="text-sm text-muted-foreground hover:text-foreground mb-2 flex items-center gap-2 transition-colors"
           >
             <MessageSquare className="w-4 h-4" />
             on: {comment.post.title}
           </Link>
-          <p className="text-zinc-200">{comment.comment}</p>
-          <div className="mt-2 text-xs text-zinc-500">
+          <p className="text-foreground">{comment.comment}</p>
+          <div className="mt-2 text-xs text-muted-foreground">
             {formatDistanceToNow(new Date(comment.created_at))} ago
           </div>
         </div>

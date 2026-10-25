@@ -38,14 +38,14 @@ export default function UserProducts({ userId }: { userId: string }) {
   if (loading) {
     return (
       <div className="flex justify-center py-12">
-        <Loader2 className="w-6 h-6 animate-spin text-zinc-400" />
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   if (products.length === 0) {
     return (
-      <div className="text-center py-12 text-zinc-400">
+      <div className="text-center py-12 text-muted-foreground">
         No products yet
       </div>
     );
@@ -57,7 +57,7 @@ export default function UserProducts({ userId }: { userId: string }) {
         <Link
           key={product.id}
           href={`/product-hunt/${product.id}`}
-          className="group bg-zinc-800/50 border border-zinc-700 rounded-lg overflow-hidden hover:border-zinc-600 transition-colors"
+          className="group bg-card border border-border rounded-lg overflow-hidden hover:border-green-500/50 transition-colors"
         >
           <div className="aspect-video relative">
             <Image
@@ -69,23 +69,25 @@ export default function UserProducts({ userId }: { userId: string }) {
           </div>
           <div className="p-4">
             <div className="flex items-center justify-between gap-2 mb-2">
-              <h3 className="font-medium text-white group-hover:text-green-500 transition-colors truncate">
+              <h3 className="font-medium text-foreground group-hover:text-green-600 dark:group-hover:text-green-500 transition-colors truncate">
                 {product.name}
               </h3>
-              <ExternalLink className="w-4 h-4 text-zinc-400 group-hover:text-green-500" />
+              <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-green-600 dark:group-hover:text-green-500 transition-colors" />
             </div>
-            <p className="text-sm text-zinc-400 line-clamp-2">
+            <p className="text-sm text-muted-foreground line-clamp-2">
               {product.description}
             </p>
             <div className="mt-3 flex items-center justify-between text-xs">
-              <span className={`px-2 py-1 rounded-full ${
-                product.approved 
-                ? 'bg-emerald-500/10 text-emerald-400'
-                : 'bg-amber-500/10 text-amber-400'
-              }`}>
+              <span
+                className={`px-2 py-1 rounded-full ${
+                  product.approved
+                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400'
+                    : 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'
+                }`}
+              >
                 {product.approved ? 'Approved' : 'Pending'}
               </span>
-              <span className="text-zinc-500">
+              <span className="text-muted-foreground">
                 {product.votes_count} votes
               </span>
             </div>
