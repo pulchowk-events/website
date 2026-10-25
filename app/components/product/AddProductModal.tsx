@@ -17,7 +17,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-
 interface AddProductModalProps {
   onClose: () => void;
 }
@@ -37,8 +36,7 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
   const [image, setImage] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [urlError, setUrlError] = useState('');
-    const [redirectUrl, setRedirectUrl] = useState('');
-
+  const [redirectUrl, setRedirectUrl] = useState('');
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -47,7 +45,6 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
     };
   }, []);
 
-  // slug validation
   const validateUrl = (value: string) => {
     const regex = /^[a-z0-9]+(-[a-z0-9]+)*$/;
     if (!regex.test(value)) {
@@ -56,9 +53,8 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
     return '';
   };
 
-    // redirect url validation
-    const validateRedirectUrl = (value: string) => {
-    if (!value) return ''; // Optional field
+  const validateRedirectUrl = (value: string) => {
+    if (!value) return '';
     try {
       new URL(value);
       return '';
@@ -83,7 +79,7 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
     }
 
     setLoading(true);
-    
+
     try {
       const formData = new FormData();
       formData.append('name', name);
@@ -94,13 +90,13 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
         formData.append('image', image);
       }
 
-    if (redirectUrl) {
-                const redirectUrlError = validateRedirectUrl(redirectUrl);
-                if (redirectUrlError) {
-                  toast.error(redirectUrlError);
-                  return;
-                }
-              }
+      if (redirectUrl) {
+        const redirectUrlError = validateRedirectUrl(redirectUrl);
+        if (redirectUrlError) {
+          toast.error(redirectUrlError);
+          return;
+        }
+      }
 
       const response = await fetch('/api/products/submit', {
         method: 'POST',
@@ -121,8 +117,7 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
       onClose();
     } catch (error) {
       console.error('Submission error:', error);
-      
-      // Type-safe error handling
+
       if (error instanceof Error) {
         toast.error(error.message);
       } else if (typeof error === 'string') {
@@ -135,123 +130,122 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
     }
   };
 
-return (
-  <AnimatePresence>
-    <motion.div
-      key="modal"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[999] min-h-screen flex items-center justify-center bg-black/50 px-4 sm:px-0"
-      onClick={onClose}
-    >
+  return (
+    <AnimatePresence>
       <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-        onClick={(e) => e.stopPropagation()}
+        key="modal"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[999] min-h-screen flex items-center justify-center bg-black/50 dark:bg-black/70 backdrop-blur-sm px-4 sm:px-0"
+        onClick={onClose}
       >
-        <Card className="relative w-full max-w-md bg-black/90 text-white overflow-hidden">
-          <CardHeader>
-            <CardTitle>Add New Product</CardTitle>
-            <CardDescription>Submit your product for daily listing.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form className="space-y-4" onSubmit={handleSubmit}>
-              <div className="space-y-1.5">
-                <Label htmlFor="name">Product Name</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Product Name"
-                  required
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="description">Description</Label>
-                <textarea
-                  id="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Brief description"
-                  required
-                  className="w-full p-3 rounded bg-zinc-800 border border-zinc-800 text-sm"
-                />
-              </div>
+        <motion.div
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.95, opacity: 0 }}
+          transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Card className="relative w-full max-w-md bg-card text-card-foreground overflow-hidden">
+            <CardHeader>
+              <CardTitle>Add New Product</CardTitle>
+              <CardDescription>Submit your product for daily listing.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form className="space-y-4" onSubmit={handleSubmit}>
+                <div className="space-y-1.5">
+                  <Label htmlFor="name">Product Name</Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Product Name"
+                    required
+                  />
+                </div>
 
                 <div className="space-y-1.5">
-                    <Label htmlFor="redirect-url">View Product URL (Optional)</Label>
-                    <Input
-                      id="redirect-url"
-                      type="url"
-                      value={redirectUrl}
-                      onChange={(e) => setRedirectUrl(e.target.value)}
-                      placeholder="https://your-product-url.com"
-                    />
-                    <p className="text-xs text-zinc-400">
-                      Add a link to your product's website or repository
-                    </p>
-            </div>
+                  <Label htmlFor="description">Description</Label>
+                  <textarea
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Brief description"
+                    required
+                    className="w-full p-3 rounded-md bg-background border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  />
+                </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="url">Product Slug</Label>
-                <Input
-                  id="url"
-                  type="text"
-                  value={url}
-                  onChange={(e) => {
-                    setUrl(e.target.value);
-                    if (urlError) setUrlError('');
-                  }}
-                  placeholder=".com/product-hunt/{your-slug}"
-                  required
-                />
-                {urlError && (
-                  <p className="text-sm text-red-400">{urlError}</p>
-                )}
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="product-image">Product Image</Label>
-                <Input
-                  id="product-image"
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) =>
-                    setImage(e.target.files ? e.target.files[0] : null)
-                  }
-                />
-                {image && (
-                  <p className="text-sm text-zinc-400 truncate">
-                    Selected: {image.name}
+                <div className="space-y-1.5">
+                  <Label htmlFor="redirect-url">View Product URL (Optional)</Label>
+                  <Input
+                    id="redirect-url"
+                    type="url"
+                    value={redirectUrl}
+                    onChange={(e) => setRedirectUrl(e.target.value)}
+                    placeholder="https://your-product-url.com"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Add a link to your product's website or repository
                   </p>
-                )}
-              </div>
+                </div>
 
-              <div className="flex justify-end gap-2 pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={onClose}
-                  disabled={loading}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={loading}>
-                  {loading ? 'Submitting...' : 'Submit'}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-          <BorderBeam duration={8} size={120} />
-        </Card>
+                <div className="space-y-1.5">
+                  <Label htmlFor="url">Product Slug</Label>
+                  <Input
+                    id="url"
+                    type="text"
+                    value={url}
+                    onChange={(e) => {
+                      setUrl(e.target.value);
+                      if (urlError) setUrlError('');
+                    }}
+                    placeholder=".com/product-hunt/{your-slug}"
+                    required
+                  />
+                  {urlError && (
+                    <p className="text-sm text-red-600 dark:text-red-400">{urlError}</p>
+                  )}
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="product-image">Product Image</Label>
+                  <Input
+                    id="product-image"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) =>
+                      setImage(e.target.files ? e.target.files[0] : null)
+                    }
+                  />
+                  {image && (
+                    <p className="text-sm text-muted-foreground truncate">
+                      Selected: {image.name}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={onClose}
+                    disabled={loading}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={loading}>
+                    {loading ? 'Submitting...' : 'Submit'}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+            <BorderBeam duration={8} size={120} />
+          </Card>
+        </motion.div>
       </motion.div>
-    </motion.div>
-  </AnimatePresence>
-);
-
+    </AnimatePresence>
+  );
 }

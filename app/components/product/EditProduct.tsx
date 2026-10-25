@@ -11,7 +11,7 @@ interface EditButtonProps {
     description: string;
     url: string;
     image_url: string | null;
-     redirect_url: string | null;
+    redirect_url: string | null;
   };
 }
 
@@ -19,19 +19,13 @@ export default function EditButton({ product }: EditButtonProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Check for mobile viewport
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 640);
     };
-    
-    // Initial check
+
     checkMobile();
-    
-    // Add resize listener
     window.addEventListener('resize', checkMobile);
-    
-    // Cleanup
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
@@ -39,14 +33,14 @@ export default function EditButton({ product }: EditButtonProps) {
     <>
       <button
         onClick={() => setIsModalOpen(true)}
-        className="flex items-center gap-2 px-3 py-2 sm:px-4 bg-blue-600/20 hover:bg-blue-600/30 text-blue-500 rounded-lg transition-colors"
+        className="flex items-center gap-2 px-3 py-2 sm:px-4 bg-blue-100 dark:bg-blue-600/20 hover:bg-blue-200 dark:hover:bg-blue-600/30 text-blue-700 dark:text-blue-500 rounded-lg transition-colors"
       >
         <Pencil className="w-4 h-4" />
         {!isMobile && <span>Edit Product</span>}
       </button>
 
       {isModalOpen && (
-        <EditProductModal 
+        <EditProductModal
           product={product}
           onClose={() => setIsModalOpen(false)}
         />

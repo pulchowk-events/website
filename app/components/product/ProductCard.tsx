@@ -16,7 +16,7 @@ interface Product {
 
 export default function ProductCard({ product }: { product: Product }) {
   return (
-    <div className="bg-white/5 hover:bg-white/10 p-5 rounded-xl transition-colors">
+    <div className="bg-card hover:bg-accent/30 border border-border p-5 rounded-xl transition-colors">
       <div className="flex items-start justify-between w-full">
         <div className="flex items-start space-x-4 flex-grow">
           <div className="w-24 h-24 flex-shrink-0">
@@ -30,31 +30,31 @@ export default function ProductCard({ product }: { product: Product }) {
                 className="rounded-lg object-cover w-full h-full"
               />
             ) : (
-              <div className="w-full h-full bg-white/10 rounded-lg flex items-center justify-center">
-                <span className="text-white text-xl font-bold">{product.name.charAt(0)}</span>
+              <div className="w-full h-full bg-muted rounded-lg flex items-center justify-center">
+                <span className="text-foreground text-xl font-bold">{product.name.charAt(0)}</span>
               </div>
             )}
           </div>
-          
+
           <div className="flex flex-col gap-2.5">
             <Link href={`/product-hunt/${product.url}`} className="block flex flex-col gap-2">
               <div className="flex flex-col">
-                <h3 className="text-xl font-semibold text-white hover:text-white/90 transition-colors">
+                <h3 className="text-xl font-semibold text-foreground hover:text-green-600 dark:hover:text-green-400 transition-colors">
                   {product.name}
                 </h3>
-                <p className="text-gray-400 mt-1 line-clamp-2">{product.description}</p>
+                <p className="text-muted-foreground mt-1 line-clamp-2">{product.description}</p>
               </div>
             </Link>
             <ClientVoteButton productId={product.id} />
           </div>
         </div>
 
-        <Link 
+        <Link
           href={`/product-hunt/${product.url}`}
-          className="ml-4 p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors group"
+          className="ml-4 p-2 rounded-full bg-muted hover:bg-accent transition-colors group"
         >
-          <ArrowUpRight 
-            className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" 
+          <ArrowUpRight
+            className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors"
           />
         </Link>
       </div>

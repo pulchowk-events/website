@@ -38,9 +38,6 @@ export default function EditProductModal({ product, onClose }: EditProductModalP
   const [urlError, setUrlError] = useState('');
   const [redirectUrl, setRedirectUrl] = useState(product.redirect_url || '');
 
-
-
-    // Add the same URL validation as in AddProductModal
   const validateRedirectUrl = (value: string) => {
     if (!value) return '';
     try {
@@ -66,58 +63,57 @@ export default function EditProductModal({ product, onClose }: EditProductModalP
     return '';
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  const errorMsg = validateUrl(url);
-  if (errorMsg) {
-    setUrlError(errorMsg);
-    return;
-  }
-
-  setLoading(true);
-
-  try {
-    const formData = new FormData();
-    formData.append('name', name);
-    formData.append('description', description);
-    formData.append('url', url);
-    formData.append('redirect_url', redirectUrl);
-    if (image) {
-      formData.append('image', image);
+    const errorMsg = validateUrl(url);
+    if (errorMsg) {
+      setUrlError(errorMsg);
+      return;
     }
 
-    const response = await fetch(`/api/products/${product.id}`, {
-      method: 'PUT',
-      body: formData,
-    });
+    setLoading(true);
 
-    // First check if response has content
-    const text = await response.text();
-    const data = text ? JSON.parse(text) : {};
+    try {
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('description', description);
+      formData.append('url', url);
+      formData.append('redirect_url', redirectUrl);
+      if (image) {
+        formData.append('image', image);
+      }
 
-    if (!response.ok) {
-      throw new Error(data.error || 'Failed to update product');
+      const response = await fetch(`/api/products/${product.id}`, {
+        method: 'PUT',
+        body: formData,
+      });
+
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : {};
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update product');
+      }
+
+      if (!data.success) {
+        throw new Error('Update operation failed');
+      }
+
+      toast.success('Product updated successfully!');
+      router.refresh();
+      onClose();
+    } catch (error) {
+      console.error('Update error:', error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'An unexpected error occurred'
+      );
+    } finally {
+      setLoading(false);
     }
-
-    if (!data.success) {
-      throw new Error('Update operation failed');
-    }
-
-    toast.success('Product updated successfully!');
-    router.refresh();
-    onClose();
-  } catch (error) {
-    console.error('Update error:', error);
-    toast.error(
-      error instanceof Error 
-        ? error.message 
-        : 'An unexpected error occurred'
-    );
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <AnimatePresence>
@@ -125,7 +121,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[999] min-h-screen flex items-center justify-center bg-black/50 px-4 sm:px-0"
+        className="fixed inset-0 z-[999] min-h-screen flex items-center justify-center bg-black/50 dark:bg-black/70 backdrop-blur-sm px-4 sm:px-0"
         onClick={onClose}
       >
         <motion.div
@@ -135,7 +131,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           transition={{ type: 'spring', stiffness: 200, damping: 20 }}
           onClick={(e) => e.stopPropagation()}
         >
-          <Card className="relative w-full max-w-md bg-black/90  text-white overflow-hidden">
+          <Card className="relative w-full max-w-md bg-card text-card-foreground overflow-hidden">
             <CardHeader>
               <CardTitle>Edit Product</CardTitle>
               <CardDescription>Update your product details.</CardDescription>
@@ -162,24 +158,23 @@ const handleSubmit = async (e: React.FormEvent) => {
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Brief description"
                     required
-                    className="w-full p-3 rounded bg-zinc-800 border border-zinc-800 text-sm min-h-[100px]"
+                    className="w-full p-3 rounded-md bg-background border border-border text-sm text-foreground placeholder:text-muted-foreground min-h-[100px] focus:outline-none focus:ring-2 focus:ring-ring"
                   />
                 </div>
 
-                
-                                <div className="space-y-1.5">
-                    <Label htmlFor="redirect-url">View Product URL (Optional)</Label>
-                    <Input
-                      id="redirect-url"
-                      type="url"
-                      value={redirectUrl}
-                      onChange={(e) => setRedirectUrl(e.target.value)}
-                      placeholder="https://your-product-url.com"
-                    />
-                    <p className="text-xs text-zinc-400">
-                      Add a link to your product's website or repository
-                    </p>
-            </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="redirect-url">View Product URL (Optional)</Label>
+                  <Input
+                    id="redirect-url"
+                    type="url"
+                    value={redirectUrl}
+                    onChange={(e) => setRedirectUrl(e.target.value)}
+                    placeholder="https://your-product-url.com"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Add a link to your product's website or repository
+                  </p>
+                </div>
 
                 <div className="space-y-1.5">
                   <Label htmlFor="url">Product Slug</Label>
@@ -195,10 +190,9 @@ const handleSubmit = async (e: React.FormEvent) => {
                     required
                   />
                   {urlError && (
-                    <p className="text-sm text-red-400">{urlError}</p>
+                    <p className="text-sm text-red-600 dark:text-red-400">{urlError}</p>
                   )}
                 </div>
-
 
                 <div className="space-y-1.5">
                   <Label htmlFor="product-image">Update Image</Label>
@@ -209,12 +203,12 @@ const handleSubmit = async (e: React.FormEvent) => {
                     onChange={(e) => setImage(e.target.files ? e.target.files[0] : null)}
                   />
                   {image && (
-                    <p className="text-sm text-zinc-400 truncate">
+                    <p className="text-sm text-muted-foreground truncate">
                       Selected: {image.name}
                     </p>
                   )}
                   {product.image_url && !image && (
-                    <p className="text-sm text-zinc-400">
+                    <p className="text-sm text-muted-foreground">
                       Current image will be kept
                     </p>
                   )}
