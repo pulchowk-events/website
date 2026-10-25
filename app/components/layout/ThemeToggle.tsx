@@ -11,7 +11,6 @@ export function ThemeToggle() {
 
   useEffect(() => setMounted(true), [])
 
-  // Default to Sun before mount so SSR markup is deterministic
   const Icon = !mounted
     ? Sun
     : resolvedTheme === 'dark'

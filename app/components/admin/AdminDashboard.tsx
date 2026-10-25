@@ -48,6 +48,7 @@ import AdminUserForm from './AdminUserForm';
 import AdminNotificationAdder from './AdminNotificationAdder';
 import AdminReports from './AdminReports';
 import AdminPendingEvents from './AdminPendingEvents'
+import { ThemeToggle } from '@/app/components/layout/ThemeToggle';
 
 const navItems = [
   { id: "dashboard", label: "General", icon: <LayoutDashboard size={18} /> },
@@ -124,6 +125,7 @@ export default function AdminDashboard({ session, dashboardStats }: AdminDashboa
               {navItems.find(item => item.id === activeTab)?.label || "Dashboard"}
             </h2>
             <div className="flex items-center space-x-4">
+              <ThemeToggle />
               <div className="p-4 border-l border-border dotted-border-vertical">
                 <div className="flex items-center">
                   <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center">
@@ -157,7 +159,6 @@ export default function AdminDashboard({ session, dashboardStats }: AdminDashboa
                 <AdminStats stats={dashboardStats} />
 
                 <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Recent activity card */}
                   <Card className="bg-card/50 border-border dotted-border-horizontal">
                     <CardHeader>
                       <CardTitle className="text-foreground">Recent Activity</CardTitle>
@@ -180,7 +181,6 @@ export default function AdminDashboard({ session, dashboardStats }: AdminDashboa
                     </CardContent>
                   </Card>
 
-                  {/* Quick actions card */}
                   <Card className="bg-card/50 border-border dotted-border-horizontal">
                     <CardHeader>
                       <CardTitle className="text-foreground">Quick Actions</CardTitle>
@@ -211,11 +211,7 @@ export default function AdminDashboard({ session, dashboardStats }: AdminDashboa
             )}
 
             {activeTab === "pending-events" && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              >
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
                 <Card className="bg-card/50 border-border dotted-border-horizontal">
                   <CardHeader>
                     <CardTitle className="text-foreground">Pending Events</CardTitle>
@@ -223,135 +219,91 @@ export default function AdminDashboard({ session, dashboardStats }: AdminDashboa
                       Review and manage submitted events
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <AdminPendingEvents />
-                  </CardContent>
+                  <CardContent><AdminPendingEvents /></CardContent>
                 </Card>
               </motion.div>
             )}
 
             {activeTab === "donations" && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              >
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
                 <Card className="bg-card/50 border-border dotted-border-horizontal">
                   <CardHeader>
                     <CardTitle className="text-foreground">Manage Donations</CardTitle>
                     <CardDescription className="text-muted-foreground">View and manage all donation records</CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <AdminEditDonations />
-                  </CardContent>
+                  <CardContent><AdminEditDonations /></CardContent>
                 </Card>
               </motion.div>
             )}
 
             {activeTab === "pending" && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              >
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
                 <Card className="bg-card/50 border-border dotted-border-horizontal">
                   <CardHeader>
                     <CardTitle className="text-foreground">Pending Product Approvals</CardTitle>
                     <CardDescription className="text-muted-foreground">Review and approve or reject submitted products</CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <PendingProducts />
-                  </CardContent>
+                  <CardContent><PendingProducts /></CardContent>
                 </Card>
               </motion.div>
             )}
 
             {activeTab === "add-product" && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              >
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
                 <Card className="bg-card/50 border-border dotted-border-horizontal">
                   <CardHeader>
                     <CardTitle className="text-foreground">Add New Product</CardTitle>
                     <CardDescription className="text-muted-foreground">Directly add an approved product to the marketplace</CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <AdminProductForm />
-                  </CardContent>
+                  <CardContent><AdminProductForm /></CardContent>
                 </Card>
               </motion.div>
             )}
 
             {activeTab === "add-event" && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              >
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
                 <Card className="bg-card/50 border-border dotted-border-horizontal">
                   <CardHeader>
                     <CardTitle className="text-foreground">Add New Event</CardTitle>
                     <CardDescription className="text-muted-foreground">Schedule and publish new events to the platform</CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <AdminEventForm />
-                  </CardContent>
+                  <CardContent><AdminEventForm /></CardContent>
                 </Card>
               </motion.div>
             )}
 
             {activeTab === "manage-admins" && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              >
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
                 <Card className="bg-card/50 border-border dotted-border-horizontal">
                   <CardHeader>
                     <CardTitle className="text-foreground">Admin User Management</CardTitle>
                     <CardDescription className="text-muted-foreground">Add or remove administrator privileges</CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <AdminUserForm />
-                  </CardContent>
+                  <CardContent><AdminUserForm /></CardContent>
                 </Card>
               </motion.div>
             )}
 
             {activeTab === "notifications" && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              >
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
                 <Card className="bg-card/50 border-border dotted-border-horizontal">
                   <CardHeader>
                     <CardTitle className="text-foreground">Broadcast Notifications</CardTitle>
                     <CardDescription className="text-muted-foreground">Send notifications to all users</CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <AdminNotificationAdder />
-                  </CardContent>
+                  <CardContent><AdminNotificationAdder /></CardContent>
                 </Card>
               </motion.div>
             )}
 
             {activeTab === "reports" && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              >
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
                 <Card className="bg-card/50 border-border dotted-border-horizontal">
                   <CardHeader>
                     <CardTitle className="text-foreground">Reported Posts</CardTitle>
                     <CardDescription className="text-muted-foreground">Review and manage reported content</CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <AdminReports />
-                  </CardContent>
+                  <CardContent><AdminReports /></CardContent>
                 </Card>
               </motion.div>
             )}

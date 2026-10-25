@@ -43,12 +43,12 @@ const categoryIcons = {
 } as const;
 
 const categoryColors = {
-  software: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  gaming: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-  music: 'bg-pink-500/10 text-pink-400 border-pink-500/20',
-  hardware: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
-  sports: 'bg-green-500/10 text-green-400 border-green-500/20',
-  extra: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
+  software: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20',
+  gaming: 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20',
+  music: 'bg-pink-100 text-pink-700 border-pink-200 dark:bg-pink-500/10 dark:text-pink-400 dark:border-pink-500/20',
+  hardware: 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-500/10 dark:text-orange-400 dark:border-orange-500/20',
+  sports: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20',
+  extra: 'bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20'
 } as const;
 
 export default function EventCard({ event, isPast = false, isAdmin = false, userId}: EventCardProps) {
@@ -56,7 +56,7 @@ export default function EventCard({ event, isPast = false, isAdmin = false, user
   const formattedDate = format(eventDate, 'PPP')
   const formattedTime = format(eventDate, 'p')
   const timeUntil = formatDistanceToNow(eventDate, { addSuffix: true })
-  
+
   const CategoryIcon = categoryIcons[event.category];
   const categoryColor = categoryColors[event.category];
 
@@ -65,13 +65,12 @@ export default function EventCard({ event, isPast = false, isAdmin = false, user
     return text.slice(0, maxLength) + '...'
   }
 
-  // Author information with fallbacks
   const authorName = event.author?.name || "Anonymous"
   const authorImage = event.author?.image || "/default-avatar.png"
   const authorId = event.created_by || "anonymous"
 
   return (
-    <div className="bg-white/5 border border-white/5 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col h-full relative group">
+    <div className="bg-card border border-border rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col h-full relative group">
       {/* Image section with gradient overlay */}
       <div className="relative h-52 w-full">
         {event.image_url ? (
@@ -86,12 +85,12 @@ export default function EventCard({ event, isPast = false, isAdmin = false, user
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
           </>
         ) : (
-          <div className="bg-white/5 h-full w-full flex items-center justify-center">
-            <CategoryIcon className="w-16 h-16 text-white/20" />
+          <div className="bg-muted h-full w-full flex items-center justify-center">
+            <CategoryIcon className="w-16 h-16 text-muted-foreground/40" />
           </div>
         )}
 
-        {/* Category badge */}
+        {/* Category badge — adapts to theme (light pill on light, translucent on dark) */}
         <div className="absolute top-3 left-3 z-2">
           <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border backdrop-blur-lg ${categoryColor}`}>
             <CategoryIcon className="w-3.5 h-3.5" />
@@ -100,21 +99,21 @@ export default function EventCard({ event, isPast = false, isAdmin = false, user
             </span>
           </div>
         </div>
-        
-        {/* Admin actions */}
+
+        {/* Admin actions — kept frosted-dark so they work on any image */}
         <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
           {(isAdmin || event.created_by === userId) && (
             <>
               <EditEventButton event={event} />
-              <DeleteButton 
-                eventId={event.id} 
+              <DeleteButton
+                eventId={event.id}
                 onSuccess={() => window.location.reload()}
               />
             </>
           )}
         </div>
 
-        {/* Event status badge */}
+        {/* Status badge — sits on the dark bottom gradient, kept as-is for on-image contrast */}
         <div className="absolute bottom-3 left-3">
           {isPast ? (
             <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-red-500/20 text-red-300 border border-red-500/20 backdrop-blur-sm">
@@ -127,28 +126,28 @@ export default function EventCard({ event, isPast = false, isAdmin = false, user
           )}
         </div>
       </div>
-      
+
       {/* Event details */}
       <div className="p-5 flex-grow">
-        <h3 className="text-xl font-bold text-white mb-3 line-clamp-2">{event.title}</h3>
-        
-        <div className="flex items-center text-white/60 text-sm mb-4 gap-1.5">
+        <h3 className="text-xl font-bold text-foreground mb-3 line-clamp-2">{event.title}</h3>
+
+        <div className="flex items-center text-muted-foreground text-sm mb-4 gap-1.5">
           <Calendar className="h-4 w-4" />
           <span>{formattedDate} at {formattedTime}</span>
         </div>
-        
-        <p className="text-white/70 mb-5 text-sm leading-relaxed line-clamp-3">
+
+        <p className="text-muted-foreground mb-5 text-sm leading-relaxed line-clamp-3">
           {truncateDescription(event.description)}
         </p>
-        
+
         {/* Author info */}
-        <div className="flex items-center gap-3 mb-4 pt-3 border-t border-white/5">
-          <Link 
+        <div className="flex items-center gap-3 mb-4 pt-3 border-t border-border">
+          <Link
             href={`/profile/${authorId}`}
             className="flex items-center gap-3 hover:opacity-80 transition-opacity"
           >
-            <div className="relative w-8 h-8 rounded-full overflow-hidden bg-white/10">
-              <Image 
+            <div className="relative w-8 h-8 rounded-full overflow-hidden bg-muted">
+              <Image
                 src={authorImage}
                 alt={authorName}
                 fill
@@ -161,27 +160,27 @@ export default function EventCard({ event, isPast = false, isAdmin = false, user
               />
             </div>
             <div className="flex flex-col">
-              <span className="text-xs text-white/80">Created by</span>
-              <span className="text-sm font-medium text-white">{authorName}</span>
+              <span className="text-xs text-muted-foreground">Created by</span>
+              <span className="text-sm font-medium text-foreground">{authorName}</span>
             </div>
           </Link>
         </div>
       </div>
-      
+
       {/* Action section */}
       <div className="p-5 pt-0 mt-auto">
         {!isPast ? (
-          <Link 
+          <Link
             href={event.form_link}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full bg-white/10 hover:bg-white/15 text-white py-2.5 px-4 rounded-lg font-medium text-center transition-all duration-200 border border-white/5"
+            className="flex items-center justify-center gap-2 w-full bg-secondary hover:bg-accent text-secondary-foreground py-2.5 px-4 rounded-lg font-medium text-center transition-all duration-200 border border-border"
           >
             <ExternalLink className="w-4 h-4" />
             Register for Event
           </Link>
         ) : (
-          <div className="flex items-center justify-center gap-2 w-full bg-white/5 text-white/40 py-2.5 px-4 rounded-lg font-medium text-center border border-white/5">
+          <div className="flex items-center justify-center gap-2 w-full bg-muted text-muted-foreground py-2.5 px-4 rounded-lg font-medium text-center border border-border">
             This event has ended
           </div>
         )}

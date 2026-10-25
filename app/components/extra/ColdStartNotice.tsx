@@ -22,11 +22,6 @@ export function ColdStartNotice() {
   useEffect(() => {
     const mode = readMode()
 
-    // ?coldstart=auto  → default behavior (Netlify + slow)
-    // ?coldstart=show  → force show
-    // ?coldstart=hide  → force hide
-    // (no param)       → auto
-
     if (mode === 'hide') {
       setVisible(false)
       return
@@ -37,7 +32,6 @@ export function ColdStartNotice() {
       return
     }
 
-    // auto mode: Netlify host + slow load + not dismissed this session
     const host = window.location.hostname
     const isNetlify = NETLIFY_HOST_SUFFIXES.some((s) => host.endsWith(s))
     if (!isNetlify) return
@@ -55,12 +49,12 @@ export function ColdStartNotice() {
   if (!visible) return null
 
   return (
-    <div className="fixed bottom-4 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-lg border border-white/10 bg-zinc-900/95 p-3 text-sm text-zinc-200 shadow-xl backdrop-blur">
+    <div className="fixed bottom-4 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-lg border border-border bg-popover/95 p-3 text-sm text-foreground shadow-xl backdrop-blur">
       <div className="flex items-start gap-3">
         <span className="mt-0.5 select-none"><Clock width={16}/></span>
         <div className="flex-1">
-          <p className="font-medium text-white">Waking up the server…</p>
-          <p className="mt-0.5 text-xs text-zinc-400">
+          <p className="font-medium text-foreground">Waking up the server…</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
             First load on Netlify can take a few seconds while the server cold-starts. Each page will load fast after it builds at least once.
           </p>
         </div>
@@ -68,7 +62,7 @@ export function ColdStartNotice() {
           type="button"
           onClick={dismiss}
           aria-label="Dismiss"
-          className="rounded p-1 text-zinc-500 transition hover:bg-white/10 hover:text-white"
+          className="rounded p-1 text-muted-foreground transition hover:bg-accent hover:text-foreground"
         >
           ✕
         </button>

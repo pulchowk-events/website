@@ -15,21 +15,18 @@ NProgress.configure({
 export default function LoadingBar() {
   const pathname = usePathname();
 
-  
   useEffect(() => {
-    // Start the progress bar
     NProgress.start();
-    
-    // Complete the progress bar when the route fully changes
+
     const timeoutId = setTimeout(() => {
       NProgress.done();
-    }, 500); // Adjust timing as needed
-    
+    }, 500);
+
     return () => {
       clearTimeout(timeoutId);
       NProgress.done();
     };
   }, [pathname]);
-  
-  return null; // This component doesn't render anything visible
+
+  return null;
 }

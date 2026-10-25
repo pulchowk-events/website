@@ -3,7 +3,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/auth';
 import EventsClient from './EventsClient';
 
-
 interface Event {
   id: string;
   title: string;
@@ -18,22 +17,20 @@ interface Event {
 export default async function EventsPage() {
   const supabase = createServerSupabaseClient();
   const session = await getServerSession(authOptions);
-  
-  // Get verified events only
-// Update the events query to include author information
-    const { data: events } = await supabase
-      .from('events')
-      .select(`
-        *,
-        users:created_by (
-          id,
-          name,
-          image
-        ),
-        created_by
-      `)
-      .eq('verified', true)
-      .order('event_date', { ascending: true });
+
+  const { data: events } = await supabase
+    .from('events')
+    .select(`
+      *,
+      users:created_by (
+        id,
+        name,
+        image
+      ),
+      created_by
+    `)
+    .eq('verified', true)
+    .order('event_date', { ascending: true });
 
   let isAdmin = false;
 

@@ -51,17 +51,17 @@ export default function EventsClient({ upcomingEvents, pastEvents, isAdmin }: Ev
     <div className="space-y-6">
       {/* Time Filter */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <h2 className="text-xl font-medium text-white">
+        <h2 className="text-xl font-medium text-foreground">
           {showPastEvents ? 'Recent Events' : 'Upcoming Events'}
         </h2>
-        
-        <div className="flex items-center gap-2 bg-white/5 p-1 rounded-full">
+
+        <div className="flex items-center gap-2 bg-muted p-1 rounded-full">
           <button
             onClick={() => setShowPastEvents(false)}
             className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
-              !showPastEvents 
-                ? 'bg-green-600 text-white' 
-                : 'text-zinc-400 hover:text-white'
+              !showPastEvents
+                ? 'bg-green-600 text-white'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             <Calendar className="w-4 h-4" />
@@ -70,9 +70,9 @@ export default function EventsClient({ upcomingEvents, pastEvents, isAdmin }: Ev
           <button
             onClick={() => setShowPastEvents(true)}
             className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
-              showPastEvents 
-                ? 'bg-green-600 text-white' 
-                : 'text-zinc-400 hover:text-white'
+              showPastEvents
+                ? 'bg-green-600 text-white'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             <Clock className="w-4 h-4" />
@@ -83,8 +83,8 @@ export default function EventsClient({ upcomingEvents, pastEvents, isAdmin }: Ev
 
       {/* Category Filter */}
       <div>
-        <Tabs 
-          defaultValue="all" 
+        <Tabs
+          defaultValue="all"
           value={selectedCategory}
           onValueChange={(value) => setSelectedCategory(value as EventCategory)}
           className="w-full"
@@ -94,7 +94,7 @@ export default function EventsClient({ upcomingEvents, pastEvents, isAdmin }: Ev
               <TabsTrigger
                 key={value}
                 value={value}
-                className="flex items-center gap-2 data-[state=active]:bg-green-600 bg-white/5 hover:bg-white/10"
+                className="flex items-center gap-2 data-[state=active]:bg-green-600 data-[state=active]:text-white bg-muted hover:bg-accent"
               >
                 <Icon className="w-4 h-4" />
                 <span className="hidden sm:inline">{label}</span>
@@ -126,9 +126,9 @@ export default function EventsClient({ upcomingEvents, pastEvents, isAdmin }: Ev
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12 bg-white/5 rounded-xl">
-                <p className="text-zinc-400">
-                  {showPastEvents 
+              <div className="text-center py-12 bg-card/50 border border-border rounded-xl">
+                <p className="text-muted-foreground">
+                  {showPastEvents
                     ? `No past ${selectedCategory !== 'all' ? selectedCategory : ''} events to show`
                     : `No upcoming ${selectedCategory !== 'all' ? selectedCategory : ''} events scheduled`
                   }

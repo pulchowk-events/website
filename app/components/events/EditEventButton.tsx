@@ -1,14 +1,10 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
 import { Pencil, Edit2 } from 'lucide-react';
 import EditEventModal from './EditEventModal';
 
-
-
 type EventCategory = 'all' | 'software' | 'gaming' | 'hardware' | 'music' | 'sports' | 'extra';
-
 
 interface EditEventButtonProps {
   event: {
@@ -23,8 +19,6 @@ interface EditEventButtonProps {
   };
 }
 
-
-
 export default function EditEventButton({ event }: EditEventButtonProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -33,7 +27,7 @@ export default function EditEventButton({ event }: EditEventButtonProps) {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 640);
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
@@ -41,6 +35,7 @@ export default function EditEventButton({ event }: EditEventButtonProps) {
 
   return (
     <>
+      {/* Frosted trigger — sits on image overlay in EventCard */}
       <button
         onClick={() => setIsModalOpen(true)}
         className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 bg-white/10 hover:bg-white/15 text-white rounded-md backdrop-blur-sm transition-all duration-200 border border-white/5 shadow-sm group"
@@ -53,7 +48,7 @@ export default function EditEventButton({ event }: EditEventButtonProps) {
       </button>
 
       {isModalOpen && (
-        <EditEventModal 
+        <EditEventModal
           event={event}
           onClose={() => setIsModalOpen(false)}
         />

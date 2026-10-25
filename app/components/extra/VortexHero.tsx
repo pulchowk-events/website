@@ -1,19 +1,16 @@
-
 import React from "react";
 import { Vortex } from "@/components/ui/vortex";
 
 export function VortexHero() {
   return (
     <div className="w-[calc(100%)] mx-auto rounded-md h-[15rem] sm:h-[25rem] overflow-hidden">
-
       <Vortex
         backgroundColor="black"
         className="flex items-center flex-col justify-center px-2  md:px-10 py-4 w-full h-full"
-      rangeY={800}
+        rangeY={800}
         particleCount={500}
         baseHue={120}
       >
-
         <h2 className="text-white text-2xl md:text-6xl  font-bold text-center">
           Introducing Product Hunt
         </h2>
@@ -25,9 +22,7 @@ export function VortexHero() {
             <button className="px-4 py-2 rounded-md border border-black bg-white text-black text-sm hover:shadow-[4px_4px_0px_0px_rgba(0,0,0)] transition duration-200">
                     View Products
                     </button>
-            </a>    
-      
-
+            </a>
         </div>
       </Vortex>
     </div>

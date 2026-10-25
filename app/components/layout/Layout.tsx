@@ -7,8 +7,6 @@ import Navbar from './Navbar'
 import Footer from './Footer'
 
 export default function Layout({ children }: { children: ReactNode }) {
-
-    // Ensure portal mount after hydration
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -26,9 +24,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           </VoteProvider>
         </main>
         <Footer />
-     
-   
-        </div>
+      </div>
     </SessionProvider>
   )
 }

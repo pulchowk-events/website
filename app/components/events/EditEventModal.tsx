@@ -97,45 +97,46 @@ export default function EditEventModal({ event, onClose }: EditEventModalProps) 
       className="fixed inset-0 z-50 overflow-y-auto"
     >
       <div className="flex min-h-screen items-center justify-center p-4">
-        <Dialog.Title className="fixed inset-0 bg-black/70 backdrop-blur-sm" />
+        {/* Backdrop */}
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm" aria-hidden="true" />
 
-        <div className="relative bg-black border border-white/5 rounded-xl w-full max-w-5xl shadow-2xl">
-          <div className="border-b border-white/10 px-6 py-4">
+        <div className="relative bg-popover border border-border rounded-xl w-full max-w-5xl shadow-2xl">
+          <div className="border-b border-border px-6 py-4">
             <div className="flex items-center justify-between">
-              <Dialog.Title className="text-xl font-semibold text-white">
+              <Dialog.Title className="text-xl font-semibold text-foreground">
                 Edit Event
               </Dialog.Title>
               <button
                 onClick={onClose}
-                className="text-zinc-400 hover:text-white transition-colors"
+                className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 <X size={24} />
               </button>
             </div>
-            <p className="text-zinc-400 text-sm mt-1">Update event details</p>
+            <p className="text-muted-foreground text-sm mt-1">Update event details</p>
           </div>
 
           <form onSubmit={handleSubmit} className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="title" className="text-white">Event Title</Label>
+                  <Label htmlFor="title" className="text-foreground">Event Title</Label>
                   <Input
                     id="title"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="mt-1 bg-white/5 border-white/10 text-white"
+                    className="mt-1 bg-background border-border text-foreground"
                     required
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="category" className="text-white">Category</Label>
+                  <Label htmlFor="category" className="text-foreground">Category</Label>
                   <select
                     id="category"
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value as EventCategory })}
-                    className="w-full mt-1 p-2 rounded bg-white/5 border border-white/10 text-white"
+                    className="w-full mt-1 p-2 rounded bg-background border border-border text-foreground"
                     required
                   >
                     {categories.map((category) => (
@@ -147,44 +148,44 @@ export default function EditEventModal({ event, onClose }: EditEventModalProps) 
                 </div>
 
                 <div>
-                  <Label htmlFor="eventDate" className="text-white">Event Date</Label>
+                  <Label htmlFor="eventDate" className="text-foreground">Event Date</Label>
                   <Input
                     id="eventDate"
                     type="datetime-local"
                     value={formData.eventDate}
                     onChange={(e) => setFormData({ ...formData, eventDate: e.target.value })}
-                    className="mt-1 bg-white/5 border-white/10 text-white"
+                    className="mt-1 bg-background border-border text-foreground"
                     required
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="formLink" className="text-white">Registration Form Link</Label>
+                  <Label htmlFor="formLink" className="text-foreground">Registration Form Link</Label>
                   <Input
                     id="formLink"
                     type="url"
                     value={formData.formLink}
                     onChange={(e) => setFormData({ ...formData, formLink: e.target.value })}
                     placeholder="https://"
-                    className="mt-1 bg-white/5 border-white/10 text-white"
+                    className="mt-1 bg-background border-border text-foreground"
                     required
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="image" className="text-white">Update Event Image</Label>
+                  <Label htmlFor="image" className="text-foreground">Update Event Image</Label>
                   <Input
                     id="image"
                     type="file"
                     accept="image/*"
                     onChange={(e) => setImage(e.target.files?.[0] || null)}
-                    className="mt-1 bg-white/5 border-white/10 text-white"
+                    className="mt-1 bg-background border-border text-foreground"
                   />
                   {image && (
-                    <p className="text-sm text-zinc-400 mt-1">Selected: {image.name}</p>
+                    <p className="text-sm text-muted-foreground mt-1">Selected: {image.name}</p>
                   )}
                   {event.image_url && !image && (
-                    <p className="text-sm text-zinc-400 mt-1">
+                    <p className="text-sm text-muted-foreground mt-1">
                       Current image will be kept
                     </p>
                   )}
@@ -192,12 +193,12 @@ export default function EditEventModal({ event, onClose }: EditEventModalProps) 
               </div>
 
               <div>
-                <Label htmlFor="description" className="text-white">Description</Label>
+                <Label htmlFor="description" className="text-foreground">Description</Label>
                 <textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full mt-1 p-3 rounded bg-white/5 border border-white/10 text-white min-h-[330px] resize-none"
+                  className="w-full mt-1 p-3 rounded bg-background border border-border text-foreground min-h-[330px] resize-none"
                   required
                 />
               </div>
@@ -209,12 +210,12 @@ export default function EditEventModal({ event, onClose }: EditEventModalProps) 
                 variant="outline"
                 onClick={onClose}
                 disabled={loading}
-                className="bg-white/5 hover:bg-white/10 border-white/10"
+                className="bg-secondary hover:bg-accent border-border"
               >
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={loading}
                 className="bg-green-600 hover:bg-green-700 text-white"
               >
