@@ -26,7 +26,6 @@ export function VoteButton({ productId }: { productId: number }) {
   const hasInitialized = useRef(false);
   const [showSignInModal, setShowSignInModal] = useState(false);
 
-  // Only fetch votes once when the component mounts or productId changes
   useEffect(() => {
     if (!hasInitialized.current) {
       refreshVotes(productId);
@@ -38,37 +37,28 @@ export function VoteButton({ productId }: { productId: number }) {
   const userVoteType = userVotes[productId];
   const totalVotes = votes.upvotes - votes.downvotes;
 
-  // Enhanced loading check to include vote data loading
   const isLoadingData =
-    status === 'loading' || 
+    status === 'loading' ||
     isVotesLoading;
 
-  // Handle vote attempt when not logged in
   const handleVoteAttempt = (voteType: 'upvote' | 'downvote') => {
     if (!session?.user?.id) {
-      // Show the sign-in modal instead of just a message
       setShowSignInModal(true);
       return;
     }
-    
-    // If logged in, proceed with normal vote handling
     handleVote(productId, voteType);
   };
 
-  // Show loading state for votes count and buttons
   if (status === 'loading') {
     return (
       <div className="flex items-center gap-2">
-        <div className="h-6 w-6 rounded-full bg-gray-600 animate-pulse" />
-        <p className="text-sm text-gray-400 animate-pulse">Loading session...</p>
+        <div className="h-6 w-6 rounded-full bg-muted animate-pulse" />
+        <p className="text-sm text-muted-foreground animate-pulse">Loading session...</p>
       </div>
     );
   }
 
-  // Check if user can vote (either they're logged in and can vote, or they're an admin)
   const canUserVote = (session?.user?.id && canVote) || isAdmin;
-  
-  // Button is disabled during loading or if user has already voted and cooldown is active
   const isDisabled = isLoadingData || loading || (session?.user?.id && !canUserVote);
 
   return (
@@ -87,10 +77,10 @@ export function VoteButton({ productId }: { productId: number }) {
             viewBox="0 0 24 24"
             className={`transition ${
               isDisabled
-                ? 'stroke-gray-400'
+                ? 'stroke-muted-foreground/50'
                 : userVoteType === 'upvote'
-                ? 'stroke-green-600 fill-green-600'
-                : 'stroke-green-500 hover:stroke-green-600'
+                ? 'stroke-green-600 dark:stroke-green-500 fill-green-600 dark:fill-green-500'
+                : 'stroke-green-600 dark:stroke-green-500 hover:stroke-green-700 dark:hover:stroke-green-400'
             }`}
           >
             <g fill={userVoteType === 'upvote' ? 'none' : 'none'} strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
@@ -101,9 +91,9 @@ export function VoteButton({ productId }: { productId: number }) {
         </button>
 
         {isVotesLoading ? (
-          <p className="text-sm font-semibold text-gray-400 animate-pulse w-6 text-center">-</p>
+          <p className="text-sm font-semibold text-muted-foreground animate-pulse w-6 text-center">-</p>
         ) : (
-          <p className="text-sm font-semibold text-gray-300">{totalVotes}</p>
+          <p className="text-sm font-semibold text-foreground">{totalVotes}</p>
         )}
 
         <button
@@ -119,10 +109,10 @@ export function VoteButton({ productId }: { productId: number }) {
             viewBox="0 0 24 24"
             className={`transition ${
               isDisabled
-                ? 'stroke-gray-400'
+                ? 'stroke-muted-foreground/50'
                 : userVoteType === 'downvote'
-                ? 'stroke-red-600 fill-red-600'
-                : 'stroke-red-500 hover:stroke-red-600'
+                ? 'stroke-red-600 dark:stroke-red-500 fill-red-600 dark:fill-red-500'
+                : 'stroke-red-600 dark:stroke-red-500 hover:stroke-red-700 dark:hover:stroke-red-400'
             }`}
           >
             <g fill={userVoteType === 'downvote' ? 'currentColor' : 'none'} strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
@@ -133,14 +123,13 @@ export function VoteButton({ productId }: { productId: number }) {
         </button>
 
         {showLoginMessage && !session?.user?.id && (
-          <p className="text-red-500 text-sm mt-1 ml-2">Please log in to vote</p>
+          <p className="text-red-600 dark:text-red-500 text-sm mt-1 ml-2">Please log in to vote</p>
         )}
       </div>
 
-      {/* Sign In Modal */}
-      <SignInModal 
-        isOpen={showSignInModal} 
-        onClose={() => setShowSignInModal(false)} 
+      <SignInModal
+        isOpen={showSignInModal}
+        onClose={() => setShowSignInModal(false)}
       />
     </>
   );
