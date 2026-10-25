@@ -31,7 +31,6 @@ export default async function SearchPage({
 }) {
   const query = searchParams.q;
 
-  // Search posts with full text search
   const { data: posts } = await supabase
     .from('lounge_posts')
     .select(`
@@ -48,7 +47,6 @@ export default async function SearchPage({
     .order('created_at', { ascending: false })
     .limit(5);
 
-  // Search events with full text search
   const { data: events } = await supabase
     .from('events')
     .select(`
@@ -69,7 +67,6 @@ export default async function SearchPage({
     .order('event_date', { ascending: true })
     .limit(5);
 
-  // Search products with full text search
   const { data: products } = await supabase
     .from('products')
     .select(`
@@ -89,7 +86,6 @@ export default async function SearchPage({
     .order('created_at', { ascending: false })
     .limit(5);
 
-  // Get upcoming events for sidebar
   const { data: upcomingEvents } = await supabase
     .from('events')
     .select(`
@@ -107,13 +103,11 @@ export default async function SearchPage({
     .order('event_date', { ascending: true })
     .limit(3);
 
-  // Get prize pool information
   const { data: prizePool } = await supabase
     .from('prize_pool')
     .select('target_amount')
     .single();
 
-  // Calculate current amount from verified donations
   const { data: verifiedDonations } = await supabase
     .from('donations')
     .select('amount')
@@ -124,13 +118,11 @@ export default async function SearchPage({
     0
   ) || 0;
 
-  // Get total verified donors count
   const { count: total_donors } = await supabase
     .from('donations')
     .select('*', { count: 'exact' })
     .eq('verified', true);
 
-  // Fetch top donators
   const { data: topDonators } = await supabase
     .from('donations')
     .select('id, name, amount, avatar_url')
@@ -139,7 +131,6 @@ export default async function SearchPage({
     .order('amount', { ascending: false })
     .limit(5);
 
-  // Fetch recent products for sidebar
   const { data: recentProducts } = await supabase
     .from('products')
     .select('id, name, image_url, created_at, url')
@@ -149,35 +140,35 @@ export default async function SearchPage({
 
   return (
     <Layout>
-      <div className="bg-black min-h-screen">
+      <div className="bg-background min-h-screen">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
           <div className="flex flex-col lg:flex-row lg:gap-6">
-            {/* Left Sidebar - Hidden on mobile, shown on desktop */}
+            {/* Left Sidebar */}
             <div className="hidden lg:block lg:w-1/5 space-y-4 flex-shrink-0">
-              <div className="bg-white/5 rounded-xl p-5 shadow-lg sticky top-24">
+              <div className="bg-card border border-border rounded-xl p-5 shadow-lg sticky top-24">
                 <div className="flex items-center gap-3 mb-6">
-                  <TrendingUp className="h-6 w-6 text-green-400" />
-                  <h2 className="text-xl font-semibold text-white">Community</h2>
+                  <TrendingUp className="h-6 w-6 text-green-600 dark:text-green-400" />
+                  <h2 className="text-xl font-semibold text-foreground">Community</h2>
                 </div>
-                
+
                 <div className="space-y-4">
-                  <a 
-                    href="https://discord.gg/cQ5gxusATk" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="flex items-center justify-between bg-white/5 hover:bg-white/10 transition-colors p-3 rounded-lg"
+                  <a
+                    href="https://discord.gg/cQ5gxusATk"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between bg-muted/30 hover:bg-accent transition-colors p-3 rounded-lg"
                   >
                     <div className="flex items-center gap-3">
                       <div className="bg-indigo-500 rounded-lg p-2">
                         <Users className="h-5 w-5 text-white" />
                       </div>
-                      <span className="font-medium">Join Discord</span>
+                      <span className="font-medium text-foreground">Join Discord</span>
                     </div>
-                    <span className="bg-white/10 rounded-full px-2.5 py-1 text-xs">1,050</span>
+                    <span className="bg-muted rounded-full px-2.5 py-1 text-xs text-foreground">1,050</span>
                   </a>
-                  
+
                   <div className="pt-2">
-                    <PrizePoolProgress 
+                    <PrizePoolProgress
                       currentAmount={current_amount}
                       targetAmount={prizePool?.target_amount || 100000}
                       totalDonors={total_donors || 0}
@@ -186,16 +177,16 @@ export default async function SearchPage({
                 </div>
               </div>
             </div>
-            
-            {/* Main Content Area (Search Results) */}
+
+            {/* Main Content Area */}
             <div className="w-full lg:mx-auto">
-              <div className="bg-white/5 rounded-xl shadow-lg overflow-hidden mb-5 p-5">
-                <h1 className="text-2xl font-bold text-white mb-6">
+              <div className="bg-card border border-border rounded-xl shadow-lg overflow-hidden mb-5 p-5">
+                <h1 className="text-2xl font-bold text-foreground mb-6">
                   Search results for "{query || ''}"
                 </h1>
 
                 {!query && (
-                  <p className="text-gray-400 text-center py-8">Enter a search term to begin</p>
+                  <p className="text-muted-foreground text-center py-8">Enter a search term to begin</p>
                 )}
 
                 {query && (
@@ -203,8 +194,8 @@ export default async function SearchPage({
                     {/* Posts Section */}
                     <section>
                       <div className="flex items-center gap-2 mb-4">
-                        <MessageSquare className="w-5 h-5 text-green-500" />
-                        <h2 className="text-xl font-semibold text-white">Lounge Posts</h2>
+                        <MessageSquare className="w-5 h-5 text-green-600 dark:text-green-500" />
+                        <h2 className="text-xl font-semibold text-foreground">Lounge Posts</h2>
                       </div>
                       <div className="space-y-4">
                         {posts?.length ? (
@@ -212,7 +203,7 @@ export default async function SearchPage({
                             <Link
                               key={post.id}
                               href={`/lounge?postId=${post.id}`}
-                              className="block bg-white/5 hover:bg-white/10 rounded-xl p-4 transition-colors"
+                              className="block bg-muted/30 hover:bg-accent rounded-xl p-4 transition-colors"
                             >
                               <div className="flex items-start gap-3">
                                 <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
@@ -224,8 +215,8 @@ export default async function SearchPage({
                                   />
                                 </div>
                                 <div>
-                                  <h3 className="font-medium text-white">{post.title}</h3>
-                                  <p className="text-sm text-gray-400 mt-1">
+                                  <h3 className="font-medium text-foreground">{post.title}</h3>
+                                  <p className="text-sm text-muted-foreground mt-1">
                                     by {post.users?.name} •{' '}
                                     {formatDistanceToNow(new Date(post.created_at), {
                                       addSuffix: true,
@@ -236,12 +227,12 @@ export default async function SearchPage({
                             </Link>
                           ))
                         ) : (
-                          <p className="text-gray-400">No posts found</p>
+                          <p className="text-muted-foreground">No posts found</p>
                         )}
                         {posts?.length ? (
                           <Link
                             href={`/lounge?search=${query}`}
-                            className="inline-block text-green-500 hover:text-green-400 text-sm mt-2"
+                            className="inline-block text-green-600 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400 text-sm mt-2"
                           >
                             View all posts →
                           </Link>
@@ -252,8 +243,8 @@ export default async function SearchPage({
                     {/* Events Section */}
                     <section>
                       <div className="flex items-center gap-2 mb-4">
-                        <Calendar className="w-5 h-5 text-green-500" />
-                        <h2 className="text-xl font-semibold text-white">Events</h2>
+                        <Calendar className="w-5 h-5 text-green-600 dark:text-green-500" />
+                        <h2 className="text-xl font-semibold text-foreground">Events</h2>
                       </div>
                       <div className="space-y-4">
                         {events?.length ? (
@@ -261,7 +252,7 @@ export default async function SearchPage({
                             <Link
                               key={event.id}
                               href={`/events#${event.id}`}
-                              className="block bg-white/5 hover:bg-white/10 rounded-xl overflow-hidden transition-colors"
+                              className="block bg-muted/30 hover:bg-accent rounded-xl overflow-hidden transition-colors"
                             >
                               <div className="flex">
                                 <div className="w-24 h-24 relative flex-shrink-0">
@@ -273,8 +264,8 @@ export default async function SearchPage({
                                   />
                                 </div>
                                 <div className="p-4">
-                                  <h3 className="font-medium text-white">{event.title}</h3>
-                                  <div className="flex items-center gap-2 text-sm text-gray-400 mt-1">
+                                  <h3 className="font-medium text-foreground">{event.title}</h3>
+                                  <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                                     <Clock className="w-4 h-4" />
                                     <time>
                                       {new Date(event.event_date).toLocaleDateString()}
@@ -285,7 +276,7 @@ export default async function SearchPage({
                             </Link>
                           ))
                         ) : (
-                          <p className="text-gray-400">No events found</p>
+                          <p className="text-muted-foreground">No events found</p>
                         )}
                       </div>
                     </section>
@@ -293,8 +284,8 @@ export default async function SearchPage({
                     {/* Products Section */}
                     <section>
                       <div className="flex items-center gap-2 mb-4">
-                        <Box className="w-5 h-5 text-green-500" />
-                        <h2 className="text-xl font-semibold text-white">Projects</h2>
+                        <Box className="w-5 h-5 text-green-600 dark:text-green-500" />
+                        <h2 className="text-xl font-semibold text-foreground">Projects</h2>
                       </div>
                       <div className="space-y-4">
                         {products?.length ? (
@@ -302,7 +293,7 @@ export default async function SearchPage({
                             <Link
                               key={product.id}
                               href={`/product-hunt/${product.url}`}
-                              className="block bg-white/5 hover:bg-white/10 rounded-xl overflow-hidden transition-colors"
+                              className="block bg-muted/30 hover:bg-accent rounded-xl overflow-hidden transition-colors"
                             >
                               <div className="flex">
                                 <div className="w-24 h-24 relative flex-shrink-0">
@@ -314,8 +305,8 @@ export default async function SearchPage({
                                   />
                                 </div>
                                 <div className="p-4">
-                                  <h3 className="font-medium text-white">{product.name}</h3>
-                                  <p className="text-sm text-gray-400 line-clamp-2 mt-1">
+                                  <h3 className="font-medium text-foreground">{product.name}</h3>
+                                  <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
                                     {product.description}
                                   </p>
                                 </div>
@@ -323,7 +314,7 @@ export default async function SearchPage({
                             </Link>
                           ))
                         ) : (
-                          <p className="text-gray-400">No projects found</p>
+                          <p className="text-muted-foreground">No projects found</p>
                         )}
                       </div>
                     </section>
@@ -331,22 +322,21 @@ export default async function SearchPage({
                 )}
               </div>
 
-              {/* Mobile View Sidebars */}
+              {/* Mobile Sidebars */}
               <div className="lg:hidden space-y-4">
-                {/* Mobile: Recent Events */}
-                <div className="bg-white/5 rounded-xl p-4 shadow-lg">
+                <div className="bg-card border border-border rounded-xl p-4 shadow-lg">
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold text-white">Recent Events</h2>
-                    <Link href="/events" className="text-green-400 text-sm hover:underline">See All</Link>
+                    <h2 className="text-lg font-semibold text-foreground">Recent Events</h2>
+                    <Link href="/events" className="text-green-600 dark:text-green-400 text-sm hover:underline">See All</Link>
                   </div>
-                  
+
                   <div className="space-y-3">
                     {upcomingEvents && upcomingEvents.length > 0 ? (
                       upcomingEvents.map(event => (
-                        <Link 
-                          href={`/events`} 
+                        <Link
+                          href={`/events`}
                           key={event.id}
-                          className="flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 transition-colors rounded-lg"
+                          className="flex items-center gap-3 p-3 bg-muted/30 hover:bg-accent transition-colors rounded-lg"
                         >
                           <div className={`bg-green-600 rounded-lg p-2 ${
                             event.category === 'software' ? 'bg-blue-600' :
@@ -358,8 +348,8 @@ export default async function SearchPage({
                             <span className="text-white text-xs font-bold">{event.category.charAt(0).toUpperCase()}</span>
                           </div>
                           <div className="flex-1">
-                            <p className="font-medium text-sm line-clamp-1">{event.title}</p>
-                            <p className="text-gray-400 text-xs">
+                            <p className="font-medium text-sm line-clamp-1 text-foreground">{event.title}</p>
+                            <p className="text-muted-foreground text-xs">
                               {new Date(event.event_date).toLocaleDateString('en-US', {
                                 month: 'short',
                                 day: 'numeric'
@@ -369,45 +359,43 @@ export default async function SearchPage({
                         </Link>
                       ))
                     ) : (
-                      <p className="text-gray-400 text-sm py-2">No upcoming events</p>
+                      <p className="text-muted-foreground text-sm py-2">No upcoming events</p>
                     )}
                   </div>
                 </div>
-                
-                {/* Mobile: Top Donors */}
-                <div className="bg-white/5 rounded-xl p-4 shadow-lg">
+
+                <div className="bg-card border border-border rounded-xl p-4 shadow-lg">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
-                      <Award className="h-5 w-5 text-green-400" />
-                      <h2 className="text-lg font-semibold text-white">Top Donors</h2>
+                      <Award className="h-5 w-5 text-green-600 dark:text-green-400" />
+                      <h2 className="text-lg font-semibold text-foreground">Top Donors</h2>
                     </div>
-                    <Link href="/donate" className="text-green-400 text-sm hover:underline">Donate</Link>
+                    <Link href="/donate" className="text-green-600 dark:text-green-400 text-sm hover:underline">Donate</Link>
                   </div>
-                  
+
                   <div>
                     <TopDonators donators={topDonators || []} />
                   </div>
                 </div>
-                
-                {/* Mobile: Recent Products */}
-                <div className="bg-white/5 rounded-xl p-4 shadow-lg">
+
+                <div className="bg-card border border-border rounded-xl p-4 shadow-lg">
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold text-white">Recent Projects</h2>
-                    <Link href="/product-hunt" className="text-green-400 text-sm hover:underline">See All</Link>
+                    <h2 className="text-lg font-semibold text-foreground">Recent Projects</h2>
+                    <Link href="/product-hunt" className="text-green-600 dark:text-green-400 text-sm hover:underline">See All</Link>
                   </div>
-                  
+
                   <div className="space-y-3">
                     {recentProducts && recentProducts.length > 0 ? (
                       recentProducts.map(product => (
-                        <Link 
-                          href={`/product-hunt/${product.url}`} 
+                        <Link
+                          href={`/product-hunt/${product.url}`}
                           key={product.id}
-                          className="flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 transition-colors rounded-lg"
+                          className="flex items-center gap-3 p-3 bg-muted/30 hover:bg-accent transition-colors rounded-lg"
                         >
-                          <div className="w-10 h-10 bg-white/10 rounded-lg overflow-hidden">
+                          <div className="w-10 h-10 bg-muted rounded-lg overflow-hidden">
                             {product.image_url ? (
-                              <img 
-                                src={product.image_url} 
+                              <img
+                                src={product.image_url}
                                 alt={product.name}
                                 className="w-full h-full object-cover"
                               />
@@ -418,8 +406,8 @@ export default async function SearchPage({
                             )}
                           </div>
                           <div className="flex-1">
-                            <p className="font-medium text-sm line-clamp-1">{product.name}</p>
-                            <p className="text-gray-400 text-xs">
+                            <p className="font-medium text-sm line-clamp-1 text-foreground">{product.name}</p>
+                            <p className="text-muted-foreground text-xs">
                               {new Date(product.created_at).toLocaleDateString('en-US', {
                                 month: 'short',
                                 day: 'numeric'
@@ -429,30 +417,29 @@ export default async function SearchPage({
                         </Link>
                       ))
                     ) : (
-                      <p className="text-gray-400 text-sm py-2">No recent projects</p>
+                      <p className="text-muted-foreground text-sm py-2">No recent projects</p>
                     )}
                   </div>
                 </div>
               </div>
             </div>
-            
-            {/* Right Sidebar - Hidden on mobile, shown on desktop */}
+
+            {/* Right Sidebar */}
             <div className="hidden lg:block lg:w-1/5 space-y-4 flex-shrink-0">
               <div className="sticky top-24 space-y-4">
-                {/* Recent Events */}
-                <div className="bg-white/5 rounded-xl p-5 shadow-lg">
+                <div className="bg-card border border-border rounded-xl p-5 shadow-lg">
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold text-white">Events</h2>
-                    <Link href="/events" className="text-green-400 text-sm hover:underline">See All</Link>
+                    <h2 className="text-xl font-semibold text-foreground">Events</h2>
+                    <Link href="/events" className="text-green-600 dark:text-green-400 text-sm hover:underline">See All</Link>
                   </div>
-                  
+
                   <div className="space-y-3">
                     {upcomingEvents && upcomingEvents.length > 0 ? (
                       upcomingEvents.map(event => (
-                        <Link 
-                          href={`/events`} 
+                        <Link
+                          href={`/events`}
                           key={event.id}
-                          className="flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 transition-colors rounded-lg"
+                          className="flex items-center gap-3 p-3 bg-muted/30 hover:bg-accent transition-colors rounded-lg"
                         >
                           <div className={`bg-green-600 rounded-lg px-3 py-1 ${
                             event.category === 'software' ? 'bg-blue-600' :
@@ -464,8 +451,8 @@ export default async function SearchPage({
                             <span className="text-white text-xs font-bold">{event.category.charAt(0).toUpperCase()}</span>
                           </div>
                           <div className="flex-1">
-                            <p className="font-medium text-sm line-clamp-1">{event.title}</p>
-                            <p className="text-gray-400 text-xs">
+                            <p className="font-medium text-sm line-clamp-1 text-foreground">{event.title}</p>
+                            <p className="text-muted-foreground text-xs">
                               {new Date(event.event_date).toLocaleDateString('en-US', {
                                 month: 'short',
                                 day: 'numeric'
@@ -475,44 +462,42 @@ export default async function SearchPage({
                         </Link>
                       ))
                     ) : (
-                      <p className="text-gray-400 text-sm py-2">No upcoming events</p>
+                      <p className="text-muted-foreground text-sm py-2">No upcoming events</p>
                     )}
                   </div>
                 </div>
-                
-                {/* Top Donors */}
-                <div className="bg-white/5 rounded-xl py-4 px-6 justify-center shadow-lg">
+
+                <div className="bg-card border border-border rounded-xl py-4 px-6 shadow-lg">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
-                      <h2 className="text-xl font-semibold text-white">Top Donors</h2>
+                      <h2 className="text-xl font-semibold text-foreground">Top Donors</h2>
                     </div>
-                    <Link href="/donate" className="text-green-400 text-sm hover:underline">Donate</Link>
+                    <Link href="/donate" className="text-green-600 dark:text-green-400 text-sm hover:underline">Donate</Link>
                   </div>
-                  
+
                   <div>
                     <TopDonators donators={topDonators || []} />
                   </div>
                 </div>
-                
-                {/* Recent Products */}
-                <div className="bg-white/5 rounded-xl p-5 shadow-lg">
+
+                <div className="bg-card border border-border rounded-xl p-5 shadow-lg">
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold text-white">Recent Projects</h2>
-                    <Link href="/product-hunt" className="text-green-400 text-sm hover:underline">See All</Link>
+                    <h2 className="text-xl font-semibold text-foreground">Recent Projects</h2>
+                    <Link href="/product-hunt" className="text-green-600 dark:text-green-400 text-sm hover:underline">See All</Link>
                   </div>
-                  
+
                   <div className="space-y-3">
                     {recentProducts && recentProducts.length > 0 ? (
                       recentProducts.map(product => (
-                        <Link 
-                          href={`/product-hunt/${product.url}`} 
+                        <Link
+                          href={`/product-hunt/${product.url}`}
                           key={product.id}
-                          className="flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 transition-colors rounded-lg"
+                          className="flex items-center gap-3 p-3 bg-muted/30 hover:bg-accent transition-colors rounded-lg"
                         >
-                          <div className="w-10 h-10 bg-white/10 rounded-lg overflow-hidden">
+                          <div className="w-10 h-10 bg-muted rounded-lg overflow-hidden">
                             {product.image_url ? (
-                              <img 
-                                src={product.image_url} 
+                              <img
+                                src={product.image_url}
                                 alt={product.name}
                                 className="w-full h-full object-cover"
                               />
@@ -523,8 +508,8 @@ export default async function SearchPage({
                             )}
                           </div>
                           <div className="flex-1">
-                            <p className="font-medium text-sm line-clamp-1">{product.name}</p>
-                            <p className="text-gray-400 text-xs">
+                            <p className="font-medium text-sm line-clamp-1 text-foreground">{product.name}</p>
+                            <p className="text-muted-foreground text-xs">
                               {new Date(product.created_at).toLocaleDateString('en-US', {
                                 month: 'short',
                                 day: 'numeric'
@@ -534,7 +519,7 @@ export default async function SearchPage({
                         </Link>
                       ))
                     ) : (
-                      <p className="text-gray-400 text-sm py-2">No recent projects</p>
+                      <p className="text-muted-foreground text-sm py-2">No recent projects</p>
                     )}
                   </div>
                 </div>

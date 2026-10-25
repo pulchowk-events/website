@@ -4,8 +4,8 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import ProductCard from '@/app/components/product/ProductCard';
 import ClientVoteCooldownNotice from '@/app/components/vote/ClientVoteCooldown';
-import AddProductModal from '@/app/components/product/AddProductModal'; 
-import { createPortal } from 'react-dom'; 
+import AddProductModal from '@/app/components/product/AddProductModal';
+import { createPortal } from 'react-dom';
 import SignInModal from '@/app/components/signIn/SignInModal';
 
 interface Props {
@@ -21,7 +21,6 @@ export default function ProductHuntClient({ products, userId }: Props) {
   const [showSignInModal, setShowSignInModal] = useState(false);
 
   useEffect(() => {
-    // Check if the URL has the query string 'showAddProduct=true'
     setShowModal(searchParams.get('showAddProduct') === 'true');
   }, [searchParams]);
 
@@ -34,13 +33,13 @@ export default function ProductHuntClient({ products, userId }: Props) {
   };
 
   const closeAddProductModal = () => {
-    router.push('?showAddProduct=false'); // Remove the query parameter
+    router.push('?showAddProduct=false');
   };
 
   return (
     <>
       {showSignInModal && (
-        <SignInModal 
+        <SignInModal
           isOpen={showSignInModal}
           onClose={() => setShowSignInModal(false)}
         />
@@ -55,7 +54,7 @@ export default function ProductHuntClient({ products, userId }: Props) {
 
       <div className="relative">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold text-white">Product List</h1>
+          <h1 className="text-2xl font-semibold text-foreground">Product List</h1>
           <div className="flex items-center gap-4">
             <ClientVoteCooldownNotice />
             <button
@@ -73,8 +72,8 @@ export default function ProductHuntClient({ products, userId }: Props) {
               <ProductCard key={product.id} product={product} />
             ))
           ) : (
-            <div className="text-center py-12 bg-white/5 rounded-lg">
-              <p className="text-gray-400">No products found.</p>
+            <div className="text-center py-12 bg-muted/30 border border-border rounded-lg">
+              <p className="text-muted-foreground">No products found.</p>
             </div>
           )}
         </div>

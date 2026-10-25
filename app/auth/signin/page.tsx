@@ -13,7 +13,7 @@ export default function SignInPageWrapper() {
 
 function Loading() {
   return (
-    <div className="min-h-screen flex items-center justify-center text-white">
+    <div className="min-h-screen flex items-center justify-center text-foreground">
       Loading...
     </div>
   );

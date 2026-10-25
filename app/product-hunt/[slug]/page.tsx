@@ -23,7 +23,7 @@ export default async function ProductPage({ params }: Props) {
   if (!slug || typeof slug !== 'string') {
     return (
       <Layout>
-        <div className="max-w-3xl mx-auto py-20 text-center text-red-500">
+        <div className="max-w-3xl mx-auto py-20 text-center text-red-600 dark:text-red-500">
           Invalid product URL.
         </div>
       </Layout>
@@ -42,7 +42,7 @@ export default async function ProductPage({ params }: Props) {
     console.error("Product fetch error:", error);
     return (
       <Layout>
-        <div className="max-w-3xl mx-auto py-20 text-center text-red-500">
+        <div className="max-w-3xl mx-auto py-20 text-center text-red-600 dark:text-red-500">
           Product not found.
         </div>
       </Layout>
@@ -75,22 +75,22 @@ export default async function ProductPage({ params }: Props) {
                 className="rounded-lg object-cover w-full h-full"
               />
             ) : (
-              <div className="w-full h-full bg-gray-700 rounded-lg flex items-center justify-center">
-                <span className="text-gray-400 text-sm">No Image</span>
+              <div className="w-full h-full bg-muted rounded-lg flex items-center justify-center">
+                <span className="text-muted-foreground text-sm">No Image</span>
               </div>
             )}
           </div>
 
           <div className="flex-col flex gap-1 sm:gap-10">
             <div className='flex flex-col gap-1'>
-              <h1 className="text-4xl font-bold">{product.name}</h1>
-              <p className="text-lg text-gray-300">{product.description}</p>
-              <p className="text-sm text-gray-400">
+              <h1 className="text-4xl font-bold text-foreground">{product.name}</h1>
+              <p className="text-lg text-foreground">{product.description}</p>
+              <p className="text-sm text-muted-foreground">
                 Created on: {new Date(product.created_at).toLocaleDateString()}
               </p>
             </div>
 
-            <div className="mt-6 flex gap-4 text-white">
+            <div className="mt-6 flex gap-4 text-foreground">
               <ClientVoteButton productId={product.id} />
               {(isAdmin || isOwner) && (
                 <>
@@ -108,7 +108,7 @@ export default async function ProductPage({ params }: Props) {
                   href={product.redirect_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
                 >
                   <ExternalLink className="w-4 h-4" />
                   <div className="hidden sm:block">

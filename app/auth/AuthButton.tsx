@@ -9,7 +9,7 @@ export function AuthButton() {
 
   if (status === "loading") {
     return (
-      <button className="bg-gray-600 text-white font-medium py-2 px-4 rounded-full opacity-50">
+      <button className="bg-muted text-muted-foreground font-medium py-2 px-4 rounded-full opacity-50">
         Loading...
       </button>
     );
@@ -17,7 +17,7 @@ export function AuthButton() {
 
   return session ? (
     <div className="flex items-center gap-4">
-      <span className="hidden sm:inline text-sm text-gray-300">
+      <span className="hidden sm:inline text-sm text-muted-foreground">
         Hello, {session.user?.name}
       </span>
       <form
@@ -27,7 +27,7 @@ export function AuthButton() {
       >
         <button
           type="submit"
-          className="bg-white text-charcoal hover:bg-gray-100 font-medium py-2 px-4 rounded-full transition"
+          className="bg-white text-gray-800 hover:bg-gray-100 font-medium py-2 px-4 rounded-full transition"
         >
           Sign Out
         </button>
