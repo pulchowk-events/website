@@ -53,17 +53,18 @@ export default function DeletePostDialog({
       className="fixed inset-0 z-50 overflow-y-auto"
     >
       <div className="flex min-h-screen items-center justify-center p-4">
-        <Dialog.Title className="fixed inset-0 bg-black/70 backdrop-blur-sm" />
+        {/* Backdrop */}
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm" aria-hidden="true" />
 
-        <div className="relative bg-zinc-900 rounded-xl w-full max-w-md shadow-2xl">
-          <div className="border-b border-zinc-800 px-6 py-4">
+        <div className="relative bg-popover border border-border rounded-xl w-full max-w-md shadow-2xl">
+          <div className="border-b border-border px-6 py-4">
             <div className="flex items-center justify-between">
-              <Dialog.Title className="text-xl font-semibold text-white">
+              <Dialog.Title className="text-xl font-semibold text-foreground">
                 Delete Post
               </Dialog.Title>
               <button
                 onClick={onClose}
-                className="text-zinc-400 hover:text-white transition-colors"
+                className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 <X size={24} />
               </button>
@@ -71,8 +72,8 @@ export default function DeletePostDialog({
           </div>
 
           <div className="p-6">
-            <p className="text-zinc-400 mb-6">
-              Are you sure you want to delete &quot;{postTitle}&quot;? This action cannot be undone 
+            <p className="text-muted-foreground mb-6">
+              Are you sure you want to delete &quot;{postTitle}&quot;? This action cannot be undone
               and will delete all comments associated with this post.
             </p>
 
@@ -80,7 +81,7 @@ export default function DeletePostDialog({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-sm bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg"
+                className="px-4 py-2 text-sm bg-secondary hover:bg-accent text-secondary-foreground rounded-lg"
                 disabled={isDeleting}
               >
                 Cancel

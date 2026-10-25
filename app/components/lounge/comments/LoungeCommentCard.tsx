@@ -8,7 +8,6 @@ import { toast } from 'sonner';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 
-
 interface LoungeCommentCardProps {
   comment: {
     id: string;
@@ -44,7 +43,7 @@ export function LoungeCommentCard({ comment, isOwner, onDelete }: LoungeCommentC
     }
   }
 
-    useEffect(() => {
+  useEffect(() => {
     async function fetchUserData() {
       try {
         const response = await fetch(`/api/users/${comment.user_id}`);
@@ -76,7 +75,6 @@ export function LoungeCommentCard({ comment, isOwner, onDelete }: LoungeCommentC
 
       toast.success('Comment updated successfully');
       setIsEditing(false);
-      // Update the local comment state
       comment.comment = editedComment;
     } catch (error) {
       console.error('Error updating comment:', error);
@@ -91,35 +89,35 @@ export function LoungeCommentCard({ comment, isOwner, onDelete }: LoungeCommentC
   }
 
   return (
-    <div className="flex gap-4 p-4 rounded-lg bg-zinc-800/50 border border-zinc-700">
-      <Link 
-  href={`/profile/${comment.user_id}`}
-  className="hover:opacity-80 transition-opacity"
->
-      <div className="flex-shrink-0">
-        {userData?.image ? (
-          <Image
-            src={userData.image}
-            alt={userData.name || 'User'}
-            width={40}
-            height={40}
-            className="rounded-full"
-          />
-        ) : (
-          <div className="w-10 h-10 rounded-full bg-zinc-700 flex items-center justify-center">
-            <User className="w-6 h-6 text-zinc-400" />
-          </div>
-        )}
-      </div>
+    <div className="flex gap-4 p-4 rounded-lg bg-card/50 border border-border">
+      <Link
+        href={`/profile/${comment.user_id}`}
+        className="hover:opacity-80 transition-opacity"
+      >
+        <div className="flex-shrink-0">
+          {userData?.image ? (
+            <Image
+              src={userData.image}
+              alt={userData.name || 'User'}
+              width={40}
+              height={40}
+              className="rounded-full"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+              <User className="w-6 h-6 text-muted-foreground" />
+            </div>
+          )}
+        </div>
       </Link>
-      
+
       <div className="flex-grow">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="font-medium text-white">
+            <span className="font-medium text-foreground">
               {userData?.name || 'Anonymous'}
             </span>
-            <span className="text-xs text-zinc-400">
+            <span className="text-xs text-muted-foreground">
               {formatDistanceToNow(new Date(comment.created_at))} ago
             </span>
           </div>
@@ -130,14 +128,14 @@ export function LoungeCommentCard({ comment, isOwner, onDelete }: LoungeCommentC
                 <>
                   <button
                     onClick={() => setIsEditing(false)}
-                    className="text-zinc-400 hover:text-zinc-300"
+                    className="text-muted-foreground hover:text-foreground"
                   >
                     <X className="w-4 h-4" />
                   </button>
                   <button
                     onClick={handleEdit}
                     disabled={isUpdating}
-                    className="text-green-400 hover:text-green-300 disabled:opacity-50"
+                    className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 disabled:opacity-50"
                   >
                     {isUpdating ? 'Saving...' : 'Save'}
                   </button>
@@ -146,14 +144,14 @@ export function LoungeCommentCard({ comment, isOwner, onDelete }: LoungeCommentC
                 <>
                   <button
                     onClick={() => setIsEditing(true)}
-                    className="text-blue-400 hover:text-blue-300"
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={handleDelete}
                     disabled={isDeleting}
-                    className="text-red-400 hover:text-red-300 disabled:opacity-50"
+                    className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 disabled:opacity-50"
                   >
                     {isDeleting ? (
                       <Loader className="w-4 h-4 animate-spin" />
@@ -166,16 +164,16 @@ export function LoungeCommentCard({ comment, isOwner, onDelete }: LoungeCommentC
             </div>
           )}
         </div>
-        
+
         {isEditing ? (
           <textarea
             value={editedComment}
             onChange={(e) => setEditedComment(e.target.value)}
-            className="mt-2 w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-md text-white focus:outline-none focus:border-green-500"
+            className="mt-2 w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:border-green-500"
             rows={3}
           />
         ) : (
-          <p className="mt-1 text-zinc-300">{comment.comment}</p>
+          <p className="mt-1 text-foreground">{comment.comment}</p>
         )}
       </div>
     </div>

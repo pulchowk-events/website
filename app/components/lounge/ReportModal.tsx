@@ -70,20 +70,21 @@ export default function ReportModal({ postId, postTitle, onClose }: ReportModalP
       className="fixed inset-0 z-50 overflow-y-auto"
     >
       <div className="flex min-h-screen items-center justify-center p-4">
-        <Dialog.Title className="fixed inset-0 bg-black/70 backdrop-blur-sm" />
+        {/* Backdrop */}
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm" aria-hidden="true" />
 
-        <div className="relative bg-zinc-900 rounded-xl w-full max-w-md shadow-2xl">
-          <div className="border-b border-zinc-800 px-6 py-4">
+        <div className="relative bg-popover border border-border rounded-xl w-full max-w-md shadow-2xl">
+          <div className="border-b border-border px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-green-500" />
-                <Dialog.Title className="text-xl font-semibold text-white">
+                <AlertTriangle className="w-5 h-5 text-green-600 dark:text-green-500" />
+                <Dialog.Title className="text-xl font-semibold text-foreground">
                   Report Post
                 </Dialog.Title>
               </div>
               <button
                 onClick={onClose}
-                className="text-zinc-400 hover:text-white transition-colors"
+                className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 <X size={24} />
               </button>
@@ -93,22 +94,22 @@ export default function ReportModal({ postId, postTitle, onClose }: ReportModalP
           <form onSubmit={handleSubmit} className="p-6">
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-zinc-300 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Post Being Reported
                 </label>
-                <div className="p-3 bg-zinc-800 rounded-lg text-zinc-300 text-sm">
+                <div className="p-3 bg-muted rounded-lg text-foreground text-sm">
                   {postTitle}
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-zinc-300 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Report Type
                 </label>
                 <select
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value as ReportType })}
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white"
+                  className="w-full bg-background border border-border rounded-lg px-4 py-2 text-foreground"
                   required
                 >
                   <option value="">Select a reason</option>
@@ -121,13 +122,13 @@ export default function ReportModal({ postId, postTitle, onClose }: ReportModalP
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-zinc-300 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Additional Details
                 </label>
                 <textarea
                   value={formData.reason}
                   onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                  className="w-full min-h-[100px] bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white placeholder:text-zinc-500"
+                  className="w-full min-h-[100px] bg-background border border-border rounded-lg px-4 py-2 text-foreground placeholder:text-muted-foreground"
                   placeholder="Please provide more details about your report..."
                   required
                 />
@@ -138,7 +139,7 @@ export default function ReportModal({ postId, postTitle, onClose }: ReportModalP
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-sm bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg"
+                className="px-4 py-2 text-sm bg-secondary hover:bg-accent text-secondary-foreground rounded-lg"
                 disabled={isSubmitting}
               >
                 Cancel

@@ -6,11 +6,10 @@ import { Dialog } from '@headlessui/react';
 import { X, Link as LinkIcon } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { PostCategory, categoryDisplayMap, categoryIcons } from '@/types/posts';
 import { Image as ImageIcon } from 'lucide-react';
 import NeedDonationModal from './NeedDonationModal';
-
 
 interface AddPostModalProps {
   onClose: () => void;
@@ -53,11 +52,7 @@ export default function AddPostModal({ onClose }: AddPostModalProps) {
       }
 
       toast.success('Post created successfully!');
-      
-      // First refresh the router to trigger server-side revalidation
       router.refresh();
-      
-      // Then close the modal which will trigger the immediate client-side refresh
       onClose();
     } catch (error) {
       console.error('Error submitting post:', error);
@@ -66,6 +61,7 @@ export default function AddPostModal({ onClose }: AddPostModalProps) {
       setIsSubmitting(false);
     }
   };
+
   return (
     <Dialog
       open={true}
@@ -73,18 +69,19 @@ export default function AddPostModal({ onClose }: AddPostModalProps) {
       className="fixed inset-0 z-50 overflow-y-auto"
     >
       <div className="flex min-h-screen items-center justify-center p-4">
-        <Dialog.Title className="fixed inset-0 bg-black/70 backdrop-blur-sm" />
+        {/* Backdrop */}
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm" aria-hidden="true" />
 
-        <div className="relative bg-zinc-900 rounded-xl w-full max-w-xl shadow-2xl">
+        <div className="relative bg-popover border border-border rounded-xl w-full max-w-xl shadow-2xl">
           {/* Header */}
-          <div className="border-b border-zinc-800 px-6 py-4">
+          <div className="border-b border-border px-6 py-4">
             <div className="flex items-center justify-between">
-              <Dialog.Title className="text-xl font-semibold text-white">
+              <Dialog.Title className="text-xl font-semibold text-foreground">
                 Create Post
               </Dialog.Title>
               <button
                 onClick={onClose}
-                className="text-zinc-400 hover:text-white transition-colors"
+                className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 <X size={24} />
               </button>
@@ -104,20 +101,20 @@ export default function AddPostModal({ onClose }: AddPostModalProps) {
                 />
               </div>
               <div className="flex flex-col">
-                <span className="text-white font-medium">
+                <span className="text-foreground font-medium">
                   {session?.user?.name}
                 </span>
-                    <select
-                        value={formData.category}
-                        onChange={(e) => setFormData({ ...formData, category: e.target.value as PostCategory })}
-                        className="text-sm bg-zinc-800 text-zinc-400 rounded px-2 py-1 border border-zinc-700"
-                    >
-                        {Object.entries(categoryDisplayMap).map(([value, label]) => (
-                        <option key={value} value={value}>
-                            {categoryIcons[value as PostCategory]} {label}
-                        </option>
-                        ))}
-                    </select>
+                <select
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value as PostCategory })}
+                  className="text-sm bg-background text-foreground rounded px-2 py-1 border border-border"
+                >
+                  {Object.entries(categoryDisplayMap).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {categoryIcons[value as PostCategory]} {label}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
@@ -127,7 +124,7 @@ export default function AddPostModal({ onClose }: AddPostModalProps) {
               placeholder="Post title"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-3 text-white text-lg font-medium placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 mb-4"
+              className="w-full bg-background border border-border rounded-lg px-4 py-3 text-foreground text-lg font-medium placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-green-500/50 mb-4"
               required
             />
 
@@ -136,41 +133,41 @@ export default function AddPostModal({ onClose }: AddPostModalProps) {
               placeholder="What's on your mind?"
               value={formData.content}
               onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-              className="w-full min-h-[120px] bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 mb-4 resize-none"
+              className="w-full min-h-[120px] bg-background border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-green-500/50 mb-4 resize-none"
               required
             />
 
-          <div className="flex flex-col gap-4">
-            {/* Image Upload Button */}
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setShowDonationModal(true)}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-colors"
-              >
-                <ImageIcon size={20} />
-                <span>Add Image</span>
-              </button>
-            </div>
+            <div className="flex flex-col gap-4">
+              {/* Image Upload Button */}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowDonationModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary hover:bg-accent text-secondary-foreground transition-colors"
+                >
+                  <ImageIcon size={20} />
+                  <span>Add Image</span>
+                </button>
+              </div>
 
               {/* Donation Modal */}
-              <NeedDonationModal 
+              <NeedDonationModal
                 isOpen={showDonationModal}
                 onClose={() => setShowDonationModal(false)}
               />
 
-            {/* URL Reference */}
-            <div className="flex items-center gap-2 p-3 bg-zinc-800/30 border border-zinc-700 rounded-lg mb-6">
-              <LinkIcon size={20} className="text-zinc-400" />
-              <input
-                type="url"
-                placeholder="Add a reference link (optional)"
-                value={formData.redirect_url}
-                onChange={(e) => setFormData({ ...formData, redirect_url: e.target.value })}
-                className="w-full bg-transparent text-white placeholder:text-zinc-500 focus:outline-none"
-              />
+              {/* URL Reference */}
+              <div className="flex items-center gap-2 p-3 bg-muted/30 border border-border rounded-lg mb-6">
+                <LinkIcon size={20} className="text-muted-foreground" />
+                <input
+                  type="url"
+                  placeholder="Add a reference link (optional)"
+                  value={formData.redirect_url}
+                  onChange={(e) => setFormData({ ...formData, redirect_url: e.target.value })}
+                  className="w-full bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none"
+                />
+              </div>
             </div>
-          </div>
 
             {/* Submit Button */}
             <button

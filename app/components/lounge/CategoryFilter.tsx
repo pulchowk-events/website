@@ -7,11 +7,10 @@ interface CategoryFilterProps {
   onCategoryToggle: (category: PostCategory) => void;
 }
 
-export default function CategoryFilter({ 
-  selectedCategories, 
-  onCategoryToggle 
+export default function CategoryFilter({
+  selectedCategories,
+  onCategoryToggle
 }: CategoryFilterProps) {
-  // Add debug log
   console.log('Selected categories:', selectedCategories);
 
   return (
@@ -20,15 +19,15 @@ export default function CategoryFilter({
         <button
           key={category}
           onClick={() => {
-            console.log('Toggling category:', category); // Debug log
+            console.log('Toggling category:', category);
             onCategoryToggle(category);
           }}
           className={`
-            flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium 
-            transition-all duration-200 
+            flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium
+            transition-all duration-200
             ${selectedCategories.includes(category)
               ? 'bg-green-600 hover:bg-green-700 text-white'
-              : 'bg-zinc-800/50 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-300'
+              : 'bg-muted/50 hover:bg-accent text-muted-foreground hover:text-foreground'
             }
           `}
         >

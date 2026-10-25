@@ -36,7 +36,7 @@ export function LoungeComments({ postId }: LoungeCommentsProps) {
     try {
       setIsLoading(true);
       const response = await fetch(`/api/lounge/comments?post_id=${postId}`);
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch comments');
       }
@@ -53,7 +53,7 @@ export function LoungeComments({ postId }: LoungeCommentsProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    
+
     if (!session) {
       toast.error('Please sign in to comment');
       return;
@@ -90,8 +90,8 @@ export function LoungeComments({ postId }: LoungeCommentsProps) {
     } catch (error) {
       console.error('Error adding comment:', error);
       toast.error(
-        error instanceof Error 
-          ? error.message 
+        error instanceof Error
+          ? error.message
           : 'Failed to add comment'
       );
     } finally {
@@ -115,8 +115,8 @@ export function LoungeComments({ postId }: LoungeCommentsProps) {
     } catch (error) {
       console.error('Error deleting comment:', error);
       toast.error(
-        error instanceof Error 
-          ? error.message 
+        error instanceof Error
+          ? error.message
           : 'Failed to delete comment'
       );
     }
@@ -125,7 +125,7 @@ export function LoungeComments({ postId }: LoungeCommentsProps) {
   if (isLoading) {
     return (
       <div className="mt-12">
-        <h2 className="text-2xl font-bold mb-6">Comments</h2>
+        <h2 className="text-2xl font-bold mb-6 text-foreground">Comments</h2>
         <div className="flex justify-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-green-500"></div>
         </div>
@@ -135,11 +135,9 @@ export function LoungeComments({ postId }: LoungeCommentsProps) {
 
   return (
     <div className="mt-12">
-      <h2 className="text-2xl font-bold mb-6">Comments</h2>
+      <h2 className="text-2xl font-bold mb-6 text-foreground">Comments</h2>
 
       <div className="space-y-4">
-
-        
         {comments.map((comment) => (
           <LoungeCommentCard
             key={comment.id}
@@ -155,7 +153,7 @@ export function LoungeComments({ postId }: LoungeCommentsProps) {
             onChange={(e) => setNewComment(e.target.value)}
             placeholder={session ? "Add a comment..." : "Sign in to comment"}
             disabled={!session || isSubmitting}
-            className="w-full p-4 rounded-lg bg-zinc-800/50 border border-zinc-700 text-white placeholder:text-zinc-400 focus:border-green-500 focus:ring focus:ring-green-500 focus:ring-opacity-50 transition"
+            className="w-full p-4 rounded-lg bg-background border border-border text-foreground placeholder:text-muted-foreground focus:border-green-500 focus:ring focus:ring-green-500 transition"
             rows={3}
           />
           {session && (
@@ -169,9 +167,8 @@ export function LoungeComments({ postId }: LoungeCommentsProps) {
           )}
         </form>
 
-        
         {comments.length === 0 && (
-          <p className="text-center text-zinc-400 py-8">
+          <p className="text-center text-muted-foreground py-8">
             No comments yet. Be the first to comment!
           </p>
         )}

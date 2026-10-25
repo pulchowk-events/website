@@ -65,17 +65,18 @@ export default function EditPostModal({ post, onClose }: EditPostModalProps) {
       className="fixed inset-0 z-50 overflow-y-auto"
     >
       <div className="flex min-h-screen items-center justify-center p-4">
-        <Dialog.Title className="fixed inset-0 bg-black/70 backdrop-blur-sm" />
+        {/* Backdrop */}
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm" aria-hidden="true" />
 
-        <div className="relative bg-zinc-900 rounded-xl w-full max-w-xl shadow-2xl">
-          <div className="border-b border-zinc-800 px-6 py-4">
+        <div className="relative bg-popover border border-border rounded-xl w-full max-w-xl shadow-2xl">
+          <div className="border-b border-border px-6 py-4">
             <div className="flex items-center justify-between">
-              <Dialog.Title className="text-xl font-semibold text-white">
+              <Dialog.Title className="text-xl font-semibold text-foreground">
                 Edit Post
               </Dialog.Title>
               <button
                 onClick={onClose}
-                className="text-zinc-400 hover:text-white transition-colors"
+                className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 <X size={24} />
               </button>
@@ -90,7 +91,7 @@ export default function EditPostModal({ post, onClose }: EditPostModalProps) {
                   placeholder="Post title"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-3 text-white text-lg font-medium placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-green-500/50"
+                  className="w-full bg-background border border-border rounded-lg px-4 py-3 text-foreground text-lg font-medium placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-green-500/50"
                   required
                 />
               </div>
@@ -99,7 +100,7 @@ export default function EditPostModal({ post, onClose }: EditPostModalProps) {
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value as PostCategory })}
-                  className="w-full bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-3 text-white"
+                  className="w-full bg-background border border-border rounded-lg px-4 py-3 text-foreground"
                 >
                   {Object.entries(categoryDisplayMap).map(([value, label]) => (
                     <option key={value} value={value}>
@@ -114,19 +115,19 @@ export default function EditPostModal({ post, onClose }: EditPostModalProps) {
                   placeholder="Post content"
                   value={formData.content}
                   onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  className="w-full min-h-[200px] bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 resize-none"
+                  className="w-full min-h-[200px] bg-background border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-green-500/50 resize-none"
                   required
                 />
               </div>
 
-              <div className="flex items-center gap-2 p-3 bg-zinc-800/30 border border-zinc-700 rounded-lg">
-                <LinkIcon size={20} className="text-zinc-400" />
+              <div className="flex items-center gap-2 p-3 bg-muted/30 border border-border rounded-lg">
+                <LinkIcon size={20} className="text-muted-foreground" />
                 <input
                   type="url"
                   placeholder="Reference link (optional)"
                   value={formData.redirect_url}
                   onChange={(e) => setFormData({ ...formData, redirect_url: e.target.value })}
-                  className="w-full bg-transparent text-white placeholder:text-zinc-500 focus:outline-none"
+                  className="w-full bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none"
                 />
               </div>
             </div>
@@ -135,7 +136,7 @@ export default function EditPostModal({ post, onClose }: EditPostModalProps) {
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-sm bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg"
+                className="px-4 py-2 text-sm bg-secondary hover:bg-accent text-secondary-foreground rounded-lg"
                 disabled={isSubmitting}
               >
                 Cancel
