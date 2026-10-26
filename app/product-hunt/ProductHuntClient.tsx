@@ -20,6 +20,7 @@ export default function ProductHuntClient({ products, userId }: Props) {
   const isLoggedIn = !!userId;
   const [showSignInModal, setShowSignInModal] = useState(false);
 
+  // Sync modal visibility with the URL (so bookmarks/back button work)
   useEffect(() => {
     setShowModal(searchParams.get('showAddProduct') === 'true');
   }, [searchParams]);
@@ -29,11 +30,19 @@ export default function ProductHuntClient({ products, userId }: Props) {
       setShowSignInModal(true);
       return;
     }
-    router.push('?showAddProduct=true');
+    // Show modal immediately via local state
+    setShowModal(true);
+    // Reflect in URL without triggering a server nav
+    const url = new URL(window.location.href);
+    url.searchParams.set('showAddProduct', 'true'); // ✅ correct key
+    window.history.replaceState({}, '', url.toString());
   };
 
   const closeAddProductModal = () => {
-    router.push('?showAddProduct=false');
+    setShowModal(false);
+    const url = new URL(window.location.href);
+    url.searchParams.delete('showAddProduct');
+    window.history.replaceState({}, '', url.toString());
   };
 
   return (

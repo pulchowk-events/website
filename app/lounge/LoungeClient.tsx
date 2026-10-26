@@ -97,26 +97,27 @@ export default function LoungeClient({ initialPosts, userId }: Props) {
     router.push('?showAddPost=true');
   };
 
-  const closeAddPostModal = async () => {
-    router.push('?showAddPost=false');
-    try {
-      setLoading(true);
-      const response = await fetch('/api/lounge/posts/get?page=1');
-      const data = await response.json();
+const closeAddPostModal = () => {
+  // 1. Update local UI state — modal disappears immediately
+  setShowModal(false);
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch posts');
-      }
+  // 2. Strip the query param from the URL without triggering a server nav
+  if (typeof window !== 'undefined') {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('showAddPost');
+    window.history.replaceState({}, '', url.toString());
+  }
 
+  // 3. Silently refresh in the background (fetch interceptor handles loader)
+  fetch('/api/lounge/posts/get?page=1')
+    .then((r) => r.json())
+    .then((data) => {
       setPosts(data.posts);
       setPage(1);
       setHasMore(1 < data.totalPages);
-    } catch (error) {
-      console.error('Error refreshing posts:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    })
+    .catch((err) => console.error('Background refresh failed:', err));
+};
 
   return (
     <>

@@ -1,17 +1,14 @@
 import Layout from '@/app/components/layout/Layout';
 import Link from 'next/link';
-import {
-  Sparkles, ArrowRight, Calendar, Package, MessageCircle,
-  Check, GraduationCap, Globe, ExternalLink, Bell,
-  TrendingUp, Users, Shield
-} from 'lucide-react';
+import Image from 'next/image';
+import { TrendingUp, Users, Award, Star, MessageCircle, CalendarCheck, ClipboardList, Network, Shield, User, ExternalLink, ArrowRight, BookOpen } from 'lucide-react';
 import { supabase } from '@/app/lib/supabase';
 import PrizePoolProgress from '@/app/components/donate/SmPrizePoolProgress';
+import TopDonators from '@/app/components/donate/TopDonators';
 
 export const revalidate = 0;
 
 export default async function AboutPage() {
-  // ---- Data ----
   const { data: prizePool } = await supabase
     .from('prize_pool')
     .select('target_amount')
@@ -32,96 +29,44 @@ export default async function AboutPage() {
     .select('*', { count: 'exact' })
     .eq('verified', true);
 
-  const { count: totalEvents } = await supabase
+  const { data: topDonators } = await supabase
+    .from('donations')
+    .select('id, name, amount, avatar_url')
+    .eq('show_on_leaderboard', true)
+    .eq('verified', true)
+    .order('amount', { ascending: false })
+    .limit(5);
+
+  const { data: events } = await supabase
     .from('events')
-    .select('*', { count: 'exact', head: true })
-    .eq('verified', true);
+    .select(`
+      id,
+      title,
+      event_date,
+      category,
+      author:created_by (
+        name,
+        image
+      )
+    `)
+    .eq('verified', true)
+    .gte('event_date', new Date().toISOString())
+    .order('event_date', { ascending: true })
+    .limit(3);
 
-  const { count: totalProducts } = await supabase
+  const { data: products } = await supabase
     .from('products')
-    .select('*', { count: 'exact', head: true })
-    .eq('approved', true);
-
-  // ---- Static content ----
-  const stats = [
-    { label: 'Campus events hosted', value: totalEvents || 0 },
-    { label: 'Student projects showcased', value: totalProducts || 0 },
-    { label: 'Community donors', value: total_donors || 0 },
-    { label: 'Prize pool raised', value: `$${current_amount.toLocaleString()}` },
-  ];
-
-  const features = [
-    {
-      icon: Calendar,
-      title: 'Discover events',
-      description:
-        'Browse verified campus events from IOE and beyond. Register in one click, get reminded when it matters.',
-      cta: 'See upcoming events',
-      href: '/events',
-    },
-    {
-      icon: Package,
-      title: 'Showcase projects',
-      description:
-        'Post your student project in our Product Hunt. Get votes, feedback, and a shot at the prize pool.',
-      cta: 'Browse the Product Hunt',
-      href: '/product-hunt',
-    },
-    {
-      icon: MessageCircle,
-      title: 'Join the lounge',
-      description:
-        'A community feed built for students. Ask questions, share wins, find collaborators for your next thing.',
-      cta: 'Open the lounge',
-      href: '/lounge',
-    },
-  ];
-
-  const steps = [
-    {
-      number: 1,
-      title: 'Sign in',
-      description: 'One click with Discord or Google. No forms, no passwords.',
-    },
-    {
-      number: 2,
-      title: 'Explore or submit',
-      description:
-        'Browse events, vote on projects, or submit your own. Everything is one submit away.',
-    },
-    {
-      number: 3,
-      title: 'Stay in the loop',
-      description:
-        'Follow channels on Discord to get pinged for events you actually care about.',
-    },
-  ];
-
-  const faqs = [
-    {
-      q: 'Is this only for Pulchowk students?',
-      a: 'No. Most events are in the "Open" category and welcome everyone. A smaller number are "Exclusive" to Pulchowk students, usually because they\'re held on campus or have limited seats. Every event is clearly labelled, so you always know what you\'re signing up for.',
-    },
-    {
-      q: 'Do I need an account to browse?',
-      a: 'You can browse events, projects, and the lounge without signing in. An account is only needed for actions like submitting a project, voting, posting in the lounge, or enrolling a club.',
-    },
-    {
-      q: 'How do I submit an event or project?',
-      a: 'Sign in, then use the "Add Event" button on /events or the "Add Product" button on /product-hunt. Submissions go into a review queue and are typically approved within a day.',
-    },
-    {
-      q: 'Where does the prize pool go?',
-      a: 'One hundred percent of donations fund the prize pool for our student investing competitions and merit-based awards. No platform overhead is taken out — every dollar reaches students.',
-    },
-  ];
+    .select('id, name, image_url, created_at, url')
+    .eq('approved', true)
+    .order('created_at', { ascending: false })
+    .limit(3);
 
   return (
     <Layout>
       <div className="bg-background min-h-screen">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
           <div className="flex flex-col lg:flex-row lg:gap-6">
-            {/* Left Sidebar — consistent with the rest of the site */}
+            {/* Left Sidebar */}
             <div className="hidden lg:block lg:w-1/5 space-y-4 flex-shrink-0">
               <div className="bg-card border border-border rounded-xl p-5 shadow-lg sticky top-24">
                 <div className="flex items-center gap-3 mb-6">
@@ -142,9 +87,7 @@ export default async function AboutPage() {
                       </div>
                       <span className="font-medium text-foreground">Join Discord</span>
                     </div>
-                    <span className="bg-muted rounded-full px-2.5 py-1 text-xs text-foreground">
-                      1,050+
-                    </span>
+                    <span className="bg-muted rounded-full px-2.5 py-1 text-xs text-foreground">1,050</span>
                   </a>
 
                   <div className="pt-2">
@@ -158,298 +101,407 @@ export default async function AboutPage() {
               </div>
             </div>
 
-            {/* Main content */}
-            <div className="w-full space-y-6">
-              {/* 1. Hero */}
-              <section className="bg-card border border-border rounded-xl p-6 sm:p-8 shadow-lg relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 blur-3xl bg-green-500/10 rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none" />
-                <div className="absolute bottom-0 left-0 w-48 h-48 blur-3xl bg-blue-500/10 rounded-full translate-y-1/3 -translate-x-1/4 pointer-events-none" />
+            {/* Main Content */}
+            <div className="w-full lg:mx-auto">
+              {/* Hero */}
+              <div className="bg-card border border-border rounded-xl p-6 shadow-lg mb-6 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-40 h-40 blur-3xl bg-purple-500/20 rounded-full -translate-y-1/2 translate-x-1/4"></div>
+                <div className="absolute bottom-0 left-0 w-60 h-60 blur-3xl bg-green-500/10 rounded-full translate-y-1/3 -translate-x-1/4"></div>
 
                 <div className="relative">
-                  <div className="inline-flex items-center gap-2 bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400 px-3 py-1 rounded-full text-xs font-medium mb-5">
-                    <Sparkles className="w-3.5 h-3.5" />
-                    About Pulchowk Events
+                  <div className="flex items-center gap-3">
+                    <div className="bg-purple-600 p-2.5 rounded-lg">
+                      <Star className="w-6 h-6 text-white" />
+                    </div>
+                    <h1 className="text-3xl font-bold text-foreground">Welcome to Pulchowk Events</h1>
                   </div>
-
-                  <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground leading-tight mb-4">
-                    Built by students. Open to everyone.
-                  </h1>
-
-                  <p className="text-base sm:text-lg text-muted-foreground max-w-2xl leading-relaxed mb-7">
-                    Campus events, student projects, and a community that makes both happen — all in one place.
-                    From Pulchowk, for all of Nepal.
+                  <p className="mt-4 text-muted-foreground text-lg leading-relaxed">
+                    Your dynamic portal to campus happenings, where news, events, and opportunities
+                    converge to enrich your academic journey.
                   </p>
-
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <a
-                      href="https://discord.gg/cQ5gxusATk"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors"
-                    >
-                      Join the Discord
-                      <ArrowRight className="w-4 h-4" />
-                    </a>
-                    <Link
-                      href="/events"
-                      className="inline-flex items-center justify-center gap-2 bg-secondary hover:bg-accent text-secondary-foreground px-6 py-2.5 rounded-lg font-medium transition-colors border border-border"
-                    >
-                      Browse events
-                    </Link>
-                  </div>
                 </div>
-              </section>
+              </div>
 
-              {/* 2. Stats */}
-              <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {stats.map((stat) => (
-                  <div
-                    key={stat.label}
-                    className="bg-card border border-border rounded-xl p-5 shadow-lg"
+              {/* Content Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+                {/* Discover Us */}
+                <div className="bg-card border border-border rounded-xl p-5 shadow-lg hover:bg-accent/30 transition-all duration-300">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="bg-blue-600 p-2 rounded-lg">
+                      <MessageCircle className="w-5 h-5 text-white" />
+                    </div>
+                    <h2 className="text-xl font-semibold text-foreground">Discover Us</h2>
+                  </div>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Welcome to the vibrant community of Pulchowk Events! We're your dynamic portal to campus happenings,
+                    where news, events, and opportunities converge to enrich your academic journey.
+                  </p>
+                </div>
+
+                {/* Inclusive Gatherings */}
+                <div className="bg-card border border-border rounded-xl p-5 shadow-lg hover:bg-accent/30 transition-all duration-300">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="bg-green-600 p-2 rounded-lg">
+                      <CalendarCheck className="w-5 h-5 text-white" />
+                    </div>
+                    <h2 className="text-xl font-semibold text-foreground">Inclusive Gatherings</h2>
+                  </div>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Our events come in two flavors: <span className="text-green-600 dark:text-green-400 font-medium">Open</span> (accessible to all, pinged)
+                    and <span className="text-purple-600 dark:text-purple-400 font-medium">Exclusive</span> (tailored for Pulchowk students, non pinged),
+                    ensuring a diverse and inclusive experience for every attendee.
+                  </p>
+                </div>
+
+                {/* Club Enrollment */}
+                <div className="bg-card border border-border rounded-xl p-5 shadow-lg hover:bg-accent/30 transition-all duration-300">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="bg-amber-600 p-2 rounded-lg">
+                      <ClipboardList className="w-5 h-5 text-white" />
+                    </div>
+                    <h2 className="text-xl font-semibold text-foreground">Club Enrollment</h2>
+                  </div>
+                  <p className="text-muted-foreground leading-relaxed mb-3">
+                    Calling all IOE clubs! Enroll your club via our Google Form to share updates and actively
+                    contribute to our lively platform.
+                  </p>
+                  <a
+                    href="https://forms.gle/gjburXWczani9S6y7"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 bg-amber-100 hover:bg-amber-200 text-amber-700 dark:bg-amber-600/30 dark:hover:bg-amber-600/50 dark:text-amber-200 transition-colors py-2 px-4 rounded-lg"
                   >
-                    <div className="text-2xl sm:text-3xl font-bold text-foreground">
-                      {stat.value}
-                    </div>
-                    <div className="text-xs sm:text-sm text-muted-foreground mt-1 leading-tight">
-                      {stat.label}
-                    </div>
-                  </div>
-                ))}
-              </section>
+                    <ClipboardList className="w-4 h-4" />
+                    <span>Apply Now</span>
+                  </a>
+                </div>
 
-              {/* 3. Features — what you can do here */}
-              <section>
-                <div className="mb-4">
-                  <h2 className="text-2xl font-bold text-foreground">What you can do here</h2>
-                  <p className="text-muted-foreground mt-1">
-                    Three ways the platform is built to help you.
+                {/* Join Our Network */}
+                <div className="bg-card border border-border rounded-xl p-5 shadow-lg hover:bg-accent/30 transition-all duration-300">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="bg-pink-600 p-2 rounded-lg">
+                      <Network className="w-5 h-5 text-white" />
+                    </div>
+                    <h2 className="text-xl font-semibold text-foreground">Join Our Network</h2>
+                  </div>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Got a Discord server for your club? Connect with us through our Google Form to seamlessly
+                    integrate your announcements and engage with our community.
                   </p>
                 </div>
+              </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {features.map((feature) => {
-                    const Icon = feature.icon;
-                    return (
-                      <Link
-                        key={feature.title}
-                        href={feature.href}
-                        className="group bg-card border border-border rounded-xl p-5 shadow-lg hover:border-green-500/50 transition-colors"
-                      >
-                        <div className="bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400 p-2.5 rounded-lg w-fit mb-4">
-                          <Icon className="w-5 h-5" />
-                        </div>
-                        <h3 className="font-semibold text-foreground mb-2">{feature.title}</h3>
-                        <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-                          {feature.description}
-                        </p>
-                        <div className="text-sm text-green-600 dark:text-green-400 inline-flex items-center gap-1.5 group-hover:gap-2.5 transition-all">
-                          {feature.cta}
-                          <ArrowRight className="w-4 h-4" />
-                        </div>
-                      </Link>
-                    );
-                  })}
+              {/* More About Us */}
+              <div className="bg-card border border-border rounded-xl p-5 shadow-lg mb-6">
+                <h2 className="text-2xl font-bold text-foreground mb-5">More About Us</h2>
+
+                <div className="space-y-6">
+                  {/* Demystifying Myths */}
+                  <div className="flex gap-4">
+                    <div className="bg-indigo-100 dark:bg-indigo-600/30 p-2 rounded-lg h-min">
+                      <Shield className="w-5 h-5 text-indigo-700 dark:text-indigo-300" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground mb-2">Demystifying Myths</h3>
+                      <p className="text-muted-foreground leading-relaxed">
+                        We're debunking the misconception that clubs and workshops are reserved solely for
+                        Pulchowk students. Everyone is encouraged to participate and collaborate with us.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* For Students */}
+                  <div className="flex gap-4">
+                    <div className="bg-green-100 dark:bg-green-600/30 p-2 rounded-lg h-min">
+                      <User className="w-5 h-5 text-green-700 dark:text-green-300" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground mb-2">For Students, By Students</h3>
+                      <p className="text-muted-foreground leading-relaxed">
+                        Pulchowk Events is a student-driven initiative, fostering an environment of
+                        peer-to-peer knowledge exchange and opportunity exploration.
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </section>
+              </div>
 
-              {/* 4. Who it's for — direct answer to "is this for me?" */}
-              <section>
-                <div className="mb-4">
-                  <h2 className="text-2xl font-bold text-foreground">Who it's for</h2>
-                  <p className="text-muted-foreground mt-1">
-                    Every event is labelled. You always know what you're walking into.
+              {/* Connect With Us */}
+              <div className="bg-gradient-to-br from-purple-100 to-green-100 dark:from-purple-900/40 dark:to-green-900/40 rounded-xl p-6 shadow-lg mb-6">
+                <h2 className="text-2xl font-bold text-foreground mb-5">Connect With Us</h2>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  {/* Discord */}
+                  <a
+                    href="https://discord.gg/cQ5gxusATk"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-indigo-200 hover:bg-indigo-300 dark:bg-indigo-600/30 dark:hover:bg-indigo-600/50 transition-colors p-4 rounded-xl flex items-center gap-3"
+                  >
+                    <div className="bg-indigo-600 p-2 rounded-lg">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                        <circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/>
+                        <path d="M7.5 7.2C8.7 6.47 10.2 6 12 6c1.8 0 3.3.47 4.5 1.2"/>
+                        <path d="M7.5 16.8C8.7 17.53 10.2 18 12 18c1.8 0 3.3-.47 4.5-1.2"/>
+                        <path d="M15.5 17 17 20l2-3 1.5.5-1-2.5"/>
+                        <path d="M8.5 17 7 20l-2-3-1.5.5 1-2.5"/>
+                        <path d="M20 2a4.18 4.18 0 0 1-4 4 4.18 4.18 0 0 1-4-4 4.18 4.18 0 0 1 4-4 4.18 4.18 0 0 1 4 4Z"/>
+                        <path d="M18 6v12a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V6"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">Join Our Discord</p>
+                      <p className="text-indigo-700 dark:text-indigo-200 text-sm">discord.gg/cQ5gxusATk</p>
+                    </div>
+                    <ExternalLink className="ml-auto w-5 h-5 text-indigo-700 dark:text-indigo-200" />
+                  </a>
+
+                  {/* Shortened Link */}
+                  <a
+                    href="https://bit.ly/PULCHOWK"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-green-200 hover:bg-green-300 dark:bg-green-600/30 dark:hover:bg-green-600/50 transition-colors p-4 rounded-xl flex items-center gap-3"
+                  >
+                    <div className="bg-green-600 p-2 rounded-lg">
+                      <ExternalLink className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">Shortened Link</p>
+                      <p className="text-green-700 dark:text-green-200 text-sm">bit.ly/PULCHOWK</p>
+                    </div>
+                    <ExternalLink className="ml-auto w-5 h-5 text-green-700 dark:text-green-200" />
+                  </a>
+                </div>
+
+                {/* Access Channel */}
+                <div className="bg-background/60 dark:bg-white/10 p-4 rounded-xl">
+                  <div className="flex items-center gap-2 mb-2">
+                    <BookOpen className="w-5 h-5 text-purple-700 dark:text-purple-300" />
+                    <h3 className="text-lg font-semibold text-foreground">Access Channel</h3>
+                  </div>
+                  <p className="text-muted-foreground mb-4">
+                    Visit the <span className="bg-muted px-1.5 py-0.5 rounded text-foreground">#access-channel</span> for
+                    event notifications and channel permissions.
                   </p>
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-card border border-border rounded-xl p-5 shadow-lg">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="bg-blue-100 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 p-2.5 rounded-lg">
-                        <GraduationCap className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-foreground">Pulchowk students</h3>
-                        <p className="text-xs text-muted-foreground">The full experience</p>
-                      </div>
+                  <div className="bg-yellow-50 border border-yellow-200 dark:bg-yellow-600/20 dark:border-yellow-500/30 rounded-lg p-3 flex items-start gap-3">
+                    <div className="bg-yellow-500 p-1 rounded">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-900">
+                        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                        <path d="M12 9v4"/>
+                        <path d="M12 17h.01"/>
+                      </svg>
                     </div>
-                    <ul className="space-y-2.5 text-sm">
-                      <li className="flex items-start gap-2.5">
-                        <Check className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                        <span className="text-foreground">
-                          Access to both <span className="font-medium">Open</span> and{' '}
-                          <span className="font-medium">Exclusive</span> events
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-2.5">
-                        <Check className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                        <span className="text-foreground">Prize pool eligibility for competitions</span>
-                      </li>
-                      <li className="flex items-start gap-2.5">
-                        <Check className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                        <span className="text-foreground">Priority access to club-led workshops</span>
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div className="bg-card border border-border rounded-xl p-5 shadow-lg">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="bg-purple-100 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 p-2.5 rounded-lg">
-                        <Globe className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-foreground">Everyone else</h3>
-                        <p className="text-xs text-muted-foreground">You're welcome here too</p>
-                      </div>
-                    </div>
-                    <ul className="space-y-2.5 text-sm">
-                      <li className="flex items-start gap-2.5">
-                        <Check className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                        <span className="text-foreground">
-                          Access to all <span className="font-medium">Open</span> events
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-2.5">
-                        <Check className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                        <span className="text-foreground">Submit projects, vote, and comment</span>
-                      </li>
-                      <li className="flex items-start gap-2.5">
-                        <Check className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                        <span className="text-foreground">Post in the community lounge</span>
-                      </li>
-                    </ul>
+                    <p className="text-yellow-800 dark:text-yellow-200 text-sm">
+                      <strong>Bonus tip:</strong> Follow event channels and get updates for upcoming events directly into your server!
+                    </p>
                   </div>
                 </div>
-              </section>
+              </div>
 
-              {/* 5. How it works */}
-              <section className="bg-card border border-border rounded-xl p-6 sm:p-8 shadow-lg">
-                <div className="mb-6">
-                  <h2 className="text-2xl font-bold text-foreground">How it works</h2>
-                  <p className="text-muted-foreground mt-1">
-                    Three steps from "what is this?" to "I'm in."
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {steps.map((step) => (
-                    <div
-                      key={step.number}
-                      className="flex gap-4 md:flex-col md:gap-3 md:items-center md:text-center"
-                    >
-                      <div className="flex-shrink-0">
-                        <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400 flex items-center justify-center font-bold">
-                          {step.number}
-                        </div>
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-foreground mb-1">{step.title}</h3>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
-                          {step.description}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-
-              {/* 6. For clubs */}
-              <section className="bg-card border border-border rounded-xl p-6 sm:p-8 shadow-lg">
-                <div className="flex items-start gap-4 mb-6">
-                  <div className="bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 p-3 rounded-xl flex-shrink-0">
-                    <Users className="w-6 h-6" />
+              {/* Mobile Sidebars */}
+              <div className="lg:hidden space-y-4">
+                <div className="bg-card border border-border rounded-xl p-4 shadow-lg">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold text-foreground">Recent Events</h2>
+                    <Link href="/events" className="text-green-600 dark:text-green-400 text-sm hover:underline">See All</Link>
                   </div>
+
+                  <div className="space-y-3">
+                    {events && events.length > 0 ? (
+                      events.map(event => (
+                        <Link
+                          href={`/events`}
+                          key={event.id}
+                          className="flex items-center gap-3 p-3 bg-muted/30 hover:bg-accent transition-colors rounded-lg"
+                        >
+                          <div className={`bg-green-600 rounded-lg p-2 ${
+                            event.category === 'software' ? 'bg-blue-600' :
+                            event.category === 'gaming' ? 'bg-purple-600' :
+                            event.category === 'hardware' ? 'bg-amber-600' :
+                            event.category === 'music' ? 'bg-pink-600' :
+                            event.category === 'sports' ? 'bg-emerald-600' : 'bg-green-600'
+                          }`}>
+                            <span className="text-white text-xs font-bold">{event.category.charAt(0).toUpperCase()}</span>
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-sm line-clamp-1 text-foreground">{event.title}</p>
+                            <p className="text-muted-foreground text-xs">
+                              {new Date(event.event_date).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric'
+                              })}
+                            </p>
+                          </div>
+                        </Link>
+                      ))
+                    ) : (
+                      <p className="text-muted-foreground text-sm py-2">No upcoming events</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="bg-card border border-border rounded-xl p-4 shadow-lg">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <Award className="h-5 w-5 text-green-600 dark:text-green-400" />
+                      <h2 className="text-lg font-semibold text-foreground">Top Donors</h2>
+                    </div>
+                    <Link href="/donate" className="text-green-600 dark:text-green-400 text-sm hover:underline">Donate</Link>
+                  </div>
+
                   <div>
-                    <h2 className="text-2xl font-bold text-foreground">
-                      For clubs & communities
-                    </h2>
-                    <p className="text-muted-foreground mt-1">
-                      Bring your club onto the platform and get your events in front of the right people.
-                    </p>
+                    <TopDonators donators={topDonators || []} />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <a
-                    href="https://forms.gle/gjburXWczani9S6y7"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group bg-muted/30 hover:bg-accent rounded-xl p-5 transition-colors"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold text-foreground">Enroll your club</h3>
-                      <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-                    </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      Submit your club details. We'll verify you and set up an events channel.
-                    </p>
-                  </a>
+                <div className="bg-card border border-border rounded-xl p-4 shadow-lg">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold text-foreground">Recent Projects</h2>
+                    <Link href="/product-hunt" className="text-green-600 dark:text-green-400 text-sm hover:underline">See All</Link>
+                  </div>
 
-                  <a
-                    href="https://forms.gle/gjburXWczani9S6y7"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group bg-muted/30 hover:bg-accent rounded-xl p-5 transition-colors"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold text-foreground">Link your Discord</h3>
-                      <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-                    </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      Connect your server to receive event announcements directly into your channels.
-                    </p>
-                  </a>
-                </div>
-              </section>
-
-              {/* 7. FAQ */}
-              <section className="bg-card border border-border rounded-xl p-6 sm:p-8 shadow-lg">
-                <div className="mb-6">
-                  <h2 className="text-2xl font-bold text-foreground">
-                    Frequently asked questions
-                  </h2>
-                </div>
-                <dl className="space-y-5">
-                  {faqs.map((faq, i) => (
-                    <div key={i} className={i > 0 ? 'pt-5 border-t border-border' : ''}>
-                      <dt className="font-semibold text-foreground mb-2">{faq.q}</dt>
-                      <dd className="text-sm text-muted-foreground leading-relaxed">
-                        {faq.a}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-              </section>
-
-              {/* 8. Final CTA */}
-              <section className="bg-card border border-border rounded-xl p-6 sm:p-8 shadow-lg relative overflow-hidden">
-                <div className="absolute top-0 left-1/2 w-96 h-96 blur-3xl bg-green-500/10 rounded-full -translate-x-1/2 -translate-y-2/3 pointer-events-none" />
-
-                <div className="relative text-center">
-                  <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">
-                    Ready to get started?
-                  </h2>
-                  <p className="text-muted-foreground max-w-lg mx-auto mb-6">
-                    Join over a thousand students, builders, and organisers already on the platform.
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                    <a
-                      href="https://discord.gg/cQ5gxusATk"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors"
-                    >
-                      Join the Discord
-                      <ArrowRight className="w-4 h-4" />
-                    </a>
-                    <Link
-                      href="/product-hunt"
-                      className="inline-flex items-center justify-center gap-2 bg-secondary hover:bg-accent text-secondary-foreground px-6 py-2.5 rounded-lg font-medium transition-colors border border-border"
-                    >
-                      See student projects
-                    </Link>
+                  <div className="space-y-3">
+                    {products && products.length > 0 ? (
+                      products.map(product => (
+                        <Link
+                          href={`/product-hunt/${product.url}`}
+                          key={product.id}
+                          className="flex items-center gap-3 p-3 bg-muted/30 hover:bg-accent transition-colors rounded-lg"
+                        >
+                          <div className="w-10 h-10 bg-muted rounded-lg overflow-hidden">
+                            {product.image_url ? (
+                              <img
+                                src={product.image_url}
+                                alt={product.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-green-600">
+                                <span className="text-white text-sm font-bold">{product.name.charAt(0)}</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-sm line-clamp-1 text-foreground">{product.name}</p>
+                            <p className="text-muted-foreground text-xs">
+                              {new Date(product.created_at).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric'
+                              })}
+                            </p>
+                          </div>
+                        </Link>
+                      ))
+                    ) : (
+                      <p className="text-muted-foreground text-sm py-2">No recent projects</p>
+                    )}
                   </div>
                 </div>
-              </section>
+              </div>
+            </div>
+
+            {/* Right Sidebar */}
+            <div className="hidden lg:block lg:w-1/5 space-y-4 flex-shrink-0">
+              <div className="sticky top-24 space-y-4">
+                <div className="bg-card border border-border rounded-xl p-5 shadow-lg">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold text-foreground">Events</h2>
+                    <Link href="/events" className="text-green-600 dark:text-green-400 text-sm hover:underline">See All</Link>
+                  </div>
+
+                  <div className="space-y-3">
+                    {events && events.length > 0 ? (
+                      events.map(event => (
+                        <Link
+                          href={`/events`}
+                          key={event.id}
+                          className="flex items-center gap-3 p-3 bg-muted/30 hover:bg-accent transition-colors rounded-lg"
+                        >
+                          <div className={`bg-green-600 rounded-lg px-3 py-1 ${
+                            event.category === 'software' ? 'bg-blue-600' :
+                            event.category === 'gaming' ? 'bg-purple-600' :
+                            event.category === 'hardware' ? 'bg-amber-600' :
+                            event.category === 'music' ? 'bg-pink-600' :
+                            event.category === 'sports' ? 'bg-emerald-600' : 'bg-green-600'
+                          }`}>
+                            <span className="text-white text-xs font-bold">{event.category.charAt(0).toUpperCase()}</span>
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-sm line-clamp-1 text-foreground">{event.title}</p>
+                            <p className="text-muted-foreground text-xs">
+                              {new Date(event.event_date).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric'
+                              })}
+                            </p>
+                          </div>
+                        </Link>
+                      ))
+                    ) : (
+                      <p className="text-muted-foreground text-sm py-2">No upcoming events</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="bg-card border border-border rounded-xl py-4 px-6 shadow-lg">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-xl font-semibold text-foreground">Top Donors</h2>
+                    </div>
+                    <Link href="/donate" className="text-green-600 dark:text-green-400 text-sm hover:underline">Donate</Link>
+                  </div>
+
+                  <div>
+                    <TopDonators donators={topDonators || []} />
+                  </div>
+                </div>
+
+                <div className="bg-card border border-border rounded-xl p-5 shadow-lg">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold text-foreground">Recent Projects</h2>
+                    <Link href="/product-hunt" className="text-green-600 dark:text-green-400 text-sm hover:underline">See All</Link>
+                  </div>
+
+                  <div className="space-y-3">
+                    {products && products.length > 0 ? (
+                      products.map(product => (
+                        <Link
+                          href={`/product-hunt/${product.url}`}
+                          key={product.id}
+                          className="flex items-center gap-3 p-3 bg-muted/30 hover:bg-accent transition-colors rounded-lg"
+                        >
+                          <div className="w-10 h-10 bg-muted rounded-lg overflow-hidden">
+                            {product.image_url ? (
+                              <img
+                                src={product.image_url}
+                                alt={product.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-green-600">
+                                <span className="text-white text-sm font-bold">{product.name.charAt(0)}</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-sm line-clamp-1 text-foreground">{product.name}</p>
+                            <p className="text-muted-foreground text-xs">
+                              {new Date(product.created_at).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric'
+                              })}
+                            </p>
+                          </div>
+                        </Link>
+                      ))
+                    ) : (
+                      <p className="text-muted-foreground text-sm py-2">No recent projects</p>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
