@@ -8,6 +8,9 @@ import GlobalLoader from '@/app/components/extra/GlobalLoader';
 import FetchInterceptor from '@/app/components/extra/FetchInterceptor';
 import NavigationLoader from '@/app/components/extra/NavigationLoader';
 import { ColdStartNotice } from '@/app/components/extra/ColdStartNotice';
+import GlobalImageFallback from '@/app/components/extra/GlobalImageFallback';
+
+
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -26,6 +29,7 @@ export default function RootLayout({
         <NavigationLoader />
         <FetchInterceptor />
         <GlobalLoader />
+        <GlobalImageFallback />
         <LoadingBar />
         <Providers>{children}</Providers>
         <Toaster richColors position="top-right" />

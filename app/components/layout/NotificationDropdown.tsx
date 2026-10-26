@@ -1,38 +1,75 @@
 'use client';
 
 import { useState } from 'react';
-import { Bell } from 'lucide-react';
+import { Bell, CheckCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
+import { toast } from 'sonner';
 import useNotifications from '@/app/hooks/useNotifications';
 
-export default function NotificationDropdown({ isMobile = false }) {
+export default function NotificationDropdown({ isMobile = false }: { isMobile?: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isMarkingAll, setIsMarkingAll] = useState(false);
   const router = useRouter();
-  const { notifications, unreadCount, markAsRead } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
 
   const handleNotificationClick = async (notification: any) => {
+    // Pre-flight: for lounge post notifications, verify the post still exists
+    // before navigating. Otherwise we'd mark it read and land on a 404.
+    if (notification.link?.startsWith('/lounge/')) {
+      const postId = notification.link.split('/lounge/')[1]?.split(/[?#]/)[0];
+      if (postId) {
+        try {
+          const res = await fetch(
+            `/api/lounge/posts/exists?id=${encodeURIComponent(postId)}`
+          );
+          if (res.ok) {
+            const { exists } = await res.json();
+            if (!exists) {
+              toast.error('This post has been removed', {
+                description:
+                  'The author may have deleted it. The notification has been marked as read.',
+              });
+              await markAsRead(notification.id);
+              setIsOpen(false);
+              return;
+            }
+          }
+        } catch {
+          // Network error — fall through and let navigation try anyway
+        }
+      }
+    }
+
     await markAsRead(notification.id);
     router.push(notification.link);
     setIsOpen(false);
   };
 
-  const containerClass = isMobile
-    ? "w-full"
-    : "relative";
+  const handleMarkAllAsRead = async () => {
+    if (isMarkingAll) return;
+    setIsMarkingAll(true);
+    try {
+      await markAllAsRead();
+    } finally {
+      setIsMarkingAll(false);
+    }
+  };
+
+  const containerClass = isMobile ? 'w-full' : 'relative';
 
   const dropdownClass = isMobile
-    ? "w-full border-0 shadow-none bg-transparent"
-    : "absolute right-0 mt-2 w-80 bg-popover border border-border rounded-lg shadow-lg overflow-hidden";
+    ? 'w-full border-0 shadow-none bg-transparent'
+    : 'absolute right-0 mt-2 w-80 bg-popover border border-border rounded-lg shadow-lg overflow-hidden';
 
   return (
     <div className={containerClass}>
-      {/* Only render the button if not in mobile view */}
       {!isMobile && (
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="relative p-2 rounded-full hover:bg-accent transition-colors text-foreground"
+          aria-label="Notifications"
         >
           <Bell className="w-5 h-5" />
           {unreadCount > 0 && (
@@ -43,7 +80,6 @@ export default function NotificationDropdown({ isMobile = false }) {
         </button>
       )}
 
-      {/* Show mobile header when in mobile mode */}
       {isMobile && (
         <div className="flex justify-between items-center mb-2 px-1">
           <h3 className="text-base font-medium text-foreground">Notifications</h3>
@@ -91,20 +127,16 @@ export default function NotificationDropdown({ isMobile = false }) {
               )}
             </div>
 
-            {/* Add "Mark all as read" button in mobile view if there are unread notifications */}
-            {isMobile && unreadCount > 0 && notifications.length > 0 && (
+            {/* Mark all as read — shown whenever there are unread items */}
+            {unreadCount > 0 && notifications.length > 0 && (
               <div className="p-2 border-t border-border">
                 <button
-                  onClick={() => {
-                    notifications.forEach((notification: any) => {
-                      if (!notification.is_read) {
-                        markAsRead(notification.id);
-                      }
-                    });
-                  }}
-                  className="w-full py-2 text-sm text-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                  onClick={handleMarkAllAsRead}
+                  disabled={isMarkingAll}
+                  className="w-full flex items-center justify-center gap-2 py-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 disabled:opacity-50 transition-colors"
                 >
-                  Mark all as read
+                  <CheckCheck className="w-4 h-4" />
+                  {isMarkingAll ? 'Marking…' : 'Mark all as read'}
                 </button>
               </div>
             )}
