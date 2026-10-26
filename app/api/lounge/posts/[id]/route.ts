@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/auth";
 import { supabase } from "@/app/lib/supabase";
+import { extractOgImage } from "@/app/lib/og-scraper";
 
 export async function PUT(
   request: Request,
@@ -20,7 +21,7 @@ export async function PUT(
 
     const { data: post, error: postError } = await supabase
       .from("lounge_posts")
-      .select("author_id")
+      .select("author_id, redirect_url, image_url")
       .eq("id", id)
       .single();
 
@@ -40,15 +41,29 @@ export async function PUT(
       );
     }
 
-    const { title, content, category, redirect_url } = await request.json();
+    const { title, content, category, redirect_url, show_embed_image } =
+      await request.json();
 
     if (!title?.trim() || !content?.trim() || !category) {
       return NextResponse.json(
-        {
-          error: "Missing required fields",
-        },
+        { error: "Missing required fields" },
         { status: 400 },
       );
+    }
+
+    const trimmedRedirect = redirect_url?.trim() || null;
+    const wantsImage = show_embed_image !== false && !!trimmedRedirect;
+
+    // Determine image_url:
+    // - wantsImage && redirect changed or had no image  → re-scrape
+    // - wantsImage && redirect same && image exists    → keep existing
+    // - !wantsImage                                     → clear image
+    let image_url: string | null = post.image_url ?? null;
+
+    if (!wantsImage) {
+      image_url = null;
+    } else if (trimmedRedirect !== post.redirect_url || !post.image_url) {
+      image_url = await extractOgImage(trimmedRedirect!);
     }
 
     const { data: updatedPost, error: updateError } = await supabase
@@ -57,7 +72,9 @@ export async function PUT(
         title: title.trim(),
         content: content.trim(),
         category,
-        redirect_url: redirect_url?.trim() || null,
+        redirect_url: trimmedRedirect,
+        show_embed_image: show_embed_image !== false,
+        image_url,
         updated_at: new Date().toISOString(),
       })
       .eq("id", id)
@@ -84,6 +101,8 @@ export async function PUT(
     );
   }
 }
+
+// DELETE stays unchanged — copy from your existing file.
 
 export async function DELETE(
   request: Request,

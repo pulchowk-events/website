@@ -4,13 +4,12 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { ExternalLink, Pencil, Trash2, MessageCircle } from 'lucide-react';
+import { ExternalLink, Pencil, Trash2, Flag } from 'lucide-react';
 import { PostCategory, categoryDisplayMap, categoryIcons } from '@/types/posts';
 import EditPostModal from './EditPostModal';
 import DeletePostDialog from './DeletePostDialog';
 import { LoungeComments } from './comments/LoungeComments';
 import ReportModal from './ReportModal';
-import { Flag } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 
 interface Post {
@@ -19,6 +18,8 @@ interface Post {
   content: string;
   category: PostCategory;
   redirect_url: string | null;
+  image_url: string | null;
+  show_embed_image: boolean;
   created_at: string;
   author_id: string;
   users: {
@@ -39,11 +40,14 @@ export default function PostContent({ post, isAdmin, isAuthor }: PostContentProp
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { data: session } = useSession();
   const [showReportModal, setShowReportModal] = useState(false);
+  const [imageBroken, setImageBroken] = useState(false);
+
+  const showImage = !!post.image_url && post.show_embed_image && !imageBroken;
 
   return (
     <>
       <div className="flex flex-col md:flex-row gap-4 sm:gap-8">
-        {/* Author Info Section */}
+        {/* Author column */}
         <div className="w-full md:w-48 flex-shrink-0 mb-6 md:mb-0">
           <div className="md:sticky md:top-24">
             <div className="flex flex-row md:flex-col items-center text-center gap-4 md:gap-0">
@@ -69,7 +73,7 @@ export default function PostContent({ post, isAdmin, isAuthor }: PostContentProp
           </div>
         </div>
 
-        {/* Content Section */}
+        {/* Content column */}
         <div className="flex-grow max-w-3xl">
           <div className="mb-4 sm:mb-6">
             <span className="inline-flex items-center gap-1.5 bg-muted text-muted-foreground px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium">
@@ -80,6 +84,21 @@ export default function PostContent({ post, isAdmin, isAuthor }: PostContentProp
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-zinc-300 bg-clip-text text-transparent">
             {post.title}
           </h1>
+
+          {/* Hero image — full width below title, above body */}
+          {showImage && (
+            <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-muted mb-6 sm:mb-8 border border-border">
+              <Image
+                src={post.image_url!}
+                alt={post.title}
+                fill
+                unoptimized
+                sizes="(max-width: 768px) 100vw, 768px"
+                className="object-cover"
+                onError={() => setImageBroken(true)}
+              />
+            </div>
+          )}
 
           <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none mb-6 sm:mb-8">
             <p className="text-base sm:text-lg leading-relaxed whitespace-pre-wrap text-foreground">
@@ -102,7 +121,6 @@ export default function PostContent({ post, isAdmin, isAuthor }: PostContentProp
             </div>
           )}
 
-          {/* Admin/Author Actions */}
           {(isAdmin || isAuthor) && (
             <div className="mt-8 pt-6 border-t border-border">
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
@@ -158,8 +176,6 @@ export default function PostContent({ post, isAdmin, isAuthor }: PostContentProp
       </div>
 
       <div className="mt-8 sm:mt-12 pt-6 border-t border-border">
-        <div className="flex items-center gap-2 mb-6">
-        </div>
         <LoungeComments postId={post.id} />
       </div>
     </>
