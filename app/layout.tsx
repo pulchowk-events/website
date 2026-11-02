@@ -37,7 +37,11 @@ export const metadata: Metadata = {
   },
   alternates: { canonical: '/' },
   robots: { index: true, follow: true },
+  other: {
+    "google-site-verification": "25UmDG5Ym56MuIL1tIA9q9oStDMgmWmJuhv_OTDgAc0",
+  },
 };
+
 
 const orgJsonLd = {
   '@context': 'https://schema.org',
