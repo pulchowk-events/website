@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { getSidebarData, getRecentJobs } from '@/app/lib/queries';
-
+import JobImage from '@/app/components/jobs/JobImage';
 type SidebarItem = 'events' | 'jobs' | 'products';
 
 export default async function RightSidebar({ exclude = [] }: { exclude?: SidebarItem[] }) {
@@ -29,15 +29,13 @@ export default async function RightSidebar({ exclude = [] }: { exclude?: Sidebar
                   href={`/jobs/${job.id}`}
                   className="flex items-center gap-3 p-3 bg-muted/30 hover:bg-accent transition-colors rounded-lg"
                 >
-                  <div className="w-10 h-10 bg-muted rounded-lg overflow-hidden flex-shrink-0">
-                    {job.image_url ? (
-                      <img src={job.image_url || '/default-job.jpg'} alt={job.company} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-green-600">
-                        <span className="text-white text-sm font-bold">{job.company.charAt(0)}</span>
-                      </div>
-                    )}
-                  </div>
+                <div className="w-10 h-10 bg-muted rounded-lg overflow-hidden flex-shrink-0">
+                    <JobImage
+                        src={job.image_url}
+                        alt={job.company}
+                        jobId={job.id}
+                    />
+                    </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm line-clamp-1 text-foreground">{job.title}</p>
                     <p className="text-muted-foreground text-xs line-clamp-1">

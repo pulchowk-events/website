@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import Image from 'next/image';
+import JobImage from './JobImage';
 import {
   ArrowLeft,
   MapPin,
@@ -93,14 +93,13 @@ export default function JobDetail({ job }: { job: Job }) {
       <header className="bg-card border border-border rounded-xl p-6 sm:p-8">
         <div className="flex items-start gap-5 mb-6">
         <div className="w-20 h-20 rounded-xl bg-muted flex-shrink-0 overflow-hidden">
-            <Image
-                src={job.image_url || '/default-job.jpg'}
-                alt={job.company}
-                width={80}
-                height={80}
-                unoptimized
-                className="w-full h-full object-cover"
-            />
+            <div className="w-20 h-20 rounded-xl bg-muted flex-shrink-0 overflow-hidden">
+                <JobImage
+                    src={job.image_url}
+                    alt={job.company}
+                    jobId={job.id}
+                />
+                </div>
             </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">

@@ -41,7 +41,7 @@ export async function getDonatePageData() {
     donators: donators || [],
     prizePool: {
       current_amount,
-      target_amount: prizePool?.target_amount || 1000,
+      target_amount: prizePool?.target_amount,
       total_donors: totalDonors || 0,
     },
   };

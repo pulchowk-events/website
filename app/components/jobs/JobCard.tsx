@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import Image from 'next/image';
+import JobImage from './JobImage';
 import { MapPin, Briefcase, DollarSign, Calendar } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -39,14 +39,13 @@ export default function JobCard({ job }: { job: Job }) {
         <div className="flex items-start gap-4">
           {/* Company logo */}
             <div className="w-14 h-14 rounded-lg bg-muted flex-shrink-0 overflow-hidden">
-            <Image
-                src={job.image_url || '/default-job.jpg'}
+            <div className="w-14 h-14 rounded-lg bg-muted flex-shrink-0 overflow-hidden">
+            <JobImage
+                src={job.image_url}
                 alt={job.company}
-                width={56}
-                height={56}
-                unoptimized
-                className="w-full h-full object-cover"
+                jobId={job.id}
             />
+            </div>
             </div>
 
           {/* Main content */}
