@@ -18,7 +18,7 @@ type EventCategory =
   | 'extra';
 
 const categories = [
-  { value: 'all', label: 'All Events', icon: Calendar },
+  { value: 'all', label: 'All', icon: Calendar },
   { value: 'software', label: 'Software', icon: Code },
   { value: 'hardware', label: 'Hardware', icon: LucideCircuitBoard },
   { value: 'gaming', label: 'Gaming', icon: Gamepad },

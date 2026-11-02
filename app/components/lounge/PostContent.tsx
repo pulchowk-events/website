@@ -11,6 +11,7 @@ import DeletePostDialog from './DeletePostDialog';
 import { LoungeComments } from './comments/LoungeComments';
 import ReportModal from './ReportModal';
 import { useSession } from 'next-auth/react';
+import Markdown from '@/app/components/ui/Markdown';
 
 interface Post {
   id: string;
@@ -100,11 +101,7 @@ export default function PostContent({ post, isAdmin, isAuthor }: PostContentProp
             </div>
           )}
 
-          <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none mb-6 sm:mb-8">
-            <p className="text-base sm:text-lg leading-relaxed whitespace-pre-wrap text-foreground">
-              {post.content}
-            </p>
-          </div>
+          <Markdown content={post.content} className="mb-6 sm:mb-8" />
 
           {post.redirect_url && (
             <div className="mt-6 sm:mt-8 p-3 sm:p-4 bg-muted/50 rounded-lg border border-border backdrop-blur-sm">

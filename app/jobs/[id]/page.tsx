@@ -5,6 +5,9 @@ import JobDetail from '@/app/components/jobs/JobDetail';
 import JsonLd from '@/app/components/seo/JsonLd';
 import { getJobById } from '@/app/lib/queries';
 import { SITE_URL, breadcrumbSchema } from '@/app/lib/seo';
+import LeftSidebar from '@/app/components/layout/LeftSidebar';
+import RightSidebar from '@/app/components/layout/RightSidebar';
+
 
 export const revalidate = 60;
 
@@ -117,8 +120,16 @@ export default async function JobPage({ params }: Props) {
       <JsonLd data={jobJsonLd} />
       <JsonLd data={breadcrumbJsonLd} />
       <div className="bg-background min-h-screen">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
-          <JobDetail job={job} />
+        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+          <div className="flex flex-col lg:flex-row lg:gap-6">
+            <LeftSidebar />
+            <div className="w-full lg:mx-auto">
+              <div className="bg-card border border-border rounded-xl shadow-lg p-5 sm:p-6">
+                <JobDetail job={job} />
+              </div>
+            </div>
+            <RightSidebar exclude={['jobs']} />
+          </div>
         </div>
       </div>
     </Layout>

@@ -12,6 +12,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import Markdown from '@/app/components/ui/Markdown';
 
 interface Job {
   id: string;
@@ -154,19 +155,13 @@ export default function JobDetail({ job }: { job: Job }) {
         </section>
       )}
 
-      {/* Description */}
-      {job.description && (
+        {/* Description */}
+        {job.description && (
         <section className="bg-card border border-border rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-foreground mb-4">
-            About this role
-          </h2>
-          <div className="prose prose-sm dark:prose-invert max-w-none">
-            <p className="text-sm sm:text-base text-foreground leading-relaxed whitespace-pre-wrap">
-              {job.description}
-            </p>
-          </div>
+            <h2 className="text-lg font-semibold text-foreground mb-4">About this role</h2>
+            <Markdown content={job.description} />
         </section>
-      )}
+        )}
 
       {/* CTA */}
       <div className="flex flex-col sm:flex-row gap-3">

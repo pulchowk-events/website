@@ -9,7 +9,6 @@ import {
   MessageCircle,
   Check,
   GraduationCap,
-  Globe,
   ExternalLink,
   TrendingUp,
   Users,
@@ -17,6 +16,10 @@ import {
 import PrizePoolProgress from '@/app/components/donate/SmPrizePoolProgress';
 import { getAboutStats } from '@/app/lib/queries';
 import { SITE_URL } from '@/app/lib/seo';
+import RightSidebar from '@/app/components/layout/RightSidebar';
+import { Github, Linkedin, Globe, Mail } from 'lucide-react';
+import LeftSidebar from '../components/layout/LeftSidebar';
+
 
 export const revalidate = 60;
 
@@ -121,42 +124,7 @@ export default async function AboutPage() {
       <div className="bg-background min-h-screen">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
           <div className="flex flex-col lg:flex-row lg:gap-6">
-            {/* Left sidebar — consistent with the rest of the site */}
-            <div className="hidden lg:block lg:w-1/5 space-y-4 flex-shrink-0">
-              <div className="bg-card border border-border rounded-xl p-5 shadow-lg sticky top-24">
-                <div className="flex items-center gap-3 mb-6">
-                  <TrendingUp className="h-6 w-6 text-green-600 dark:text-green-400" />
-                  <h2 className="text-xl font-semibold text-foreground">Community</h2>
-                </div>
-
-                <div className="space-y-4">
-                  <a
-                    href="https://discord.gg/cQ5gxusATk"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between bg-muted/30 hover:bg-accent transition-colors p-3 rounded-lg"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="bg-indigo-500 rounded-lg p-2">
-                        <Users className="h-5 w-5 text-white" />
-                      </div>
-                      <span className="font-medium text-foreground">Join Discord</span>
-                    </div>
-                    <span className="bg-muted rounded-full px-2.5 py-1 text-xs text-foreground">
-                      1,050+
-                    </span>
-                  </a>
-
-                  <div className="pt-2">
-                    <PrizePoolProgress
-                      currentAmount={stats.currentAmount}
-                      targetAmount={stats.targetAmount}
-                      totalDonors={stats.totalDonors}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+            <LeftSidebar/>
 
             {/* Main content */}
             <div className="w-full space-y-6">
@@ -451,6 +419,8 @@ export default async function AboutPage() {
                 </div>
               </section>
             </div>
+
+            <RightSidebar/>
           </div>
         </div>
       </div>
