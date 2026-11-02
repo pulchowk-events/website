@@ -1,4 +1,3 @@
-import { supabase } from '@/app/lib/supabase';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/auth';
 import Layout from '@/app/components/layout/Layout';
@@ -7,9 +6,8 @@ import ClientAddEventButton from '../components/events/ClientAddEventButton';
 import PrizePoolProgress from '../components/donate/SmPrizePoolProgress';
 import TopDonators from '@/app/components/donate/TopDonators';
 import Link from 'next/link';
+import { getEventsPage, getSidebarData } from '@/app/lib/queries';
 
-// ISR: cache each unique URL for 60s. Cold render still happens (first hit),
-// but subsequent views (including Google's repeated crawls) hit cache.
 export const revalidate = 60;
 
 const PAGE_SIZE = 24;
@@ -23,81 +21,25 @@ export default async function EventsPage({
   const params = await searchParams;
 
   const tab: 'upcoming' | 'past' = params.tab === 'past' ? 'past' : 'upcoming';
-  const category = VALID_CATEGORIES.includes(params.category || '') ? (params.category as string) : 'all';
+  const category = VALID_CATEGORIES.includes(params.category || '')
+    ? (params.category as string)
+    : 'all';
   const page = Math.max(1, parseInt(params.page || '1', 10) || 1);
-  const offset = (page - 1) * PAGE_SIZE;
 
-  const session = await getServerSession(authOptions);
-  const nowISO = new Date().toISOString();
-
-  // Main query: verified events only, paginated, filtered server-side
-  let eventsQuery = supabase
-    .from('events')
-    .select(
-      `
-      *,
-      author:created_by (
-        id,
-        name,
-        image
-      )
-    `,
-      { count: 'exact' }
-    )
-    .eq('verified', true);
-
-  if (tab === 'upcoming') {
-    eventsQuery = eventsQuery
-      .gte('event_date', nowISO)
-      .order('event_date', { ascending: true });
-  } else {
-    eventsQuery = eventsQuery
-      .lt('event_date', nowISO)
-      .order('event_date', { ascending: false });
-  }
-
-  if (category !== 'all') {
-    eventsQuery = eventsQuery.eq('category', category);
-  }
-
-  eventsQuery = eventsQuery.range(offset, offset + PAGE_SIZE - 1);
-
-  // All sidebars can run in parallel
-  const [
-    { data: events, count: totalCount },
-    { data: prizePool },
-    { data: verifiedDonations },
-    { count: total_donors },
-    { data: topDonators },
-    { data: products },
-  ] = await Promise.all([
-    eventsQuery,
-    supabase.from('prize_pool').select('target_amount').single(),
-    supabase.from('donations').select('amount').eq('verified', true),
-    supabase.from('donations').select('*', { count: 'exact' }).eq('verified', true),
-    supabase
-      .from('donations')
-      .select('id, name, amount, avatar_url')
-      .eq('show_on_leaderboard', true)
-      .eq('verified', true)
-      .order('amount', { ascending: false })
-      .limit(5),
-    supabase
-      .from('products')
-      .select('id, name, image_url, created_at, url')
-      .eq('approved', true)
-      .order('created_at', { ascending: false })
-      .limit(3),
+  // All cached — no direct DB access in this file
+  const [{ events, totalCount }, { prizePool, donors, products }] = await Promise.all([
+    getEventsPage(tab, category, page, PAGE_SIZE),
+    getSidebarData(),
   ]);
 
-  const current_amount =
-    verifiedDonations?.reduce((sum, d) => sum + d.amount, 0) || 0;
-
+  // Session-dependent — runs fresh every request (small overhead)
+  const session = await getServerSession(authOptions);
   let isAdmin = false;
   if (session?.user?.email) {
     try {
       const response = await fetch(
-        `${process.env.NEXTAUTH_URL}/api/admin/checkAdmin?email=${session.user.email}`
+        `${process.env.NEXTAUTH_URL}/api/admin/checkAdmin?email=${encodeURIComponent(session.user.email)}`,
+        { cache: 'no-store' }
       );
       const { isAdmin: adminStatus } = await response.json();
       isAdmin = adminStatus;
@@ -121,16 +63,16 @@ export default async function EventsPage({
                 <div className="space-y-4">
                   <div className="pt-2">
                     <PrizePoolProgress
-                      currentAmount={current_amount}
-                      targetAmount={prizePool?.target_amount || 100000}
-                      totalDonors={total_donors || 0}
+                      currentAmount={prizePool.currentAmount}
+                      targetAmount={prizePool.targetAmount}
+                      totalDonors={prizePool.totalDonors}
                     />
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Main Content */}
+            {/* Main */}
             <div className="w-full lg:mx-auto">
               <div className="bg-card border border-border rounded-xl shadow-lg overflow-hidden mb-5">
                 <div className="p-4 sm:p-5">
@@ -138,10 +80,9 @@ export default async function EventsPage({
                     <h2 className="text-xl font-semibold text-foreground">Events</h2>
                     {session && <ClientAddEventButton />}
                   </div>
-
                   <EventsClient
-                    events={events || []}
-                    totalCount={totalCount || 0}
+                    events={events}
+                    totalCount={totalCount}
                     page={page}
                     pageSize={PAGE_SIZE}
                     tab={tab}
@@ -166,11 +107,11 @@ export default async function EventsPage({
                     </Link>
                   </div>
                   <div className="space-y-3">
-                    {products && products.length > 0 ? (
+                    {products.length > 0 ? (
                       products.map((product) => (
                         <Link
-                          href={`/product-hunt/${product.url}`}
                           key={product.id}
+                          href={`/product-hunt/${product.url}`}
                           className="flex items-center gap-3 p-3 bg-muted/30 hover:bg-accent transition-colors rounded-lg"
                         >
                           <div className="w-10 h-10 bg-muted rounded-lg overflow-hidden">
@@ -209,9 +150,7 @@ export default async function EventsPage({
 
                 <div className="bg-card border border-border rounded-xl p-5 shadow-lg">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-xl font-semibold text-foreground">Top Donors</h2>
-                    </div>
+                    <h2 className="text-xl font-semibold text-foreground">Top Donors</h2>
                     <Link
                       href="/donate"
                       className="text-green-600 dark:text-green-400 text-sm hover:underline"
@@ -219,9 +158,7 @@ export default async function EventsPage({
                       Donate
                     </Link>
                   </div>
-                  <div>
-                    <TopDonators donators={topDonators || []} />
-                  </div>
+                  <TopDonators donators={donors} />
                 </div>
               </div>
             </div>

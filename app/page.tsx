@@ -1,79 +1,28 @@
-import Layout from './components/layout/Layout'
-import { TrendingUp, Users, Award } from 'lucide-react'
-import LoungeClient from './lounge/LoungeClient'
-import PrizePoolProgress from '@/app/components/donate/SmPrizePoolProgress'
-import TopDonators from '@/app/components/donate/TopDonators'
-import { supabase } from '@/app/lib/supabase'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/auth'
-import Link from 'next/link'
+import Layout from './components/layout/Layout';
+import { TrendingUp, Users, Award } from 'lucide-react';
+import LoungeClient from './lounge/LoungeClient';
+import PrizePoolProgress from '@/app/components/donate/SmPrizePoolProgress';
+import TopDonators from '@/app/components/donate/TopDonators';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/auth';
+import Link from 'next/link';
+import { getLoungePosts, getSidebarData } from '@/app/lib/queries';
+
+export const revalidate = 60;
 
 export default async function Home() {
+  // All cached — no direct DB access. Both calls run in parallel.
+  const [posts, { prizePool, donors, products, upcomingEvents }] = await Promise.all([
+    getLoungePosts(6),
+    getSidebarData(),
+  ]);
+
+  // Session-dependent — runs fresh every request (small overhead)
   const session = await getServerSession(authOptions);
 
-  const { data: posts } = await supabase
-    .from('lounge_posts')
-    .select(`
-      *,
-      users:author_id (
-        name,
-        image
-      )
-    `)
-    .order('created_at', { ascending: false })
-    .limit(6);
-
-  const { data: events } = await supabase
-    .from('events')
-    .select(`
-      id,
-      title,
-      event_date,
-      category,
-      author:created_by (
-        name,
-        image
-      )
-    `)
-    .eq('verified', true)
-    .gte('event_date', new Date().toISOString())
-    .order('event_date', { ascending: true })
-    .limit(3);
-
-  const { data: prizePool } = await supabase
-    .from('prize_pool')
-    .select('target_amount')
-    .single();
-
-  const { data: verifiedDonations } = await supabase
-    .from('donations')
-    .select('amount')
-    .eq('verified', true);
-
-  const current_amount = verifiedDonations?.reduce(
-    (sum, donation) => sum + donation.amount,
-    0
-  ) || 0;
-
-  const { count: total_donors } = await supabase
-    .from('donations')
-    .select('*', { count: 'exact' })
-    .eq('verified', true);
-
-  const { data: topDonators } = await supabase
-    .from('donations')
-    .select('id, name, amount, avatar_url')
-    .eq('show_on_leaderboard', true)
-    .eq('verified', true)
-    .order('amount', { ascending: false })
-    .limit(5);
-
-  const { data: products } = await supabase
-    .from('products')
-    .select('id, name, image_url, created_at, url')
-    .eq('approved', true)
-    .order('created_at', { ascending: false })
-    .limit(3);
+  // Local aliases so the JSX below stays unchanged
+  const events = upcomingEvents;
+  const topDonators = donors;
 
   return (
     <Layout>
@@ -89,24 +38,28 @@ export default async function Home() {
                 </div>
 
                 <div className="space-y-4">
-                  <a href="https://discord.gg/cQ5gxusATk"
+                  <a
+                    href="https://discord.gg/cQ5gxusATk"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-between bg-muted/30 hover:bg-accent transition-colors p-3 rounded-lg">
+                    className="flex items-center justify-between bg-muted/30 hover:bg-accent transition-colors p-3 rounded-lg"
+                  >
                     <div className="flex items-center gap-3">
                       <div className="bg-indigo-500 rounded-lg p-2">
                         <Users className="h-5 w-5 text-white" />
                       </div>
                       <span className="font-medium text-foreground">Join Discord</span>
                     </div>
-                    <span className="bg-muted rounded-full px-2.5 py-1 text-xs text-foreground">1,050</span>
+                    <span className="bg-muted rounded-full px-2.5 py-1 text-xs text-foreground">
+                      1,050
+                    </span>
                   </a>
 
                   <div className="pt-2">
                     <PrizePoolProgress
-                      currentAmount={current_amount}
-                      targetAmount={prizePool?.target_amount || 100000}
-                      totalDonors={total_donors || 0}
+                      currentAmount={prizePool.currentAmount}
+                      targetAmount={prizePool.targetAmount}
+                      totalDonors={prizePool.totalDonors}
                     />
                   </div>
                 </div>
@@ -129,31 +82,49 @@ export default async function Home() {
                 <div className="bg-card border border-border rounded-xl p-4 shadow-lg">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-lg font-semibold text-foreground">Recent Events</h2>
-                    <Link href="/events" className="text-green-600 dark:text-green-400 text-sm hover:underline">See All</Link>
+                    <Link
+                      href="/events"
+                      className="text-green-600 dark:text-green-400 text-sm hover:underline"
+                    >
+                      See All
+                    </Link>
                   </div>
 
                   <div className="space-y-3">
                     {events && events.length > 0 ? (
-                      events.map(event => (
+                      events.map((event) => (
                         <Link
-                          href={`/events`}
+                          href={`/events/${event.id}`}
                           key={event.id}
-                          className="flex items-center gap-3 p-3 bg-muted/30 hover:bg-accent transition-colors rounded-lg">
-                          <div className={`bg-green-600 rounded-lg p-2 ${
-                            event.category === 'software' ? 'bg-blue-600' :
-                            event.category === 'gaming' ? 'bg-purple-600' :
-                            event.category === 'hardware' ? 'bg-amber-600' :
-                            event.category === 'music' ? 'bg-pink-600' :
-                            event.category === 'sports' ? 'bg-emerald-600' : 'bg-green-600'
-                          }`}>
-                            <span className="text-white text-xs font-bold">{event.category.charAt(0).toUpperCase()}</span>
+                          className="flex items-center gap-3 p-3 bg-muted/30 hover:bg-accent transition-colors rounded-lg"
+                        >
+                          <div
+                            className={`bg-green-600 rounded-lg p-2 ${
+                              event.category === 'software'
+                                ? 'bg-blue-600'
+                                : event.category === 'gaming'
+                                  ? 'bg-purple-600'
+                                  : event.category === 'hardware'
+                                    ? 'bg-amber-600'
+                                    : event.category === 'music'
+                                      ? 'bg-pink-600'
+                                      : event.category === 'sports'
+                                        ? 'bg-emerald-600'
+                                        : 'bg-green-600'
+                            }`}
+                          >
+                            <span className="text-white text-xs font-bold">
+                              {event.category.charAt(0).toUpperCase()}
+                            </span>
                           </div>
                           <div className="flex-1">
-                            <p className="font-medium text-sm line-clamp-1 text-foreground">{event.title}</p>
+                            <p className="font-medium text-sm line-clamp-1 text-foreground">
+                              {event.title}
+                            </p>
                             <p className="text-muted-foreground text-xs">
                               {new Date(event.event_date).toLocaleDateString('en-US', {
                                 month: 'short',
-                                day: 'numeric'
+                                day: 'numeric',
                               })}
                             </p>
                           </div>
@@ -171,7 +142,12 @@ export default async function Home() {
                       <Award className="h-5 w-5 text-green-600 dark:text-green-400" />
                       <h2 className="text-lg font-semibold text-foreground">Top Donors</h2>
                     </div>
-                    <Link href="/donate" className="text-green-600 dark:text-green-400 text-sm hover:underline">Donate</Link>
+                    <Link
+                      href="/donate"
+                      className="text-green-600 dark:text-green-400 text-sm hover:underline"
+                    >
+                      Donate
+                    </Link>
                   </div>
 
                   <div>
@@ -182,16 +158,22 @@ export default async function Home() {
                 <div className="bg-card border border-border rounded-xl p-4 shadow-lg">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-lg font-semibold text-foreground">Recent Projects</h2>
-                    <Link href="/product-hunt" className="text-green-600 dark:text-green-400 text-sm hover:underline">See All</Link>
+                    <Link
+                      href="/product-hunt"
+                      className="text-green-600 dark:text-green-400 text-sm hover:underline"
+                    >
+                      See All
+                    </Link>
                   </div>
 
                   <div className="space-y-3">
                     {products && products.length > 0 ? (
-                      products.map(product => (
+                      products.map((product) => (
                         <Link
                           href={`/product-hunt/${product.url}`}
                           key={product.id}
-                          className="flex items-center gap-3 p-3 bg-muted/30 hover:bg-accent transition-colors rounded-lg">
+                          className="flex items-center gap-3 p-3 bg-muted/30 hover:bg-accent transition-colors rounded-lg"
+                        >
                           <div className="w-10 h-10 bg-muted rounded-lg overflow-hidden">
                             {product.image_url ? (
                               <img
@@ -201,16 +183,20 @@ export default async function Home() {
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center bg-green-600">
-                                <span className="text-white text-sm font-bold">{product.name.charAt(0)}</span>
+                                <span className="text-white text-sm font-bold">
+                                  {product.name.charAt(0)}
+                                </span>
                               </div>
                             )}
                           </div>
                           <div className="flex-1">
-                            <p className="font-medium text-sm line-clamp-1 text-foreground">{product.name}</p>
+                            <p className="font-medium text-sm line-clamp-1 text-foreground">
+                              {product.name}
+                            </p>
                             <p className="text-muted-foreground text-xs">
                               {new Date(product.created_at).toLocaleDateString('en-US', {
                                 month: 'short',
-                                day: 'numeric'
+                                day: 'numeric',
                               })}
                             </p>
                           </div>
@@ -231,31 +217,49 @@ export default async function Home() {
                 <div className="bg-card border border-border rounded-xl p-5 shadow-lg">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-semibold text-foreground">Events</h2>
-                    <Link href="/events" className="text-green-600 dark:text-green-400 text-sm hover:underline">See All</Link>
+                    <Link
+                      href="/events"
+                      className="text-green-600 dark:text-green-400 text-sm hover:underline"
+                    >
+                      See All
+                    </Link>
                   </div>
 
                   <div className="space-y-3">
                     {events && events.length > 0 ? (
-                      events.map(event => (
+                      events.map((event) => (
                         <Link
-                          href={`/events`}
+                          href={`/events/${event.id}`}
                           key={event.id}
-                          className="flex items-center gap-3 p-3 bg-muted/30 hover:bg-accent transition-colors rounded-lg">
-                          <div className={`bg-green-600 rounded-lg px-3 py-1 ${
-                            event.category === 'software' ? 'bg-blue-600' :
-                            event.category === 'gaming' ? 'bg-purple-600' :
-                            event.category === 'hardware' ? 'bg-amber-600' :
-                            event.category === 'music' ? 'bg-pink-600' :
-                            event.category === 'sports' ? 'bg-emerald-600' : 'bg-green-600'
-                          }`}>
-                            <span className="text-white text-xs font-bold">{event.category.charAt(0).toUpperCase()}</span>
+                          className="flex items-center gap-3 p-3 bg-muted/30 hover:bg-accent transition-colors rounded-lg"
+                        >
+                          <div
+                            className={`bg-green-600 rounded-lg px-3 py-1 ${
+                              event.category === 'software'
+                                ? 'bg-blue-600'
+                                : event.category === 'gaming'
+                                  ? 'bg-purple-600'
+                                  : event.category === 'hardware'
+                                    ? 'bg-amber-600'
+                                    : event.category === 'music'
+                                      ? 'bg-pink-600'
+                                      : event.category === 'sports'
+                                        ? 'bg-emerald-600'
+                                        : 'bg-green-600'
+                            }`}
+                          >
+                            <span className="text-white text-xs font-bold">
+                              {event.category.charAt(0).toUpperCase()}
+                            </span>
                           </div>
                           <div className="flex-1">
-                            <p className="font-medium text-sm line-clamp-1 text-foreground">{event.title}</p>
+                            <p className="font-medium text-sm line-clamp-1 text-foreground">
+                              {event.title}
+                            </p>
                             <p className="text-muted-foreground text-xs">
                               {new Date(event.event_date).toLocaleDateString('en-US', {
                                 month: 'short',
-                                day: 'numeric'
+                                day: 'numeric',
                               })}
                             </p>
                           </div>
@@ -273,7 +277,12 @@ export default async function Home() {
                     <div className="flex items-center gap-2">
                       <h2 className="text-xl font-semibold text-foreground">Top Donors</h2>
                     </div>
-                    <Link href="/donate" className="text-green-600 dark:text-green-400 text-sm hover:underline">Donate</Link>
+                    <Link
+                      href="/donate"
+                      className="text-green-600 dark:text-green-400 text-sm hover:underline"
+                    >
+                      Donate
+                    </Link>
                   </div>
 
                   <div>
@@ -285,16 +294,22 @@ export default async function Home() {
                 <div className="bg-card border border-border rounded-xl p-5 shadow-lg">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-semibold text-foreground">Recent Projects</h2>
-                    <Link href="/product-hunt" className="text-green-600 dark:text-green-400 text-sm hover:underline">See All</Link>
+                    <Link
+                      href="/product-hunt"
+                      className="text-green-600 dark:text-green-400 text-sm hover:underline"
+                    >
+                      See All
+                    </Link>
                   </div>
 
                   <div className="space-y-3">
                     {products && products.length > 0 ? (
-                      products.map(product => (
+                      products.map((product) => (
                         <Link
                           href={`/product-hunt/${product.url}`}
                           key={product.id}
-                          className="flex items-center gap-3 p-3 bg-muted/30 hover:bg-accent transition-colors rounded-lg">
+                          className="flex items-center gap-3 p-3 bg-muted/30 hover:bg-accent transition-colors rounded-lg"
+                        >
                           <div className="w-10 h-10 bg-muted rounded-lg overflow-hidden">
                             {product.image_url ? (
                               <img
@@ -304,16 +319,20 @@ export default async function Home() {
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center bg-green-600">
-                                <span className="text-white text-sm font-bold">{product.name.charAt(0)}</span>
+                                <span className="text-white text-sm font-bold">
+                                  {product.name.charAt(0)}
+                                </span>
                               </div>
                             )}
                           </div>
                           <div className="flex-1">
-                            <p className="font-medium text-sm line-clamp-1 text-foreground">{product.name}</p>
+                            <p className="font-medium text-sm line-clamp-1 text-foreground">
+                              {product.name}
+                            </p>
                             <p className="text-muted-foreground text-xs">
                               {new Date(product.created_at).toLocaleDateString('en-US', {
                                 month: 'short',
-                                day: 'numeric'
+                                day: 'numeric',
                               })}
                             </p>
                           </div>
@@ -330,5 +349,5 @@ export default async function Home() {
         </div>
       </div>
     </Layout>
-  )
+  );
 }

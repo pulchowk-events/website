@@ -17,7 +17,7 @@ const IGNORED_URL_PATTERNS = [
 ];
 
 const MIN_DELAY_BEFORE_SHOW = 800; // ms — don't show for fast ops
-const MAX_LOADER_DURATION = 15000; // ms — force-hide if stuck
+const MAX_LOADER_DURATION = 7000; // ms — force-hide if stuck
 
 let pendingCount = 0;
 let showTimer: ReturnType<typeof setTimeout> | null = null;

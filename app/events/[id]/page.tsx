@@ -1,10 +1,10 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { createServerSupabaseClient } from '@/app/lib/supabase-server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/auth';
 import Layout from '@/app/components/layout/Layout';
 import EventDetail from '@/app/components/events/EventDetail';
+import { getEventById } from '@/app/lib/queries';
 
 export const revalidate = 60;
 
@@ -16,19 +16,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   if (!id) return { title: 'Event Not Found | Pulchowk Events' };
 
-  const supabase = createServerSupabaseClient();
-  const { data: event } = await supabase
-    .from('events')
-    .select('title, description, image_url, event_date, location')
-    .eq('id', id)
-    .eq('verified', true)
-    .single();
+  const event = await getEventById(id);
+  if (!event) return { title: 'Event Not Found | Pulchowk Events' };
 
-  if (!event) {
-    return { title: 'Event Not Found | Pulchowk Events' };
-  }
-
-  const description = (event.description || '').slice(0, 160).replace(/\s+/g, ' ').trim();
+  const description = (event.description || '')
+    .slice(0, 160)
+    .replace(/\s+/g, ' ')
+    .trim();
   const eventDate = new Date(event.event_date).toLocaleDateString('en-US', {
     month: 'long',
     day: 'numeric',
@@ -37,16 +31,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: `${event.title} | Pulchowk Events`,
-    description: description || `${event.title} on ${eventDate}${event.location ? ` at ${event.location}` : ''}.`,
+    description:
+      description ||
+      `${event.title} on ${eventDate}${event.location ? ` at ${event.location}` : ''}.`,
     openGraph: {
       title: event.title,
-      description: description,
+      description,
       images: event.image_url ? [event.image_url] : [],
       type: 'article',
     },
-    alternates: {
-      canonical: `/events/${id}`,
-    },
+    alternates: { canonical: `/events/${id}` },
   };
 }
 
@@ -54,33 +48,15 @@ export default async function EventPage({ params }: Props) {
   const { id } = await params;
   if (!id) notFound();
 
-  const supabase = createServerSupabaseClient();
+  const event = await getEventById(id);
+  if (!event) notFound();
+
   const session = await getServerSession(authOptions);
-
-  const { data: event, error } = await supabase
-    .from('events')
-    .select(
-      `
-      *,
-      author:created_by (
-        id,
-        name,
-        image,
-        email
-      )
-    `
-    )
-    .eq('id', id)
-    .eq('verified', true)
-    .single();
-
-  if (error || !event) notFound();
-
   let isAdmin = false;
   if (session?.user?.email) {
     try {
       const response = await fetch(
-        `${process.env.NEXTAUTH_URL}/api/admin/checkAdmin?email=${session.user.email}`,
+        `${process.env.NEXTAUTH_URL}/api/admin/checkAdmin?email=${encodeURIComponent(session.user.email)}`,
         { cache: 'no-store' }
       );
       const { isAdmin: adminStatus } = await response.json();

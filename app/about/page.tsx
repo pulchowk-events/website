@@ -1,65 +1,37 @@
 import Layout from '@/app/components/layout/Layout';
 import Link from 'next/link';
-import Image from 'next/image';
-import { TrendingUp, Users, Award, Star, MessageCircle, CalendarCheck, ClipboardList, Network, Shield, User, ExternalLink, ArrowRight, BookOpen } from 'lucide-react';
-import { supabase } from '@/app/lib/supabase';
+import {
+  TrendingUp,
+  Users,
+  Award,
+  Star,
+  MessageCircle,
+  CalendarCheck,
+  ClipboardList,
+  Network,
+  Shield,
+  User,
+  ExternalLink,
+  BookOpen,
+} from 'lucide-react';
 import PrizePoolProgress from '@/app/components/donate/SmPrizePoolProgress';
 import TopDonators from '@/app/components/donate/TopDonators';
+import { getSidebarData } from '@/app/lib/queries';
 
-export const revalidate = 0;
+export const revalidate = 60;
 
 export default async function AboutPage() {
-  const { data: prizePool } = await supabase
-    .from('prize_pool')
-    .select('target_amount')
-    .single();
+  // Cached — shared with /events, /product-hunt, /, /search sidebars.
+  // One cache entry per 60s window regardless of which page loads first.
+  const { prizePool: prizePoolData, donors, products, upcomingEvents } =
+    await getSidebarData();
 
-  const { data: verifiedDonations } = await supabase
-    .from('donations')
-    .select('amount')
-    .eq('verified', true);
-
-  const current_amount = verifiedDonations?.reduce(
-    (sum, donation) => sum + donation.amount,
-    0
-  ) || 0;
-
-  const { count: total_donors } = await supabase
-    .from('donations')
-    .select('*', { count: 'exact' })
-    .eq('verified', true);
-
-  const { data: topDonators } = await supabase
-    .from('donations')
-    .select('id, name, amount, avatar_url')
-    .eq('show_on_leaderboard', true)
-    .eq('verified', true)
-    .order('amount', { ascending: false })
-    .limit(5);
-
-  const { data: events } = await supabase
-    .from('events')
-    .select(`
-      id,
-      title,
-      event_date,
-      category,
-      author:created_by (
-        name,
-        image
-      )
-    `)
-    .eq('verified', true)
-    .gte('event_date', new Date().toISOString())
-    .order('event_date', { ascending: true })
-    .limit(3);
-
-  const { data: products } = await supabase
-    .from('products')
-    .select('id, name, image_url, created_at, url')
-    .eq('approved', true)
-    .order('created_at', { ascending: false })
-    .limit(3);
+  // Aliased to the names the existing JSX expects
+  const current_amount = prizePoolData.currentAmount;
+  const total_donors = prizePoolData.totalDonors;
+  const prizePool = { target_amount: prizePoolData.targetAmount };
+  const topDonators = donors;
+  const events = upcomingEvents;
 
   return (
     <Layout>
@@ -87,7 +59,9 @@ export default async function AboutPage() {
                       </div>
                       <span className="font-medium text-foreground">Join Discord</span>
                     </div>
-                    <span className="bg-muted rounded-full px-2.5 py-1 text-xs text-foreground">1,050</span>
+                    <span className="bg-muted rounded-full px-2.5 py-1 text-xs text-foreground">
+                      1,050
+                    </span>
                   </a>
 
                   <div className="pt-2">
@@ -113,7 +87,9 @@ export default async function AboutPage() {
                     <div className="bg-purple-600 p-2.5 rounded-lg">
                       <Star className="w-6 h-6 text-white" />
                     </div>
-                    <h1 className="text-3xl font-bold text-foreground">Welcome to Pulchowk Events</h1>
+                    <h1 className="text-3xl font-bold text-foreground">
+                      Welcome to Pulchowk Events
+                    </h1>
                   </div>
                   <p className="mt-4 text-muted-foreground text-lg leading-relaxed">
                     Your dynamic portal to campus happenings, where news, events, and opportunities
@@ -133,8 +109,9 @@ export default async function AboutPage() {
                     <h2 className="text-xl font-semibold text-foreground">Discover Us</h2>
                   </div>
                   <p className="text-muted-foreground leading-relaxed">
-                    Welcome to the vibrant community of Pulchowk Events! We're your dynamic portal to campus happenings,
-                    where news, events, and opportunities converge to enrich your academic journey.
+                    Welcome to the vibrant community of Pulchowk Events! We're your dynamic portal
+                    to campus happenings, where news, events, and opportunities converge to enrich
+                    your academic journey.
                   </p>
                 </div>
 
@@ -147,9 +124,14 @@ export default async function AboutPage() {
                     <h2 className="text-xl font-semibold text-foreground">Inclusive Gatherings</h2>
                   </div>
                   <p className="text-muted-foreground leading-relaxed">
-                    Our events come in two flavors: <span className="text-green-600 dark:text-green-400 font-medium">Open</span> (accessible to all, pinged)
-                    and <span className="text-purple-600 dark:text-purple-400 font-medium">Exclusive</span> (tailored for Pulchowk students, non pinged),
-                    ensuring a diverse and inclusive experience for every attendee.
+                    Our events come in two flavors:{' '}
+                    <span className="text-green-600 dark:text-green-400 font-medium">Open</span>{' '}
+                    (accessible to all, pinged) and{' '}
+                    <span className="text-purple-600 dark:text-purple-400 font-medium">
+                      Exclusive
+                    </span>{' '}
+                    (tailored for Pulchowk students, non pinged), ensuring a diverse and inclusive
+                    experience for every attendee.
                   </p>
                 </div>
 
@@ -162,8 +144,8 @@ export default async function AboutPage() {
                     <h2 className="text-xl font-semibold text-foreground">Club Enrollment</h2>
                   </div>
                   <p className="text-muted-foreground leading-relaxed mb-3">
-                    Calling all IOE clubs! Enroll your club via our Google Form to share updates and actively
-                    contribute to our lively platform.
+                    Calling all IOE clubs! Enroll your club via our Google Form to share updates and
+                    actively contribute to our lively platform.
                   </p>
                   <a
                     href="https://forms.gle/gjburXWczani9S6y7"
@@ -185,8 +167,8 @@ export default async function AboutPage() {
                     <h2 className="text-xl font-semibold text-foreground">Join Our Network</h2>
                   </div>
                   <p className="text-muted-foreground leading-relaxed">
-                    Got a Discord server for your club? Connect with us through our Google Form to seamlessly
-                    integrate your announcements and engage with our community.
+                    Got a Discord server for your club? Connect with us through our Google Form to
+                    seamlessly integrate your announcements and engage with our community.
                   </p>
                 </div>
               </div>
@@ -202,10 +184,13 @@ export default async function AboutPage() {
                       <Shield className="w-5 h-5 text-indigo-700 dark:text-indigo-300" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-foreground mb-2">Demystifying Myths</h3>
+                      <h3 className="text-lg font-semibold text-foreground mb-2">
+                        Demystifying Myths
+                      </h3>
                       <p className="text-muted-foreground leading-relaxed">
-                        We're debunking the misconception that clubs and workshops are reserved solely for
-                        Pulchowk students. Everyone is encouraged to participate and collaborate with us.
+                        We're debunking the misconception that clubs and workshops are reserved
+                        solely for Pulchowk students. Everyone is encouraged to participate and
+                        collaborate with us.
                       </p>
                     </div>
                   </div>
@@ -216,7 +201,9 @@ export default async function AboutPage() {
                       <User className="w-5 h-5 text-green-700 dark:text-green-300" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-foreground mb-2">For Students, By Students</h3>
+                      <h3 className="text-lg font-semibold text-foreground mb-2">
+                        For Students, By Students
+                      </h3>
                       <p className="text-muted-foreground leading-relaxed">
                         Pulchowk Events is a student-driven initiative, fostering an environment of
                         peer-to-peer knowledge exchange and opportunity exploration.
@@ -239,19 +226,33 @@ export default async function AboutPage() {
                     className="bg-indigo-200 hover:bg-indigo-300 dark:bg-indigo-600/30 dark:hover:bg-indigo-600/50 transition-colors p-4 rounded-xl flex items-center gap-3"
                   >
                     <div className="bg-indigo-600 p-2 rounded-lg">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                        <circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/>
-                        <path d="M7.5 7.2C8.7 6.47 10.2 6 12 6c1.8 0 3.3.47 4.5 1.2"/>
-                        <path d="M7.5 16.8C8.7 17.53 10.2 18 12 18c1.8 0 3.3-.47 4.5-1.2"/>
-                        <path d="M15.5 17 17 20l2-3 1.5.5-1-2.5"/>
-                        <path d="M8.5 17 7 20l-2-3-1.5.5 1-2.5"/>
-                        <path d="M20 2a4.18 4.18 0 0 1-4 4 4.18 4.18 0 0 1-4-4 4.18 4.18 0 0 1 4-4 4.18 4.18 0 0 1 4 4Z"/>
-                        <path d="M18 6v12a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V6"/>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-white"
+                      >
+                        <circle cx="9" cy="12" r="1" />
+                        <circle cx="15" cy="12" r="1" />
+                        <path d="M7.5 7.2C8.7 6.47 10.2 6 12 6c1.8 0 3.3.47 4.5 1.2" />
+                        <path d="M7.5 16.8C8.7 17.53 10.2 18 12 18c1.8 0 3.3-.47 4.5-1.2" />
+                        <path d="M15.5 17 17 20l2-3 1.5.5-1-2.5" />
+                        <path d="M8.5 17 7 20l-2-3-1.5.5 1-2.5" />
+                        <path d="M20 2a4.18 4.18 0 0 1-4 4 4.18 4.18 0 0 1-4-4 4.18 4.18 0 0 1 4-4 4.18 4.18 0 0 1 4 4Z" />
+                        <path d="M18 6v12a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V6" />
                       </svg>
                     </div>
                     <div>
                       <p className="font-medium text-foreground">Join Our Discord</p>
-                      <p className="text-indigo-700 dark:text-indigo-200 text-sm">discord.gg/cQ5gxusATk</p>
+                      <p className="text-indigo-700 dark:text-indigo-200 text-sm">
+                        discord.gg/cQ5gxusATk
+                      </p>
                     </div>
                     <ExternalLink className="ml-auto w-5 h-5 text-indigo-700 dark:text-indigo-200" />
                   </a>
@@ -268,7 +269,9 @@ export default async function AboutPage() {
                     </div>
                     <div>
                       <p className="font-medium text-foreground">Shortened Link</p>
-                      <p className="text-green-700 dark:text-green-200 text-sm">bit.ly/PULCHOWK</p>
+                      <p className="text-green-700 dark:text-green-200 text-sm">
+                        bit.ly/PULCHOWK
+                      </p>
                     </div>
                     <ExternalLink className="ml-auto w-5 h-5 text-green-700 dark:text-green-200" />
                   </a>
@@ -281,20 +284,35 @@ export default async function AboutPage() {
                     <h3 className="text-lg font-semibold text-foreground">Access Channel</h3>
                   </div>
                   <p className="text-muted-foreground mb-4">
-                    Visit the <span className="bg-muted px-1.5 py-0.5 rounded text-foreground">#access-channel</span> for
-                    event notifications and channel permissions.
+                    Visit the{' '}
+                    <span className="bg-muted px-1.5 py-0.5 rounded text-foreground">
+                      #access-channel
+                    </span>{' '}
+                    for event notifications and channel permissions.
                   </p>
 
                   <div className="bg-yellow-50 border border-yellow-200 dark:bg-yellow-600/20 dark:border-yellow-500/30 rounded-lg p-3 flex items-start gap-3">
                     <div className="bg-yellow-500 p-1 rounded">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-900">
-                        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
-                        <path d="M12 9v4"/>
-                        <path d="M12 17h.01"/>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-yellow-900"
+                      >
+                        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                        <path d="M12 9v4" />
+                        <path d="M12 17h.01" />
                       </svg>
                     </div>
                     <p className="text-yellow-800 dark:text-yellow-200 text-sm">
-                      <strong>Bonus tip:</strong> Follow event channels and get updates for upcoming events directly into your server!
+                      <strong>Bonus tip:</strong> Follow event channels and get updates for
+                      upcoming events directly into your server!
                     </p>
                   </div>
                 </div>
@@ -305,32 +323,49 @@ export default async function AboutPage() {
                 <div className="bg-card border border-border rounded-xl p-4 shadow-lg">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-lg font-semibold text-foreground">Recent Events</h2>
-                    <Link href="/events" className="text-green-600 dark:text-green-400 text-sm hover:underline">See All</Link>
+                    <Link
+                      href="/events"
+                      className="text-green-600 dark:text-green-400 text-sm hover:underline"
+                    >
+                      See All
+                    </Link>
                   </div>
 
                   <div className="space-y-3">
                     {events && events.length > 0 ? (
-                      events.map(event => (
+                      events.map((event) => (
                         <Link
-                          href={`/events`}
+                          href={`/events/${event.id}`}
                           key={event.id}
                           className="flex items-center gap-3 p-3 bg-muted/30 hover:bg-accent transition-colors rounded-lg"
                         >
-                          <div className={`bg-green-600 rounded-lg p-2 ${
-                            event.category === 'software' ? 'bg-blue-600' :
-                            event.category === 'gaming' ? 'bg-purple-600' :
-                            event.category === 'hardware' ? 'bg-amber-600' :
-                            event.category === 'music' ? 'bg-pink-600' :
-                            event.category === 'sports' ? 'bg-emerald-600' : 'bg-green-600'
-                          }`}>
-                            <span className="text-white text-xs font-bold">{event.category.charAt(0).toUpperCase()}</span>
+                          <div
+                            className={`bg-green-600 rounded-lg p-2 ${
+                              event.category === 'software'
+                                ? 'bg-blue-600'
+                                : event.category === 'gaming'
+                                ? 'bg-purple-600'
+                                : event.category === 'hardware'
+                                ? 'bg-amber-600'
+                                : event.category === 'music'
+                                ? 'bg-pink-600'
+                                : event.category === 'sports'
+                                ? 'bg-emerald-600'
+                                : 'bg-green-600'
+                            }`}
+                          >
+                            <span className="text-white text-xs font-bold">
+                              {event.category.charAt(0).toUpperCase()}
+                            </span>
                           </div>
                           <div className="flex-1">
-                            <p className="font-medium text-sm line-clamp-1 text-foreground">{event.title}</p>
+                            <p className="font-medium text-sm line-clamp-1 text-foreground">
+                              {event.title}
+                            </p>
                             <p className="text-muted-foreground text-xs">
                               {new Date(event.event_date).toLocaleDateString('en-US', {
                                 month: 'short',
-                                day: 'numeric'
+                                day: 'numeric',
                               })}
                             </p>
                           </div>
@@ -348,7 +383,12 @@ export default async function AboutPage() {
                       <Award className="h-5 w-5 text-green-600 dark:text-green-400" />
                       <h2 className="text-lg font-semibold text-foreground">Top Donors</h2>
                     </div>
-                    <Link href="/donate" className="text-green-600 dark:text-green-400 text-sm hover:underline">Donate</Link>
+                    <Link
+                      href="/donate"
+                      className="text-green-600 dark:text-green-400 text-sm hover:underline"
+                    >
+                      Donate
+                    </Link>
                   </div>
 
                   <div>
@@ -359,12 +399,17 @@ export default async function AboutPage() {
                 <div className="bg-card border border-border rounded-xl p-4 shadow-lg">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-lg font-semibold text-foreground">Recent Projects</h2>
-                    <Link href="/product-hunt" className="text-green-600 dark:text-green-400 text-sm hover:underline">See All</Link>
+                    <Link
+                      href="/product-hunt"
+                      className="text-green-600 dark:text-green-400 text-sm hover:underline"
+                    >
+                      See All
+                    </Link>
                   </div>
 
                   <div className="space-y-3">
                     {products && products.length > 0 ? (
-                      products.map(product => (
+                      products.map((product) => (
                         <Link
                           href={`/product-hunt/${product.url}`}
                           key={product.id}
@@ -379,16 +424,20 @@ export default async function AboutPage() {
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center bg-green-600">
-                                <span className="text-white text-sm font-bold">{product.name.charAt(0)}</span>
+                                <span className="text-white text-sm font-bold">
+                                  {product.name.charAt(0)}
+                                </span>
                               </div>
                             )}
                           </div>
                           <div className="flex-1">
-                            <p className="font-medium text-sm line-clamp-1 text-foreground">{product.name}</p>
+                            <p className="font-medium text-sm line-clamp-1 text-foreground">
+                              {product.name}
+                            </p>
                             <p className="text-muted-foreground text-xs">
                               {new Date(product.created_at).toLocaleDateString('en-US', {
                                 month: 'short',
-                                day: 'numeric'
+                                day: 'numeric',
                               })}
                             </p>
                           </div>
@@ -408,32 +457,49 @@ export default async function AboutPage() {
                 <div className="bg-card border border-border rounded-xl p-5 shadow-lg">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-semibold text-foreground">Events</h2>
-                    <Link href="/events" className="text-green-600 dark:text-green-400 text-sm hover:underline">See All</Link>
+                    <Link
+                      href="/events"
+                      className="text-green-600 dark:text-green-400 text-sm hover:underline"
+                    >
+                      See All
+                    </Link>
                   </div>
 
                   <div className="space-y-3">
                     {events && events.length > 0 ? (
-                      events.map(event => (
+                      events.map((event) => (
                         <Link
-                          href={`/events`}
+                          href={`/events/${event.id}`}
                           key={event.id}
                           className="flex items-center gap-3 p-3 bg-muted/30 hover:bg-accent transition-colors rounded-lg"
                         >
-                          <div className={`bg-green-600 rounded-lg px-3 py-1 ${
-                            event.category === 'software' ? 'bg-blue-600' :
-                            event.category === 'gaming' ? 'bg-purple-600' :
-                            event.category === 'hardware' ? 'bg-amber-600' :
-                            event.category === 'music' ? 'bg-pink-600' :
-                            event.category === 'sports' ? 'bg-emerald-600' : 'bg-green-600'
-                          }`}>
-                            <span className="text-white text-xs font-bold">{event.category.charAt(0).toUpperCase()}</span>
+                          <div
+                            className={`bg-green-600 rounded-lg px-3 py-1 ${
+                              event.category === 'software'
+                                ? 'bg-blue-600'
+                                : event.category === 'gaming'
+                                ? 'bg-purple-600'
+                                : event.category === 'hardware'
+                                ? 'bg-amber-600'
+                                : event.category === 'music'
+                                ? 'bg-pink-600'
+                                : event.category === 'sports'
+                                ? 'bg-emerald-600'
+                                : 'bg-green-600'
+                            }`}
+                          >
+                            <span className="text-white text-xs font-bold">
+                              {event.category.charAt(0).toUpperCase()}
+                            </span>
                           </div>
                           <div className="flex-1">
-                            <p className="font-medium text-sm line-clamp-1 text-foreground">{event.title}</p>
+                            <p className="font-medium text-sm line-clamp-1 text-foreground">
+                              {event.title}
+                            </p>
                             <p className="text-muted-foreground text-xs">
                               {new Date(event.event_date).toLocaleDateString('en-US', {
                                 month: 'short',
-                                day: 'numeric'
+                                day: 'numeric',
                               })}
                             </p>
                           </div>
@@ -450,7 +516,12 @@ export default async function AboutPage() {
                     <div className="flex items-center gap-2">
                       <h2 className="text-xl font-semibold text-foreground">Top Donors</h2>
                     </div>
-                    <Link href="/donate" className="text-green-600 dark:text-green-400 text-sm hover:underline">Donate</Link>
+                    <Link
+                      href="/donate"
+                      className="text-green-600 dark:text-green-400 text-sm hover:underline"
+                    >
+                      Donate
+                    </Link>
                   </div>
 
                   <div>
@@ -461,12 +532,17 @@ export default async function AboutPage() {
                 <div className="bg-card border border-border rounded-xl p-5 shadow-lg">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-semibold text-foreground">Recent Projects</h2>
-                    <Link href="/product-hunt" className="text-green-600 dark:text-green-400 text-sm hover:underline">See All</Link>
+                    <Link
+                      href="/product-hunt"
+                      className="text-green-600 dark:text-green-400 text-sm hover:underline"
+                    >
+                      See All
+                    </Link>
                   </div>
 
                   <div className="space-y-3">
                     {products && products.length > 0 ? (
-                      products.map(product => (
+                      products.map((product) => (
                         <Link
                           href={`/product-hunt/${product.url}`}
                           key={product.id}
@@ -481,16 +557,20 @@ export default async function AboutPage() {
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center bg-green-600">
-                                <span className="text-white text-sm font-bold">{product.name.charAt(0)}</span>
+                                <span className="text-white text-sm font-bold">
+                                  {product.name.charAt(0)}
+                                </span>
                               </div>
                             )}
                           </div>
                           <div className="flex-1">
-                            <p className="font-medium text-sm line-clamp-1 text-foreground">{product.name}</p>
+                            <p className="font-medium text-sm line-clamp-1 text-foreground">
+                              {product.name}
+                            </p>
                             <p className="text-muted-foreground text-xs">
                               {new Date(product.created_at).toLocaleDateString('en-US', {
                                 month: 'short',
-                                day: 'numeric'
+                                day: 'numeric',
                               })}
                             </p>
                           </div>

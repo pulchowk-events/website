@@ -1,18 +1,20 @@
 'use client';
 
-import { useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { Suspense, useEffect } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { showLoader, hideLoader } from '@/app/lib/loader';
 
-export default function NavigationLoader() {
+function NavigationLoaderInner() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-  // Start loader on link click
+  // Combined key so BOTH path AND query changes trigger hide
+  const routeKey = `${pathname}?${searchParams.toString()}`;
+
+  // Start loader on click (unchanged logic — still needed)
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || e.button !== 0) {
-        return;
-      }
+      if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || e.button !== 0) return;
 
       const anchor = (e.target as HTMLElement).closest('a');
       if (!anchor) return;
@@ -28,36 +30,40 @@ export default function NavigationLoader() {
         href.startsWith('tel:') ||
         anchor.target === '_blank' ||
         anchor.hasAttribute('download')
-      ) {
-        return;
-      }
+      ) return;
 
-      // Same page? don't show loader
-      if (href === pathname) return;
+      // Skip if navigating to the exact URL we're already on
+      const currentUrl = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+      if (href === currentUrl || href === pathname) return;
 
       showLoader();
     };
 
-    const handlePopState = () => {
-      showLoader();
-    };
+    const handlePopState = () => showLoader();
 
     document.addEventListener('click', handleClick);
     window.addEventListener('popstate', handlePopState);
-
     return () => {
       document.removeEventListener('click', handleClick);
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [pathname]);
+  }, [pathname, searchParams]);
 
-  // Stop loader when the new page has rendered
+  // Stop loader on ANY route change — path or query
   useEffect(() => {
-    // Small delay so the loader doesn't blink-off and on again if
-    // the route re-renders quickly (e.g., search params change)
     const t = setTimeout(() => hideLoader(), 50);
     return () => clearTimeout(t);
-  }, [pathname]);
+  }, [routeKey]);
 
   return null;
+}
+
+// Suspense boundary required because useSearchParams opts the tree into
+// dynamic rendering in Next 15+. Root layout mounts this.
+export default function NavigationLoader() {
+  return (
+    <Suspense fallback={null}>
+      <NavigationLoaderInner />
+    </Suspense>
+  );
 }
