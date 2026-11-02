@@ -59,16 +59,25 @@ export default function EventDetail({
   const authorName = event.author?.name || 'Anonymous';
   const authorId = event.created_by || 'anonymous';
 
-  // Button logic per requirement:
-  // - If source_url and form_link are the SAME → single "Join Discord Server" button
-  // - If they're DIFFERENT → "Register for Event" + "View Original Listing"
-  // - If only form_link → "Register for Event"
+  // Button logic:
+  //   - Register for Event: always shown when there's a form URL and event
+  //     isn't past.
+  //   - If source_url === form_link (same page — the listing IS the
+  //     registration): show "Join Discord Server" as the secondary CTA
+  //     instead of a duplicate "View Original Listing" link.
+  //   - If they're different: show "View Original Listing" as the
+  //     secondary CTA.
+  //   - Past event: no CTAs, "This event has ended" message only.
   const sourceUrl = event.source_url;
   const formUrl = event.form_link;
-  const linksAreSame = !!(sourceUrl && formUrl && sourceUrl.toLowerCase() === formUrl.toLowerCase());
-  const showRegister = !isPast && !!formUrl && !linksAreSame;
-  const showDiscord = !isPast && formUrl && linksAreSame;
-  const showSource = !!sourceUrl && !linksAreSame;
+  const linksAreSame =
+    !!(sourceUrl && formUrl && sourceUrl.trim().toLowerCase() === formUrl.trim().toLowerCase());
+
+  const showRegister = !isPast && !!formUrl;
+  const showDiscord = !isPast && !!formUrl && linksAreSame;
+  const showSource = !isPast && !!sourceUrl && !linksAreSame;
+
+  const hasAnyCTA = showRegister || showDiscord || showSource;
 
   return (
     <article className="space-y-6">
@@ -175,7 +184,10 @@ export default function EventDetail({
                 {isBotEvent ? 'Curated by' : 'Created by'}
               </dt>
               <dd>
-                <Link href={`/profile/${authorId}`} className="text-foreground hover:text-green-600 dark:hover:text-green-400">
+                <Link
+                  href={`/profile/${authorId}`}
+                  className="text-foreground hover:text-green-600 dark:hover:text-green-400"
+                >
                   {authorName}
                 </Link>
               </dd>
@@ -193,7 +205,7 @@ export default function EventDetail({
       )}
 
       {/* CTAs */}
-      {(showRegister || showDiscord || showSource) ? (
+      {hasAnyCTA ? (
         <div className="flex flex-col sm:flex-row gap-3">
           {showRegister && formUrl && (
             <a

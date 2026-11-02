@@ -92,22 +92,16 @@ export default function JobDetail({ job }: { job: Job }) {
       {/* Header */}
       <header className="bg-card border border-border rounded-xl p-6 sm:p-8">
         <div className="flex items-start gap-5 mb-6">
-          <div className="w-20 h-20 rounded-xl bg-muted flex-shrink-0 overflow-hidden">
-            {job.image_url ? (
-              <Image
-                src={job.image_url}
+        <div className="w-20 h-20 rounded-xl bg-muted flex-shrink-0 overflow-hidden">
+            <Image
+                src={job.image_url || '/default-job.jpg'}
                 alt={job.company}
                 width={80}
                 height={80}
                 unoptimized
                 className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-green-600 text-white font-bold text-2xl">
-                {job.company.charAt(0).toUpperCase()}
-              </div>
-            )}
-          </div>
+            />
+            </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
               {job.title}

@@ -35,25 +35,19 @@ export default function JobCard({ job }: { job: Job }) {
 
   return (
     <Link href={`/jobs/${job.id}`}>
-      <article className="bg-card border border-border rounded-xl p-5 hover:border-green-500/50 hover:shadow-lg transition-all group">
+      <article className="bg-card border border-border rounded-xl p-5 hover:border-green-500/50 hover:shadow-lg transition-all mb-4 group">
         <div className="flex items-start gap-4">
           {/* Company logo */}
-          <div className="w-14 h-14 rounded-lg bg-muted flex-shrink-0 overflow-hidden">
-            {job.image_url ? (
-              <Image
-                src={job.image_url}
+            <div className="w-14 h-14 rounded-lg bg-muted flex-shrink-0 overflow-hidden">
+            <Image
+                src={job.image_url || '/default-job.jpg'}
                 alt={job.company}
                 width={56}
                 height={56}
                 unoptimized
                 className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-green-600 text-white font-bold text-lg">
-                {job.company.charAt(0).toUpperCase()}
-              </div>
-            )}
-          </div>
+            />
+            </div>
 
           {/* Main content */}
           <div className="flex-1 min-w-0">

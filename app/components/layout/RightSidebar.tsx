@@ -31,7 +31,7 @@ export default async function RightSidebar({ exclude = [] }: { exclude?: Sidebar
                 >
                   <div className="w-10 h-10 bg-muted rounded-lg overflow-hidden flex-shrink-0">
                     {job.image_url ? (
-                      <img src={job.image_url} alt={job.company} className="w-full h-full object-cover" />
+                      <img src={job.image_url || '/default-job.jpg'} alt={job.company} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-green-600">
                         <span className="text-white text-sm font-bold">{job.company.charAt(0)}</span>
