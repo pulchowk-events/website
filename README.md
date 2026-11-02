@@ -1,204 +1,169 @@
+<img width="1920" height="400" alt="Pulchowk Events" src="https://github.com/user-attachments/assets/4aeb44d8-af5e-46cf-9084-1d2857360c45" />
+
 # Pulchowk Events
 
-A web platform for discovering, sharing, and managing events and student projects across Nepal's educational institutions. Browse campus events, showcase projects in Product Hunt, vote and comment, post in the community lounge, and manage everything from a dedicated admin dashboard.
+> A community platform for campus events, student projects, and engineering jobs across Nepal.
 
-The app runs on Next.js 16 with Supabase for data and storage, and NextAuth for Discord and Google sign-in. Everything is server-rendered where it matters and interactive where it should be.
+[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org)
+[![Supabase](https://img.shields.io/badge/Supabase-Postgres-3ECF8E)](https://supabase.com)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
+
+Every week, hackathons, workshops, internships and jobs are announced across a dozen different places — Discord servers, Facebook groups, college noticeboards, and event listings scattered over half a dozen websites. Students find out about most of them too late, or not at all. **Pulchowk Events brings the useful signal into one place.**
+
+The site lists verified campus events, showcases student projects in a Product Hunt–style leaderboard, hosts a community lounge for discussions, tracks a prize pool for student investing competitions, and adds a jobs board drawn from Nepal's top engineering recruiters. A Discord bot scrapes events and jobs from ten sources, runs every item through deduplication and quality checks, posts the vetted results to a community of 5,000+ students, and syncs them to the website within seconds.
+
+The goal is a fast, discoverable, community-run index of what's actually happening — not another event aggregator that dumps scraped noise onto a page.
 
 [Join the Discord](https://discord.gg/cQ5gxusATk)
 
-<img width="1920" height="400" alt="PULCHOWK_EVENTS" src="https://github.com/user-attachments/assets/4aeb44d8-af5e-46cf-9084-1d2857360c45" />
+## What's on the site
+
+**Events.** Campus events scraped from Khalti, KataJaam, NepVents and Kgarira, deduplicated against each other, quality-gated, categorised, and shown on a paginated feed. Filter by tab, category, month, or city.
+
+**Jobs.** Roles from Merojob, SathiJob, InternSathi and KumariJob in a filterable board with structured `JobPosting` schema, so individual listings surface in Google's job-search results.
+
+**Product Hunt.** A vote-ranked leaderboard for student-built projects. Each project has its own page with comments and a cooldown-gated voting system.
+
+**Community Lounge.** A category-tagged feed for discussions, opportunities, tech help, and showcases, with threaded comments and community moderation.
+
+**Donations.** A verified prize pool with a progress bar and top-donors leaderboard. Every verified dollar goes to student competitions and merit-based awards.
+
+**Admin dashboard.** Moderation, user management, event and product approval, donation verification, and notification broadcasts — all under one route.
+
+## How it works
+
+The project is two systems that hand off to each other.
+
+**The website** is a Next.js App Router application. Pages are server components; data comes from Supabase through a cached query layer (`unstable_cache` with tag-based invalidation). A small set of client components — the theme toggle, the global loading overlay, the modal forms — handle interaction. Every detail page ships with JSON-LD structured data, dynamic OG images, and a 60-second ISR cache.
+
+**The pipeline** is a separate Node.js process running a Discord bot. Each scrape hits every source in parallel, normalises results into a shared shape, and runs each item through a gate: title normalisation, fuzzy deduplication against the pending queue, image validity, data-quality warnings, and lead-time checks. Items that pass sit in a pending queue for admin review inside Discord. Once posted to a Discord channel, they're synced to the website's Supabase via `websiteSync.js` — batched upserts on a deterministic ID, followed by a webhook that clears the site's cache so new content appears within seconds of the Discord post. **This discord pipeline is NOT PUBLISHED in this repository.**
+
+The two Supabase projects are independent. The bot holds the full ingestion state, including items that never make it to the website. The website only receives events and jobs that already passed every gate, so no human review is required on the website side.
 
 ## Tech stack
 
-Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4, Radix UI, Framer Motion, Headless UI and Sonner for the interface. Supabase for database and storage, NextAuth for authentication, Zod for input validation.
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 16 (App Router), React 19 |
+| Language | TypeScript 5 |
+| Styling | Tailwind CSS v4, Radix UI, Headless UI, Framer Motion |
+| Database | Supabase (Postgres + Storage) |
+| Authentication | NextAuth (Discord + Google OAuth) |
+| Validation | Zod |
+| Bot | Node.js, Puppeteer, discord.js |
+| Hosting | Netlify |
+| Analytics | Google Analytics 4 |
 
+## Getting started
 
-## Project structure
+You need Node.js 20.9 or newer, a Supabase project, OAuth apps for Discord and Google, and optionally a running bot instance. The site renders with empty data if no bot has synced yet.
 
-```
-pulchowk-events/
-├── app/
-│   ├── actions/          # Server actions (voting, submissions)
-│   ├── api/              # Route handlers for lounge, products, votes, admin
-│   ├── auth/             # Sign-in and error pages
-│   ├── components/       # UI, admin, form and layout components
-│   ├── lib/              # Supabase clients and utilities
-│   ├── product-hunt/     # Product Hunt pages
-│   ├── lounge/           # Community lounge and post detail
-│   └── admin/            # Protected admin dashboard
-├── components/           # Shared shadcn/ui and layout components
-├── lib/                  # Shared helpers
-├── types/                # TypeScript definitions
-├── proxy.ts              # Next.js 16 proxy (formerly middleware)
-├── auth.ts               # NextAuth configuration
-├── next.config.ts
-└── package.json
-```
-
-## Prerequisites
-
-- Node.js 20.9 or newer
-- A Supabase project (database and storage)
-- A Discord application (OAuth2 credentials)
-- A Google Cloud project (OAuth2 credentials)
-
-## Setup
-
-1. Clone the repository:
+**1. Clone and install:**
 
 ```bash
 git clone https://github.com/pulchowk-events/website.git
 cd pulchowk-events
-```
-
-2. Install dependencies:
-
-```bash
 npm install
 ```
 
-3. Create `.env.local` in the project root:
+**2. Create `.env.local` with the following variables:**
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
 
+# NextAuth
 NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=generate_with_openssl_rand_hex_32
+NEXTAUTH_SECRET=               # openssl rand -hex 32
+DISCORD_CLIENT_ID=
+DISCORD_CLIENT_SECRET=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
 
-DISCORD_CLIENT_ID=your_discord_client_id
-DISCORD_CLIENT_SECRET=your_discord_client_secret
+# Cache revalidation (bot → site)
+REVALIDATE_SECRET=
 
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
+# Public config
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+NEXT_PUBLIC_GA_ID=             # optional
 ```
 
-4. In the Discord Developer Portal, add this exact redirect under OAuth2:
+**3. Register the OAuth redirects:**
 
-```
-http://localhost:3000/api/auth/callback/discord
-```
+- Discord Developer Portal → `http://localhost:3000/api/auth/callback/discord`
+- Google Cloud Console → `http://localhost:3000/api/auth/callback/google`
 
-5. In the Google Cloud Console, add this exact redirect under OAuth2:
-
-```
-http://localhost:3000/api/auth/callback/google
-```
-
-6. Run the development server:
+**4. Start the dev server:**
 
 ```bash
 npm run dev
 ```
 
-Open http://localhost:3000. Sign-in will fail until both redirect URIs are registered and `.env.local` is saved.
-
-## How it works
-
-The app uses the Next.js App Router. Route handlers under `app/api/` validate the session with `getServerSession(authOptions)` before touching Supabase, and use `createServerClient` from `@supabase/ssr` so the session cookies are honoured on every request.
-
-`proxy.ts` (Next.js 16's replacement for `middleware.ts`) runs on every protected path. It refreshes the Supabase session, checks the NextAuth JWT with `getToken`, and redirects unauthenticated users to `/auth/signin` with a `callbackUrl` so they land back where they started.
-
-Discord and Google are both configured in `auth.ts`. Discord uses NextAuth's built-in provider defaults with `issuer` set to `https://discord.com`, which satisfies the RFC 9207 `iss` check that Discord now returns. The `redirect` callback honours `callbackUrl` so users return to the page they tried to reach.
+Open `http://localhost:3000`. Sign-in will fail until both OAuth redirects are registered and `.env.local` is saved. Data pages will be empty until the bot has run its first sync.
 
 ## Scripts
 
-| Command | What it does |
-| --- | --- |
-| `npm run dev` | Start the dev server with Turbopack |
+| Command | Description |
+|---|---|
+| `npm run dev` | Start the dev server (Turbopack) |
 | `npm run build` | Production build |
 | `npm start` | Serve the production build |
 | `npm run lint` | Run ESLint across the project |
 
 ## Deployment
 
-The app is a standard Next.js application and deploys to Vercel without extra configuration. On the Vercel dashboard:
+The site deploys to Netlify without extra configuration.
 
-1. Set every variable from `.env.local` under Project Settings, Environment Variables. Use your production domain for `NEXTAUTH_URL`.
-2. Add `https://your-domain.com/api/auth/callback/discord` and `https://your-domain.com/api/auth/callback/google` to the Discord and Google consoles.
-3. Make sure the Supabase project has the `users`, `products`, `posts`, `comments`, `votes`, `events`, `donations`, `admins` and `notifications` tables and the `product-images` storage bucket.
+1. Set every variable from `.env.local` in Netlify → **Site settings → Environment variables**. Use the production domain for `NEXTAUTH_URL` and `NEXT_PUBLIC_SITE_URL`.
+2. Add the production OAuth redirect URIs to the Discord and Google consoles.
+3. Ensure the Supabase project has the `users`, `events`, `jobs`, `products`, `lounge_posts`, `lounge_comments`, `votes`, `donations`, `admins`, `prize_pool`, and `notifications` tables, plus the `product-images` storage bucket.
+4. Netlify's secrets scanner will flag `NEXT_PUBLIC_GA_ID` and other credential-shaped public variables. Add their names to `SECRETS_SCAN_OMIT_KEYS` in the build environment — every `NEXT_PUBLIC_*` variable is public by design.
 
-For self-hosting, `npm run build && npm start` behind a reverse proxy works the same as any Node server.
+For self-hosting, `npm run build && npm start` behind a reverse proxy works like any Node server.
 
-## Troubleshooting
+## Project structure
 
-| Problem | What to do |
-| --- | --- |
-| `OAuthCallback` error on Discord sign-in | Check that the Discord redirect URI matches exactly and that `NEXTAUTH_URL` has no trailing slash. Restart the dev server after editing `.env.local`. |
-| `issuer must be configured on the issuer` | Ensure `DiscordProvider` in `auth.ts` includes `issuer: "https://discord.com"`. |
-| `params is a Promise` in a dynamic route | The route handler or page must await `params` (and `searchParams`). This is the Next.js 16 async request API. |
-| `Module not found: @supabase/auth-helpers-nextjs` | The package is deprecated and was removed. Replace imports with `createServerClient` from `@supabase/ssr`. |
-| `upstream image response failed` for an avatar | The user's Discord or Google avatar URL is stale. The page still renders; refresh the session to pick up the new URL. |
-| Build fails on a route that calls `getServerSession` | Add `export const dynamic = 'force-dynamic'` to that route, or move the session read into a route handler instead of a static page. |
+```
+app/
+├── api/                 # Route handlers (events, jobs, products, lounge, votes, admin)
+├── components/          # UI, layout, forms, admin, markdown renderer
+├── lib/                 # Supabase clients, cached queries, SEO helpers
+├── events/              # Event listing, detail page, pSEO (month, location)
+├── jobs/                # Job listing, detail page, pSEO (role, company, skills)
+├── product-hunt/        # Product listing and detail
+├── lounge/              # Community posts and threaded comments
+├── about/               # About page
+├── admin/               # Protected admin dashboard
+├── auth/                # Sign-in and error pages
+└── layout.tsx           # Root layout, analytics, providers
+proxy.ts                 # Next.js 16 request middleware
+auth.ts                  # NextAuth configuration
+next.config.ts
+```
 
-## Features
+## Roadmap and known limitations
 
-- Admin dashboard for moderation, users and donations
-<img width="1905" height="963" alt="image" src="https://github.com/user-attachments/assets/bc6668db-f6da-4b0c-a3e9-847b51bc1e2d" />
+The site runs on the assumption that a bot keeps the data fresh. If the bot stops, nothing breaks — pages keep serving the last synced state — but content goes stale.
 
----
-
-- Responsive UI with Tailwind CSS and dark theme
-<img width="515" height="915" alt="image" src="https://github.com/user-attachments/assets/2cb08d4d-dce7-4e26-bd4d-0ad500be5eef" />
-
----
-
-- Discord and Google OAuth login via NextAuth
-<img width="662" height="402" alt="image" src="https://github.com/user-attachments/assets/b5b1610c-94fe-4be6-bebb-d02da8d2ff41" />
-
----
-
-- Event listings with add and remove from the admin side
-<img width="1057" height="776" alt="image" src="https://github.com/user-attachments/assets/687c8b50-ec3f-4fe4-b9e1-30289416b539" />
-
----
-
-- Product Hunt for student projects, with vote, comment, edit and remove
-<img width="1063" height="350" alt="image" src="https://github.com/user-attachments/assets/cb8f612f-e0aa-4dc3-941f-ac421999d610" />
-
----
-
-- Community lounge with categories, posts and threaded comments
-<img width="1043" height="872" alt="image" src="https://github.com/user-attachments/assets/44d54edc-8d2a-49e4-a080-313d5cfa36a2" />
-
----
-
-- Toast notifications for every user action
-<img width="480" height="301" alt="image" src="https://github.com/user-attachments/assets/2d8c4609-63ae-4d86-bba7-4ee979fc1cfa" />
-
----
-
-- Voting cooldown to keep the leaderboard fair
-- Donation and prize pool tracking with verified entries
-- Image upload with size and dimension validation
-- Protected routes for admin and authenticated actions
-
----
+- **Image reliability.** SathiJob and InternSathi serve company logos through signed S3 URLs that expire 24 hours after each scrape. Broken images fall back to a placeholder GIF on the client. A stable fix would be downloading and re-hosting the images in Supabase Storage, deferred for cost reasons.
+- **Search.** `/search` covers events, projects, and lounge posts, but not jobs. Each surface is queried separately.
+- **Event quality.** All filtering is done on the bot side. Anything that syncs to the website is assumed vetted; there is no second review layer here.
+- **No blog system.** Content that belongs in long-form articles is deliberately not part of this repository. If it's ever added, it will be Supabase-backed, not file-based.
 
 
 ## Contributing
 
-1. Fork the repository.
-2. Create a branch:
+1. Fork the repository and create a branch: `git checkout -b feat/your-feature`
+2. Make your changes and confirm the build passes: `npm run build`
+3. Open a pull request describing what changed and why.
 
-```bash
-git checkout -b feat/your-feature
-```
+Small fixes and documentation improvements are welcome as direct PRs. Larger features — especially anything touching the ingestion pipeline, the pSEO surfaces, or the schema — should start as an issue so the design can be discussed first.
 
-3. Make your changes and confirm the build still passes:
+## License and credits
 
-```bash
-npm run build
-```
+MIT licensed. See `LICENSE` for the full text.
 
-4. Commit, push and open a pull request describing what changed and why.
-
-## Credits and license
-
-- Next.js, React, Tailwind CSS and the rest of the stack listed above.
-- Supabase for the database and storage layer.
-- Discord and Google for OAuth.
-- All contributors to the repository.
-
-Released under the MIT License. See the `LICENSE` file for the full text.
+The Discord bot that feeds this site lives in a separate repository. Stack credits: Next.js, React, Tailwind CSS, Supabase, NextAuth, discord.js, Puppeteer, and the open-source projects those depend on.
