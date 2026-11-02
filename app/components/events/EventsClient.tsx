@@ -1,12 +1,21 @@
 'use client';
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Clock, Code, LucideCircuitBoard, Gamepad, Music, Dumbbell, Plus } from 'lucide-react';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import {
+  Calendar, Clock, Code, LucideCircuitBoard, Gamepad, Music, Dumbbell, Plus,
+} from 'lucide-react';
 import EventCard from './EventCard';
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Pagination from './Pagination';
 
-type EventCategory = 'all' | 'software' | 'gaming' | 'hardware' | 'music' | 'sports' | 'extra';
+type EventCategory =
+  | 'all'
+  | 'software'
+  | 'gaming'
+  | 'hardware'
+  | 'music'
+  | 'sports'
+  | 'extra';
 
 const categories = [
   { value: 'all', label: 'All Events', icon: Calendar },
@@ -28,115 +37,158 @@ interface Event {
   created_at: string;
   category: Exclude<EventCategory, 'all'>;
   created_by: string;
+  origin?: string | null;
+  location?: string | null;
+  price?: string | null;
+  organizer?: string | null;
+  source_url?: string | null;
+  attendance_mode?: string | null;
+  author?: {
+    id: string;
+    name: string | null;
+    image: string | null;
+  } | null;
 }
 
 interface EventsClientProps {
-  upcomingEvents: Event[];
-  pastEvents: Event[];
+  events: Event[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  tab: 'upcoming' | 'past';
+  category: string;
   isAdmin: boolean;
 }
 
-export default function EventsClient({ upcomingEvents, pastEvents, isAdmin }: EventsClientProps) {
-  const [showPastEvents, setShowPastEvents] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<EventCategory>('all');
+function buildUrl(params: {
+  tab?: 'upcoming' | 'past';
+  category?: string;
+  page?: number;
+}): string {
+  const url = new URLSearchParams();
+  if (params.tab && params.tab !== 'upcoming') url.set('tab', params.tab);
+  if (params.category && params.category !== 'all') url.set('category', params.category);
+  if (params.page && params.page > 1) url.set('page', String(params.page));
+  const qs = url.toString();
+  return `/events${qs ? `?${qs}` : ''}`;
+}
 
-  const filterEventsByCategory = (events: Event[]) => {
-    if (selectedCategory === 'all') return events;
-    return events.filter(event => event.category === selectedCategory);
-  };
-
-  const events = filterEventsByCategory(showPastEvents ? pastEvents : upcomingEvents);
+export default function EventsClient({
+  events,
+  totalCount,
+  page,
+  pageSize,
+  tab,
+  category,
+  isAdmin,
+}: EventsClientProps) {
+  const from = totalCount === 0 ? 0 : (page - 1) * pageSize + 1;
+  const to = Math.min(page * pageSize, totalCount);
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
   return (
     <div className="space-y-6">
-      {/* Time Filter */}
+      {/* Header + tab switcher */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <h2 className="text-xl font-medium text-foreground">
-          {showPastEvents ? 'Recent Events' : 'Upcoming Events'}
-        </h2>
+        <div>
+          <h2 className="text-xl font-medium text-foreground">
+            {tab === 'past' ? 'Past Events' : 'Upcoming Events'}
+          </h2>
+          {totalCount > 0 && (
+            <p className="text-sm text-muted-foreground mt-1">
+              Showing {from}–{to} of {totalCount}
+              {category !== 'all' ? ` ${category}` : ''} event{totalCount === 1 ? '' : 's'}
+            </p>
+          )}
+        </div>
 
         <div className="flex items-center gap-2 bg-muted p-1 rounded-full">
-          <button
-            onClick={() => setShowPastEvents(false)}
+          <Link
+            href={buildUrl({ tab: 'upcoming', category, page: 1 })}
             className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
-              !showPastEvents
+              tab === 'upcoming'
                 ? 'bg-green-600 text-white'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
+            aria-current={tab === 'upcoming' ? 'page' : undefined}
           >
             <Calendar className="w-4 h-4" />
             <span className="text-sm font-medium">Upcoming</span>
-          </button>
-          <button
-            onClick={() => setShowPastEvents(true)}
+          </Link>
+          <Link
+            href={buildUrl({ tab: 'past', category, page: 1 })}
             className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
-              showPastEvents
+              tab === 'past'
                 ? 'bg-green-600 text-white'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
+            aria-current={tab === 'past' ? 'page' : undefined}
           >
             <Clock className="w-4 h-4" />
             <span className="text-sm font-medium">Past</span>
-          </button>
+          </Link>
         </div>
       </div>
 
-      {/* Category Filter */}
-      <div>
-        <Tabs
-          defaultValue="all"
-          value={selectedCategory}
-          onValueChange={(value) => setSelectedCategory(value as EventCategory)}
-          className="w-full"
-        >
-          <TabsList className="grid grid-cols-3 md:grid-cols-7 gap-2 bg-transparent">
-            {categories.map(({ value, label, icon: Icon }) => (
-              <TabsTrigger
-                key={value}
-                value={value}
-                className="flex items-center gap-2 data-[state=active]:bg-green-600 data-[state=active]:text-white bg-muted hover:bg-accent"
-              >
-                <Icon className="w-4 h-4" />
-                <span className="hidden sm:inline">{label}</span>
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+      {/* Category tabs — URL-driven, each is indexable */}
+      <div className="grid grid-cols-3 md:grid-cols-7 gap-2">
+        {categories.map(({ value, label, icon: Icon }) => {
+          const active = category === value;
+          return (
+            <Link
+              key={value}
+              href={buildUrl({ tab, category: value, page: 1 })}
+              className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                active
+                  ? 'bg-green-600 text-white'
+                  : 'bg-muted text-foreground hover:bg-accent'
+              }`}
+              aria-current={active ? 'page' : undefined}
+            >
+              <Icon className="w-4 h-4" />
+              <span className="hidden sm:inline">{label}</span>
+            </Link>
+          );
+        })}
       </div>
 
-      {/* Events Grid */}
+      {/* Events grid */}
       <div>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={`${showPastEvents}-${selectedCategory}`}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.2 }}
-          >
-            {events.length > 0 ? (
+        <motion.div
+          key={`${tab}-${category}-${page}`}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.15 }}
+        >
+          {events.length > 0 ? (
+            <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
                 {events.map((event) => (
                   <EventCard
                     key={event.id}
                     event={event}
-                    isPast={showPastEvents}
+                    isPast={tab === 'past'}
                     isAdmin={isAdmin}
                   />
                 ))}
               </div>
-            ) : (
-              <div className="text-center py-12 bg-card/50 border border-border rounded-xl">
-                <p className="text-muted-foreground">
-                  {showPastEvents
-                    ? `No past ${selectedCategory !== 'all' ? selectedCategory : ''} events to show`
-                    : `No upcoming ${selectedCategory !== 'all' ? selectedCategory : ''} events scheduled`
-                  }
-                </p>
-              </div>
-            )}
-          </motion.div>
-        </AnimatePresence>
+
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                buildUrl={(p) => buildUrl({ tab, category, page: p })}
+              />
+            </>
+          ) : (
+            <div className="text-center py-12 bg-card/50 border border-border rounded-xl">
+              <p className="text-muted-foreground">
+                {tab === 'past'
+                  ? `No past ${category !== 'all' ? category + ' ' : ''}events to show`
+                  : `No upcoming ${category !== 'all' ? category + ' ' : ''}events scheduled`}
+              </p>
+            </div>
+          )}
+        </motion.div>
       </div>
     </div>
   );
