@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/auth';
 import Layout from '@/app/components/layout/Layout';
@@ -6,18 +7,25 @@ import LeftSidebar from '@/app/components/layout/LeftSidebar';
 import RightSidebar from '@/app/components/layout/RightSidebar';
 import EventsClient from '@/app/components/events/EventsClient';
 import ClientAddEventButton from '../components/events/ClientAddEventButton';
-import { getEventsPage } from '@/app/lib/queries';
+import { getEventsPage, getActiveEventTaxonomies } from '@/app/lib/queries';
+import { formatMonthSlug } from '@/app/lib/seo';
 
 export const revalidate = 60;
 
 const PAGE_SIZE = 24;
 const VALID_CATEGORIES = ['all', 'software', 'gaming', 'hardware', 'music', 'sports', 'extra'];
 
-interface SearchParams { tab?: string; category?: string; page?: string }
+interface SearchParams {
+  tab?: string;
+  category?: string;
+  page?: string;
+}
 
 function parseParams(params: SearchParams) {
   const tab: 'upcoming' | 'past' = params.tab === 'past' ? 'past' : 'upcoming';
-  const category = VALID_CATEGORIES.includes(params.category || '') ? (params.category as string) : 'all';
+  const category = VALID_CATEGORIES.includes(params.category || '')
+    ? (params.category as string)
+    : 'all';
   const page = Math.max(1, parseInt(params.page || '1', 10) || 1);
   return { tab, category, page };
 }
@@ -33,30 +41,48 @@ function buildCanonical(tab: 'upcoming' | 'past', category: string, page: number
 
 export async function generateMetadata({
   searchParams,
-}: { searchParams: Promise<SearchParams> }): Promise<Metadata> {
+}: {
+  searchParams: Promise<SearchParams>;
+}): Promise<Metadata> {
   const { tab, category, page } = parseParams(await searchParams);
-  const catLabel = category !== 'all' ? category.charAt(0).toUpperCase() + category.slice(1) : '';
+  const catLabel =
+    category !== 'all' ? category.charAt(0).toUpperCase() + category.slice(1) : '';
   const parts: string[] = [];
   if (catLabel) parts.push(catLabel);
   parts.push(tab === 'past' ? 'Past Events' : 'Upcoming Events');
   if (page > 1) parts.push(`Page ${page}`);
 
   const title = parts.join(' — ');
-  const description = tab === 'past'
-    ? `Past ${catLabel ? catLabel.toLowerCase() + ' ' : ''}campus events across Nepal.`
-    : `Browse upcoming ${catLabel ? catLabel.toLowerCase() + ' ' : ''}events across Nepal.`;
+  const description =
+    tab === 'past'
+      ? `Past ${catLabel ? catLabel.toLowerCase() + ' ' : ''}campus events across Nepal.`
+      : `Browse upcoming ${catLabel ? catLabel.toLowerCase() + ' ' : ''}events across Nepal.`;
 
   return {
-    title, description,
+    title,
+    description,
     alternates: { canonical: buildCanonical(tab, category, page) },
-    openGraph: { title, description, type: 'website', url: buildCanonical(tab, category, page) },
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      url: buildCanonical(tab, category, page),
+    },
     twitter: { card: 'summary_large_image', title, description },
   };
 }
 
-export default async function EventsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
+export default async function EventsPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
   const { tab, category, page } = parseParams(await searchParams);
-  const { events, totalCount } = await getEventsPage(tab, category, page, PAGE_SIZE);
+
+  const [{ events, totalCount }, eventTaxonomies] = await Promise.all([
+    getEventsPage(tab, category, page, PAGE_SIZE),
+    getActiveEventTaxonomies(),
+  ]);
 
   const session = await getServerSession(authOptions);
   let isAdmin = false;
@@ -72,6 +98,9 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
       console.error('Error checking admin status:', error);
     }
   }
+
+  const hasTaxonomyLinks =
+    eventTaxonomies.months.length > 0 || eventTaxonomies.cities.length > 0;
 
   return (
     <Layout>
@@ -100,6 +129,57 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
                     isAdmin={isAdmin}
                   />
                 </div>
+
+                {hasTaxonomyLinks && (
+                  <div className="border-t border-border p-4 sm:p-5 space-y-4">
+                    {eventTaxonomies.months.length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-medium text-muted-foreground mb-2">
+                          Browse by month
+                        </h3>
+                        <div className="flex flex-wrap gap-2">
+                          {eventTaxonomies.months.map((m) => {
+                            const label = formatMonthSlug(m) || m;
+                            return (
+                              <Link
+                                key={m}
+                                href={`/events/month/${m}`}
+                                className="px-3 py-1.5 rounded-full text-sm bg-muted text-foreground hover:bg-accent transition-colors"
+                              >
+                                {label}
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {eventTaxonomies.cities.length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-medium text-muted-foreground mb-2">
+                          Browse by location
+                        </h3>
+                        <div className="flex flex-wrap gap-2">
+                          {eventTaxonomies.cities.map((c) => {
+                            const label = c
+                              .split('-')
+                              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                              .join(' ');
+                            return (
+                              <Link
+                                key={c}
+                                href={`/events/location/${c}`}
+                                className="px-3 py-1.5 rounded-full text-sm bg-muted text-foreground hover:bg-accent transition-colors"
+                              >
+                                {label}
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 

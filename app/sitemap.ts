@@ -1,6 +1,11 @@
 import { MetadataRoute } from "next";
 import { createServerSupabaseClient } from "@/app/lib/supabase-server";
 import { SITE_URL } from "@/app/lib/seo";
+import { JOB_ROLES, slugify, formatMonthSlug } from "@/app/lib/seo";
+import {
+  getActiveJobTaxonomies,
+  getActiveEventTaxonomies,
+} from "@/app/lib/queries";
 
 const PAGE_SIZE = 24;
 const MAX_EVENT_PAGES = 5;
@@ -267,6 +272,79 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: new Date(job.posted_at || new Date()),
         changeFrequency: "weekly",
         priority: 0.8,
+      }),
+    );
+  }
+
+  // ── pSEO: job roles (only predefined list) ──
+  // Predefined roles are cheap to check — include all that have >=3 jobs.
+  // The role page itself enforces the >=3 gate via notFound(), so we can
+  // include all predefined slugs; Google will 404 any that don't exist.
+  // Actually safer: use the same "getActiveJobTaxonomies" count check.
+  // But that doesn't cover roles. So do a direct count per role.
+  const { data: jobsForRoles } = await supabase
+    .from("jobs")
+    .select("title")
+    .eq("verified", true);
+
+  if (jobsForRoles && jobsForRoles.length > 0) {
+    for (const role of JOB_ROLES) {
+      const count = jobsForRoles.filter((j: any) =>
+        role.patterns.some((p) =>
+          (j.title || "").toLowerCase().includes(p.toLowerCase()),
+        ),
+      ).length;
+      if (count >= 3) {
+        entries.push(
+          url(`${SITE_URL}/jobs/role/${role.slug}`, {
+            lastModified: now,
+            changeFrequency: "daily",
+            priority: 0.6,
+          }),
+        );
+      }
+    }
+  }
+
+  // ── pSEO: companies + skills + event months + event cities ──
+  const [jobTaxonomies, eventTaxonomies] = await Promise.all([
+    getActiveJobTaxonomies(),
+    getActiveEventTaxonomies(),
+  ]);
+
+  for (const companySlug of jobTaxonomies.companies) {
+    entries.push(
+      url(`${SITE_URL}/jobs/company/${companySlug}`, {
+        lastModified: now,
+        changeFrequency: "weekly",
+        priority: 0.6,
+      }),
+    );
+  }
+  for (const skillSlug of jobTaxonomies.skills) {
+    entries.push(
+      url(`${SITE_URL}/jobs/skills/${skillSlug}`, {
+        lastModified: now,
+        changeFrequency: "weekly",
+        priority: 0.5,
+      }),
+    );
+  }
+  for (const monthSlug of eventTaxonomies.months) {
+    entries.push(
+      url(`${SITE_URL}/events/month/${monthSlug}`, {
+        lastModified: now,
+        changeFrequency: "weekly",
+        priority: 0.6,
+      }),
+    );
+  }
+  for (const citySlug of eventTaxonomies.cities) {
+    entries.push(
+      url(`${SITE_URL}/events/location/${citySlug}`, {
+        lastModified: now,
+        changeFrequency: "weekly",
+        priority: 0.5,
       }),
     );
   }

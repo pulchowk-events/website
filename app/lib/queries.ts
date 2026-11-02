@@ -345,3 +345,235 @@ export const getRecentJobs = unstable_cache(
   ["recent-jobs"],
   { revalidate: 60, tags: ["jobs"] },
 );
+
+// ============================================================================
+// pSEO QUERIES — dynamic taxonomies for /jobs/role, /jobs/company, etc.
+// ============================================================================
+
+import { JOB_ROLES, EVENT_CITIES, slugify, monthRange } from "./seo";
+
+// --- /jobs/role/[role] ---
+export const getJobsByRole = unstable_cache(
+  async (roleSlug: string) => {
+    const role = JOB_ROLES.find((r) => r.slug === roleSlug);
+    if (!role) return { role: null, jobs: [] };
+
+    const orFilter = role.patterns.map((p) => `title.ilike.%${p}%`).join(",");
+
+    const { data } = await supabase
+      .from("jobs")
+      .select("*")
+      .eq("verified", true)
+      .or(orFilter)
+      .order("posted_at", { ascending: false })
+      .limit(100);
+
+    return { role, jobs: data || [] };
+  },
+  ["jobs-by-role"],
+  { revalidate: 60, tags: ["jobs"] },
+);
+
+// --- /jobs/company/[company] ---
+// Slug resolves to the ORIGINAL company name via a distinct list, then
+// queries by exact match. Not scalable to millions, fine for hundreds.
+async function resolveCompanyBySlug(
+  companySlug: string,
+): Promise<string | null> {
+  const { data } = await supabase
+    .from("jobs")
+    .select("company")
+    .eq("verified", true);
+  if (!data) return null;
+  const uniques = new Set(data.map((j: any) => j.company).filter(Boolean));
+  for (const c of uniques) {
+    if (slugify(c) === companySlug) return c;
+  }
+  return null;
+}
+
+export const getJobsByCompany = unstable_cache(
+  async (companySlug: string) => {
+    const company = await resolveCompanyBySlug(companySlug);
+    if (!company) return { company: null, jobs: [] };
+
+    const { data } = await supabase
+      .from("jobs")
+      .select("*")
+      .eq("verified", true)
+      .eq("company", company)
+      .order("posted_at", { ascending: false })
+      .limit(100);
+
+    return { company, jobs: data || [] };
+  },
+  ["jobs-by-company"],
+  { revalidate: 60, tags: ["jobs"] },
+);
+
+// --- /jobs/skills/[skill] ---
+async function resolveSkillBySlug(skillSlug: string): Promise<string | null> {
+  const { data } = await supabase
+    .from("jobs")
+    .select("skills")
+    .eq("verified", true);
+  if (!data) return null;
+  const uniques = new Set<string>();
+  for (const job of data) {
+    for (const s of job.skills || []) uniques.add(s);
+  }
+  for (const s of uniques) {
+    if (slugify(s) === skillSlug) return s;
+  }
+  return null;
+}
+
+export const getJobsBySkill = unstable_cache(
+  async (skillSlug: string) => {
+    const skill = await resolveSkillBySlug(skillSlug);
+    if (!skill) return { skill: null, jobs: [] };
+
+    const { data } = await supabase
+      .from("jobs")
+      .select("*")
+      .eq("verified", true)
+      .contains("skills", [skill])
+      .order("posted_at", { ascending: false })
+      .limit(100);
+
+    return { skill, jobs: data || [] };
+  },
+  ["jobs-by-skill"],
+  { revalidate: 60, tags: ["jobs"] },
+);
+
+// --- /events/month/[month] ---
+export const getEventsByMonth = unstable_cache(
+  async (monthSlug: string) => {
+    const range = monthRange(monthSlug);
+    if (!range) return { events: [] };
+
+    const { data } = await supabase
+      .from("events")
+      .select(
+        `
+        *,
+        author:created_by (id, name, image)
+      `,
+      )
+      .eq("verified", true)
+      .gte("event_date", range.start)
+      .lt("event_date", range.end)
+      .order("event_date", { ascending: true })
+      .limit(100);
+
+    return { events: data || [] };
+  },
+  ["events-by-month"],
+  { revalidate: 60, tags: ["events"] },
+);
+
+// --- /events/location/[city] ---
+export const getEventsByCity = unstable_cache(
+  async (citySlug: string) => {
+    const city = EVENT_CITIES.find((c) => slugify(c) === citySlug);
+    if (!city) return { city: null, events: [] };
+
+    const { data } = await supabase
+      .from("events")
+      .select(
+        `
+        *,
+        author:created_by (id, name, image)
+      `,
+      )
+      .eq("verified", true)
+      .ilike("location", `%${city}%`)
+      .order("event_date", { ascending: true })
+      .limit(100);
+
+    return { city, events: data || [] };
+  },
+  ["events-by-city"],
+  { revalidate: 60, tags: ["events"] },
+);
+
+// --- Taxonomies with >=3 items (for hub page chip links + sitemap) ---
+export const getActiveJobTaxonomies = unstable_cache(
+  async () => {
+    const { data } = await supabase
+      .from("jobs")
+      .select("company, skills")
+      .eq("verified", true);
+
+    const companyCounts = new Map<string, number>();
+    const skillCounts = new Map<string, number>();
+
+    for (const job of data || []) {
+      if (job.company) {
+        const slug = slugify(job.company);
+        companyCounts.set(slug, (companyCounts.get(slug) || 0) + 1);
+      }
+      for (const s of job.skills || []) {
+        const slug = slugify(s);
+        skillCounts.set(slug, (skillCounts.get(slug) || 0) + 1);
+      }
+    }
+
+    return {
+      companies: [...companyCounts.entries()]
+        .filter(([, c]) => c >= 3)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 20)
+        .map(([slug]) => slug),
+      skills: [...skillCounts.entries()]
+        .filter(([, c]) => c >= 3)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 20)
+        .map(([slug]) => slug),
+    };
+  },
+  ["active-job-taxonomies"],
+  { revalidate: 60, tags: ["jobs"] },
+);
+
+export const getActiveEventTaxonomies = unstable_cache(
+  async () => {
+    // Months: past 6 + next 6
+    const monthCounts = new Map<string, number>();
+    const now = new Date();
+    for (let i = -6; i <= 6; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const monthKey = `${y}-${m}`;
+      const range = monthRange(monthKey);
+      if (!range) continue;
+      const { count } = await supabase
+        .from("events")
+        .select("*", { count: "exact", head: true })
+        .eq("verified", true)
+        .gte("event_date", range.start)
+        .lt("event_date", range.end);
+      if ((count || 0) >= 3) monthCounts.set(monthKey, count || 0);
+    }
+
+    // Cities
+    const cities: string[] = [];
+    for (const city of EVENT_CITIES) {
+      const { count } = await supabase
+        .from("events")
+        .select("*", { count: "exact", head: true })
+        .eq("verified", true)
+        .ilike("location", `%${city}%`);
+      if ((count || 0) >= 3) cities.push(slugify(city));
+    }
+
+    return {
+      months: [...monthCounts.keys()].sort(),
+      cities,
+    };
+  },
+  ["active-event-taxonomies"],
+  { revalidate: 60, tags: ["events"] },
+);

@@ -5,8 +5,8 @@ import LeftSidebar from '@/app/components/layout/LeftSidebar';
 import RightSidebar from '@/app/components/layout/RightSidebar';
 import JobCard from '@/app/components/jobs/JobCard';
 import Pagination from '@/app/components/events/Pagination';
-import { getJobsPage } from '@/app/lib/queries';
-import { SITE_URL } from '@/app/lib/seo';
+import { getJobsPage, getActiveJobTaxonomies } from '@/app/lib/queries';
+import { SITE_URL, JOB_ROLES } from '@/app/lib/seo';
 
 export const revalidate = 60;
 
@@ -46,6 +46,14 @@ function buildUrl(employmentType: string, location: string, page: number): strin
   return q ? `/jobs?${q}` : '/jobs';
 }
 
+// Display helper — turns 'leapfrog-technology' → 'Leapfrog Technology'
+function titleCaseSlug(slug: string): string {
+  return slug
+    .split('-')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+}
+
 export async function generateMetadata({ searchParams }: { searchParams: Promise<SearchParams> }): Promise<Metadata> {
   const { employmentType, location, page } = parseParams(await searchParams);
   const typeLabel = EMPLOYMENT_TYPES.find((t) => t.value === employmentType)?.label;
@@ -58,7 +66,8 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
   const title = parts.join(' — ');
   const description = 'Browse the latest tech, engineering, and internship opportunities across Nepal. Curated from top job boards and updated daily.';
   return {
-    title, description,
+    title,
+    description,
     alternates: { canonical: buildUrl(employmentType, location, page) },
     openGraph: { title, description, type: 'website', url: buildUrl(employmentType, location, page) },
     twitter: { card: 'summary_large_image', title, description },
@@ -67,7 +76,11 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
 
 export default async function JobsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const { employmentType, location, page } = parseParams(await searchParams);
-  const { jobs, totalCount } = await getJobsPage(employmentType, location, page, PAGE_SIZE);
+
+  const [activeTaxonomies, { jobs, totalCount }] = await Promise.all([
+    getActiveJobTaxonomies(),
+    getJobsPage(employmentType, location, page, PAGE_SIZE),
+  ]);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
   const from = totalCount === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
@@ -80,7 +93,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
           <div className="flex flex-col lg:flex-row lg:gap-6">
             <LeftSidebar />
 
-            <div className="w-full lg:mx-auto">
+            <div className="w-full lg:mx-auto lg:min-h-[calc(100vh-8rem)]">
               <div className="bg-card border border-border rounded-xl shadow-lg overflow-hidden p-4 sm:p-5">
                 <header className="mb-5">
                   <h1 className="text-3xl font-bold text-foreground mb-2">Jobs in Nepal</h1>
@@ -94,10 +107,13 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
                     {EMPLOYMENT_TYPES.map((t) => {
                       const active = employmentType === t.value;
                       return (
-                        <Link key={t.value} href={buildUrl(t.value, location, 1)}
+                        <Link
+                          key={t.value}
+                          href={buildUrl(t.value, location, 1)}
                           className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                             active ? 'bg-green-600 text-white' : 'bg-muted text-foreground hover:bg-accent'
-                          }`}>
+                          }`}
+                        >
                           {t.label}
                         </Link>
                       );
@@ -107,10 +123,13 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
                     {LOCATIONS.map((l) => {
                       const active = location === l.value;
                       return (
-                        <Link key={l.value} href={buildUrl(employmentType, l.value, 1)}
+                        <Link
+                          key={l.value}
+                          href={buildUrl(employmentType, l.value, 1)}
                           className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                             active ? 'bg-green-600 text-white' : 'bg-muted text-foreground hover:bg-accent'
-                          }`}>
+                          }`}
+                        >
                           {l.label}
                         </Link>
                       );
@@ -136,6 +155,64 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
                       totalPages={totalPages}
                       buildUrl={(p) => buildUrl(employmentType, location, p)}
                     />
+
+                    {/* Browse by taxonomy — internal links for pSEO pages */}
+                    {(activeTaxonomies.companies.length > 0 || activeTaxonomies.skills.length > 0) && (
+                      <div className="mt-10 pt-6 border-t border-border space-y-4">
+                        {activeTaxonomies.companies.length > 0 && (
+                          <div>
+                            <h3 className="text-sm font-medium text-muted-foreground mb-2">
+                              Browse by company
+                            </h3>
+                            <div className="flex flex-wrap gap-2">
+                              {activeTaxonomies.companies.map((c) => (
+                                <Link
+                                  key={c}
+                                  href={`/jobs/company/${c}`}
+                                  className="px-3 py-1.5 rounded-full text-sm bg-muted text-foreground hover:bg-accent transition-colors"
+                                >
+                                  {titleCaseSlug(c)}
+                                </Link>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {activeTaxonomies.skills.length > 0 && (
+                          <div>
+                            <h3 className="text-sm font-medium text-muted-foreground mb-2">
+                              Browse by skill
+                            </h3>
+                            <div className="flex flex-wrap gap-2">
+                              {activeTaxonomies.skills.map((s) => (
+                                <Link
+                                  key={s}
+                                  href={`/jobs/skills/${s}`}
+                                  className="px-3 py-1.5 rounded-full text-sm bg-muted text-foreground hover:bg-accent transition-colors"
+                                >
+                                  {titleCaseSlug(s)}
+                                </Link>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        <div>
+                          <h3 className="text-sm font-medium text-muted-foreground mb-2">
+                            Browse by role
+                          </h3>
+                          <div className="flex flex-wrap gap-2">
+                            {JOB_ROLES.map((r) => (
+                              <Link
+                                key={r.slug}
+                                href={`/jobs/role/${r.slug}`}
+                                className="px-3 py-1.5 rounded-full text-sm bg-muted text-foreground hover:bg-accent transition-colors"
+                              >
+                                {r.label}
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <div className="text-center py-16 bg-muted/30 border border-border rounded-xl">
