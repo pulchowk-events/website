@@ -10,6 +10,7 @@ import NavigationLoader from '@/app/components/extra/NavigationLoader';
 import { ColdStartNotice } from '@/app/components/extra/ColdStartNotice';
 import JsonLd from '@/app/components/seo/JsonLd';
 import { SITE_URL, SITE_NAME, DEFAULT_DESCRIPTION } from '@/app/lib/seo';
+import Analytics from '@/app/components/analytics';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -82,6 +83,9 @@ export default function RootLayout({
         <Providers>{children}</Providers>
         <Toaster richColors position="top-right" />
         <ColdStartNotice />
+        {process.env.NEXT_PUBLIC_GA_ID && (
+          <Analytics measurementId={process.env.NEXT_PUBLIC_GA_ID} />
+        )}
       </body>
     </html>
   );
