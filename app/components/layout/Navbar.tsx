@@ -6,7 +6,7 @@ import { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 import { Menu, X, Bell, Home, Users,
         Calendar, Gift, LayoutGrid, Search as SearchIcon, LucideMail,
-        LucideBox, LucideHammer,
+        LucideBox, LucideHammer, Briefcase,
         LucideCircleUser } from 'lucide-react';
 import NotificationDropdown from '@/app/components/layout/NotificationDropdown';
 import SignInModal from '@/app/components/signIn/SignInModal';
@@ -126,12 +126,13 @@ export default function Navbar() {
     setShowSignInModal(true);
   };
 
-  const navLinks = [
-    { href: '/', label: 'Home', icon: Home },
-    { href: '/events', label: 'Events', icon: Calendar },
-    { href: '/product-hunt', label: 'Product Hunt', icon: LucideBox },
-    { href: '/about', label: 'About', icon: LucideHammer },
-  ];
+const navLinks = [
+  { href: '/', label: 'Home', icon: Home },
+  { href: '/events', label: 'Events', icon: Calendar },
+  { href: '/product-hunt', label: 'Product Hunt', icon: LucideBox },
+  { href: '/jobs', label: 'Jobs', icon: Briefcase },
+  { href: '/about', label: 'About', icon: LucideHammer },
+];
 
   const allLinks = isAdmin === true
     ? [...navLinks, { href: '/admin', label: 'Admin Panel', icon: LayoutGrid }]

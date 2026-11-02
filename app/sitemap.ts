@@ -48,8 +48,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { data: events },
     { data: products },
     { data: loungePosts },
+    { data: jobs }, // ← ADD
     { count: upcomingCount },
     { count: pastCount },
+    { count: jobsCount }, // ← ADD
   ] = await Promise.all([
     supabase
       .from("events")
@@ -58,6 +60,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .order("event_date", { ascending: false }),
     supabase.from("products").select("url, created_at").eq("approved", true),
     supabase.from("lounge_posts").select("id, created_at, updated_at"),
+    // ← ADD:
+    supabase
+      .from("jobs")
+      .select("id, posted_at")
+      .eq("verified", true)
+      .order("posted_at", { ascending: false }),
     supabase
       .from("events")
       .select("*", { count: "exact", head: true })
@@ -68,6 +76,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .select("*", { count: "exact", head: true })
       .eq("verified", true)
       .lt("event_date", nowISO),
+    // ← ADD:
+    supabase
+      .from("jobs")
+      .select("*", { count: "exact", head: true })
+      .eq("verified", true),
   ]);
 
   const entries: MetadataRoute.Sitemap = [];
@@ -187,6 +200,73 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: new Date(post.updated_at || post.created_at),
         changeFrequency: "weekly",
         priority: 0.6,
+      }),
+    );
+  }
+
+  // Jobs pages
+  entries.push(
+    url(`${SITE_URL}/jobs`, {
+      lastModified: now,
+      changeFrequency: "hourly",
+      priority: 0.9,
+    }),
+  );
+
+  // Jobs pagination
+  const JOBS_PAGE_SIZE = 20;
+  const jobsPages = Math.min(5, Math.ceil((jobsCount || 0) / JOBS_PAGE_SIZE));
+  for (let p = 2; p <= jobsPages; p++) {
+    entries.push(
+      url(`${SITE_URL}/jobs?page=${p}`, {
+        lastModified: now,
+        changeFrequency: "hourly",
+        priority: 0.7,
+      }),
+    );
+  }
+
+  // Job filters (SEO landing pages)
+  const JOB_TYPES = [
+    "full-time",
+    "part-time",
+    "internship",
+    "contract",
+    "freelance",
+  ];
+  const JOB_LOCATIONS = [
+    "Kathmandu",
+    "Lalitpur",
+    "Bhaktapur",
+    "Pokhara",
+    "Remote",
+  ];
+  for (const t of JOB_TYPES) {
+    entries.push(
+      url(`${SITE_URL}/jobs?type=${t}`, {
+        lastModified: now,
+        changeFrequency: "daily",
+        priority: 0.6,
+      }),
+    );
+  }
+  for (const l of JOB_LOCATIONS) {
+    entries.push(
+      url(`${SITE_URL}/jobs?location=${l}`, {
+        lastModified: now,
+        changeFrequency: "daily",
+        priority: 0.6,
+      }),
+    );
+  }
+
+  // Job detail pages
+  for (const job of jobs || []) {
+    entries.push(
+      url(`${SITE_URL}/jobs/${job.id}`, {
+        lastModified: new Date(job.posted_at || new Date()),
+        changeFrequency: "weekly",
+        priority: 0.8,
       }),
     );
   }

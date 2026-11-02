@@ -275,3 +275,73 @@ export const getSidebarData = unstable_cache(
   ["sidebar-data"],
   { revalidate: 60, tags: ["donations", "products", "events", "sidebar"] },
 );
+
+// ============================================================================
+// JOB QUERIES
+// ============================================================================
+
+export const getJobsPage = unstable_cache(
+  async (
+    employmentType: string,
+    location: string,
+    page: number,
+    pageSize: number,
+  ) => {
+    const offset = (page - 1) * pageSize;
+
+    let q = supabase
+      .from("jobs")
+      .select("*", { count: "exact" })
+      .eq("verified", true);
+
+    if (employmentType !== "all") {
+      q = q.ilike("employment_type", `%${employmentType}%`);
+    }
+    if (location !== "all") {
+      q = q.ilike("location", `%${location}%`);
+    }
+
+    // Exclude jobs whose deadline has passed — but keep jobs with no deadline set
+    const nowISO = new Date().toISOString();
+    q = q.or(`application_ends_at.is.null,application_ends_at.gte.${nowISO}`);
+
+    q = q
+      .order("posted_at", { ascending: false })
+      .range(offset, offset + pageSize - 1);
+
+    const { data, count } = await q;
+    return { jobs: data || [], totalCount: count || 0 };
+  },
+  ["jobs-page"],
+  { revalidate: 60, tags: ["jobs"] },
+);
+
+export const getJobById = unstable_cache(
+  async (id: string) => {
+    const { data } = await supabase
+      .from("jobs")
+      .select("*")
+      .eq("id", id)
+      .eq("verified", true)
+      .single();
+    return data;
+  },
+  ["job-by-id"],
+  { revalidate: 60, tags: ["jobs"] },
+);
+
+export const getRecentJobs = unstable_cache(
+  async (limit = 3) => {
+    const { data } = await supabase
+      .from("jobs")
+      .select(
+        "id, title, company, image_url, posted_at, location, employment_type",
+      )
+      .eq("verified", true)
+      .order("posted_at", { ascending: false })
+      .limit(limit);
+    return data || [];
+  },
+  ["recent-jobs"],
+  { revalidate: 60, tags: ["jobs"] },
+);
