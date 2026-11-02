@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/auth';
 import Layout from '@/app/components/layout/Layout';
@@ -7,32 +8,89 @@ import PrizePoolProgress from '../components/donate/SmPrizePoolProgress';
 import TopDonators from '@/app/components/donate/TopDonators';
 import Link from 'next/link';
 import { getEventsPage, getSidebarData } from '@/app/lib/queries';
+import { SITE_URL } from '@/app/lib/seo';
 
 export const revalidate = 60;
 
 const PAGE_SIZE = 24;
 const VALID_CATEGORIES = ['all', 'software', 'gaming', 'hardware', 'music', 'sports', 'extra'];
 
-export default async function EventsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ tab?: string; category?: string; page?: string }>;
-}) {
-  const params = await searchParams;
+interface SearchParams {
+  tab?: string;
+  category?: string;
+  page?: string;
+}
 
+function parseParams(params: SearchParams) {
   const tab: 'upcoming' | 'past' = params.tab === 'past' ? 'past' : 'upcoming';
   const category = VALID_CATEGORIES.includes(params.category || '')
     ? (params.category as string)
     : 'all';
   const page = Math.max(1, parseInt(params.page || '1', 10) || 1);
+  return { tab, category, page };
+}
 
-  // All cached — no direct DB access in this file
+function buildCanonical(tab: 'upcoming' | 'past', category: string, page: number) {
+  const qs = new URLSearchParams();
+  if (tab === 'past') qs.set('tab', 'past');
+  if (category !== 'all') qs.set('category', category);
+  if (page > 1) qs.set('page', String(page));
+  const q = qs.toString();
+  return q ? `/events?${q}` : '/events';
+}
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}): Promise<Metadata> {
+  const params = await searchParams;
+  const { tab, category, page } = parseParams(params);
+
+  const categoryLabel =
+    category !== 'all' ? category.charAt(0).toUpperCase() + category.slice(1) : '';
+  const parts: string[] = [];
+  if (categoryLabel) parts.push(categoryLabel);
+  parts.push(tab === 'past' ? 'Past Events' : 'Upcoming Events');
+  if (page > 1) parts.push(`Page ${page}`);
+
+  const title = parts.join(' — ');
+  const description =
+    tab === 'past'
+      ? `Past ${categoryLabel.toLowerCase() ? categoryLabel.toLowerCase() + ' ' : ''}campus events across Nepal — browse the archive.`
+      : `Browse upcoming ${categoryLabel.toLowerCase() ? categoryLabel.toLowerCase() + ' ' : ''}events across Nepal. Register for hackathons, workshops, and more.`;
+
+  return {
+    title,
+    description,
+    alternates: { canonical: buildCanonical(tab, category, page) },
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      url: buildCanonical(tab, category, page),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
+  };
+}
+
+export default async function EventsPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const params = await searchParams;
+  const { tab, category, page } = parseParams(params);
+
   const [{ events, totalCount }, { prizePool, donors, products }] = await Promise.all([
     getEventsPage(tab, category, page, PAGE_SIZE),
     getSidebarData(),
   ]);
 
-  // Session-dependent — runs fresh every request (small overhead)
   const session = await getServerSession(authOptions);
   let isAdmin = false;
   if (session?.user?.email) {
@@ -53,7 +111,6 @@ export default async function EventsPage({
       <div className="bg-background min-h-screen">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
           <div className="flex flex-col lg:flex-row lg:gap-6">
-            {/* Left Sidebar */}
             <div className="hidden lg:block lg:w-1/5 space-y-4 flex-shrink-0">
               <div className="bg-card border border-border rounded-xl p-5 shadow-lg sticky top-24">
                 <div className="flex items-center gap-3 mb-6">
@@ -72,7 +129,6 @@ export default async function EventsPage({
               </div>
             </div>
 
-            {/* Main */}
             <div className="w-full lg:mx-auto">
               <div className="bg-card border border-border rounded-xl shadow-lg overflow-hidden mb-5">
                 <div className="p-4 sm:p-5">
@@ -93,7 +149,6 @@ export default async function EventsPage({
               </div>
             </div>
 
-            {/* Right Sidebar */}
             <div className="hidden lg:block lg:w-1/5 space-y-4 flex-shrink-0">
               <div className="sticky top-24 space-y-4">
                 <div className="bg-card border border-border rounded-xl p-5 shadow-lg">

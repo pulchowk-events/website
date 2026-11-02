@@ -9,7 +9,7 @@
 
 const FETCH_TIMEOUT_MS = 5000;
 const USER_AGENT =
-  "Mozilla/5.0 (compatible; PulchowkEventsBot/1.0; +https://pulchowkevents.com)";
+  "Mozilla/5.0 (compatible; PulchowkEventsBot/1.0; +https://pulchowkevents.netlify.app)";
 
 const IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|gif|webp|avif|svg|bmp|ico)(\?.*)?$/i;
 

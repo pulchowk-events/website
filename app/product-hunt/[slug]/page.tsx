@@ -1,7 +1,5 @@
-// app/product-hunt/[slug]/page.tsx
-
-import React from 'react';
-import { redirect } from 'next/navigation';
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import Layout from '@/app/components/layout/Layout';
 import { ClientVoteButton } from '@/app/components/vote/ClientVoteButton';
 import { RemoveButton } from '@/app/components/product/RemoveProduct';
@@ -10,47 +8,61 @@ import { Comments } from '@/app/components/comments/CommentSection';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/auth';
 import { createServerSupabaseClient } from '@/app/lib/supabase-server';
+import { getProductBySlug } from '@/app/lib/queries';
+import JsonLd from '@/app/components/seo/JsonLd';
+import { SITE_URL, breadcrumbSchema } from '@/app/lib/seo';
 import Image from 'next/image';
 import { ExternalLink } from 'lucide-react';
+
+export const revalidate = 60;
 
 interface Props {
   params: Promise<{ slug: string }>;
 }
 
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  if (!slug) return { title: 'Product Not Found' };
+
+  const product = await getProductBySlug(slug);
+  if (!product) return { title: 'Product Not Found' };
+
+  const description = (product.description || '').slice(0, 160).replace(/\s+/g, ' ').trim();
+
+  return {
+    title: `${product.name} — Student Project`,
+    description: description || `Check out ${product.name} on Pulchowk Events Product Hunt.`,
+    alternates: { canonical: `/product-hunt/${slug}` },
+    openGraph: {
+      title: product.name,
+      description,
+      type: 'website',
+      url: `/product-hunt/${slug}`,
+      images: product.image_url
+        ? [product.image_url]
+        : [`${SITE_URL}/product-hunt/${slug}/opengraph-image`],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: product.name,
+      description,
+      images: product.image_url
+        ? [product.image_url]
+        : [`${SITE_URL}/product-hunt/${slug}/opengraph-image`],
+    },
+  };
+}
+
 export default async function ProductPage({ params }: Props) {
   const { slug } = await params;
+  if (!slug) notFound();
 
-  if (!slug || typeof slug !== 'string') {
-    return (
-      <Layout>
-        <div className="max-w-3xl mx-auto py-20 text-center text-red-600 dark:text-red-500">
-          Invalid product URL.
-        </div>
-      </Layout>
-    );
-  }
-
-  const supabase = createServerSupabaseClient();
-
-  const { data: product, error } = await supabase
-    .from('products')
-    .select('id, name, description, url, created_at, posted_by, image_url, redirect_url')
-    .eq('url', slug)
-    .single();
-
-  if (error || !product) {
-    console.error("Product fetch error:", error);
-    return (
-      <Layout>
-        <div className="max-w-3xl mx-auto py-20 text-center text-red-600 dark:text-red-500">
-          Product not found.
-        </div>
-      </Layout>
-    );
-  }
+  const product = await getProductBySlug(slug);
+  if (!product) notFound();
 
   const session = await getServerSession(authOptions);
 
+  const supabase = createServerSupabaseClient();
   const { data: adminData } = await supabase
     .from('admins')
     .select('email')
@@ -60,8 +72,32 @@ export default async function ProductPage({ params }: Props) {
   const isAdmin = !!adminData;
   const isOwner = session?.user?.id === product.posted_by;
 
+  const productJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: product.name,
+    description: (product.description || '').slice(0, 500),
+    image: product.image_url || `${SITE_URL}/product-hunt/${slug}/opengraph-image`,
+    url: `${SITE_URL}/product-hunt/${slug}`,
+    applicationCategory: 'WebApplication',
+    operatingSystem: 'Any',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'NPR',
+    },
+  };
+
+  const breadcrumbJsonLd = breadcrumbSchema([
+    { name: 'Home', url: SITE_URL },
+    { name: 'Product Hunt', url: `${SITE_URL}/product-hunt` },
+    { name: product.name },
+  ]);
+
   return (
     <Layout>
+      <JsonLd data={productJsonLd} />
+      <JsonLd data={breadcrumbJsonLd} />
       <div className="max-w-7xl mx-auto py-16 px-8">
         <div className="flex flex-col md:flex-row gap-8 mb-8">
           <div className="w-full md:w-48 h-48 flex-shrink-0">
@@ -69,8 +105,8 @@ export default async function ProductPage({ params }: Props) {
               <Image
                 src={product.image_url}
                 alt={product.name}
-                width={48}
-                height={48}
+                width={192}
+                height={192}
                 unoptimized
                 className="rounded-lg object-cover w-full h-full"
               />
@@ -82,7 +118,7 @@ export default async function ProductPage({ params }: Props) {
           </div>
 
           <div className="flex-col flex gap-1 sm:gap-10">
-            <div className='flex flex-col gap-1'>
+            <div className="flex flex-col gap-1">
               <h1 className="text-4xl font-bold text-foreground">{product.name}</h1>
               <p className="text-lg text-foreground">{product.description}</p>
               <p className="text-sm text-muted-foreground">
@@ -111,9 +147,7 @@ export default async function ProductPage({ params }: Props) {
                   className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
                 >
                   <ExternalLink className="w-4 h-4" />
-                  <div className="hidden sm:block">
-                    View Product
-                  </div>
+                  <div className="hidden sm:block">View Product</div>
                 </a>
               )}
             </div>

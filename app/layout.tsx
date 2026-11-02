@@ -8,16 +8,59 @@ import GlobalLoader from '@/app/components/extra/GlobalLoader';
 import FetchInterceptor from '@/app/components/extra/FetchInterceptor';
 import NavigationLoader from '@/app/components/extra/NavigationLoader';
 import { ColdStartNotice } from '@/app/components/extra/ColdStartNotice';
-import GlobalImageFallback from '@/app/components/extra/GlobalImageFallback';
-
-
+import JsonLd from '@/app/components/seo/JsonLd';
+import { SITE_URL, SITE_NAME, DEFAULT_DESCRIPTION } from '@/app/lib/seo';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Pulchowk Events',
-  description: 'A platform for Nation Wide Campus events & products.',
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `${SITE_NAME} — Campus Events & Student Projects in Nepal`,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: DEFAULT_DESCRIPTION,
   icons: { icon: '/logo.svg' },
+  openGraph: {
+    type: 'website',
+    siteName: SITE_NAME,
+    title: SITE_NAME,
+    description: DEFAULT_DESCRIPTION,
+    url: SITE_URL,
+    images: [`${SITE_URL}/opengraph-image`],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: SITE_NAME,
+    description: DEFAULT_DESCRIPTION,
+    images: [`${SITE_URL}/opengraph-image`],
+  },
+  alternates: { canonical: '/' },
+  robots: { index: true, follow: true },
+};
+
+const orgJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: SITE_NAME,
+  url: SITE_URL,
+  logo: `${SITE_URL}/logo.svg`,
+  sameAs: ['https://discord.gg/cQ5gxusATk'],
+};
+
+const websiteJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: SITE_NAME,
+  url: SITE_URL,
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: {
+      '@type': 'EntryPoint',
+      urlTemplate: `${SITE_URL}/search?q={search_term_string}`,
+    },
+    'query-input': 'required name=search_term_string',
+  },
 };
 
 export default function RootLayout({
@@ -26,10 +69,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
+        <JsonLd data={orgJsonLd} />
+        <JsonLd data={websiteJsonLd} />
         <NavigationLoader />
         <FetchInterceptor />
         <GlobalLoader />
-        <GlobalImageFallback />
         <LoadingBar />
         <Providers>{children}</Providers>
         <Toaster richColors position="top-right" />

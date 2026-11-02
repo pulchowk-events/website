@@ -9,6 +9,27 @@ import { getApprovedProducts, getSidebarData } from '@/app/lib/queries';
 
 export const revalidate = 60;
 
+import type { Metadata } from 'next';
+import { SITE_URL } from '@/app/lib/seo';
+
+export const metadata: Metadata = {
+  title: 'Product Hunt — Student Projects',
+  description:
+    'Discover and vote on student-built projects, tools, and experiments from across Nepal. Showcase your own product on Pulchowk Events.',
+  alternates: { canonical: '/product-hunt' },
+  openGraph: {
+    title: 'Product Hunt — Student Projects',
+    description: 'Discover and vote on student-built projects from Nepal.',
+    type: 'website',
+    url: `${SITE_URL}/product-hunt`,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Product Hunt — Student Projects',
+    description: 'Discover and vote on student-built projects from Nepal.',
+  },
+};
+
 export default async function ProductHuntPage() {
   const [products, { prizePool, donors, upcomingEvents }] = await Promise.all([
     getApprovedProducts(),
