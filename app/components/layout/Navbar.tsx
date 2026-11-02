@@ -134,6 +134,8 @@ const navLinks = [
   { href: '/about', label: 'About', icon: LucideHammer },
 ];
 
+const mobileBottomLinks = navLinks.filter((l) => l.href !== '/about');
+
   const allLinks = isAdmin === true
     ? [...navLinks, { href: '/admin', label: 'Admin Panel', icon: LayoutGrid }]
     : navLinks;
@@ -362,7 +364,7 @@ const navLinks = [
       {/* Mobile Bottom Navigation - Facebook Style */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/95 backdrop-blur-lg shadow-lg">
         <div className="flex items-center justify-around h-16">
-          {navLinks.map((link) => {
+          {mobileBottomLinks.map((link) => {
             const isActive = activeNav === link.href;
             const Icon = link.icon;
 

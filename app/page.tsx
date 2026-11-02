@@ -6,15 +6,18 @@ import TopDonators from '@/app/components/donate/TopDonators';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/auth';
 import Link from 'next/link';
-import { getLoungePosts, getSidebarData } from '@/app/lib/queries';
+import { getLoungePosts, getSidebarData, getRecentJobs } from '@/app/lib/queries';
+import { Briefcase } from 'lucide-react';
+
 
 export const revalidate = 60;
 
 export default async function Home() {
   // All cached — no direct DB access. Both calls run in parallel.
-  const [posts, { prizePool, donors, products, upcomingEvents }] = await Promise.all([
+  const [posts, { prizePool, donors, products, upcomingEvents }, recentJobs] = await Promise.all([
     getLoungePosts(6),
     getSidebarData(),
+    getRecentJobs(3),
   ]);
 
   // Session-dependent — runs fresh every request (small overhead)
@@ -213,6 +216,62 @@ export default async function Home() {
             {/* Right Sidebar */}
             <div className="hidden lg:block lg:w-1/5 space-y-4 flex-shrink-0">
               <div className="sticky top-24 space-y-4">
+                
+                {/* Recent Projects */}
+                <div className="bg-card border border-border rounded-xl p-5 shadow-lg">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold text-foreground">Recent Projects</h2>
+                    <Link
+                      href="/product-hunt"
+                      className="text-green-600 dark:text-green-400 text-sm hover:underline"
+                    >
+                      See All
+                    </Link>
+                  </div>
+
+                  <div className="space-y-3">
+                    {products && products.length > 0 ? (
+                      products.map((product) => (
+                        <Link
+                          href={`/product-hunt/${product.url}`}
+                          key={product.id}
+                          className="flex items-center gap-3 p-3 bg-muted/30 hover:bg-accent transition-colors rounded-lg"
+                        >
+                          <div className="w-10 h-10 bg-muted rounded-lg overflow-hidden">
+                            {product.image_url ? (
+                              <img
+                                src={product.image_url}
+                                alt={product.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-green-600">
+                                <span className="text-white text-sm font-bold">
+                                  {product.name.charAt(0)}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-sm line-clamp-1 text-foreground">
+                              {product.name}
+                            </p>
+                            <p className="text-muted-foreground text-xs">
+                              {new Date(product.created_at).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                              })}
+                            </p>
+                          </div>
+                        </Link>
+                      ))
+                    ) : (
+                      <p className="text-muted-foreground text-sm py-2">No recent projects</p>
+                    )}
+                  </div>
+                </div>
+
+
                 {/* Recent Events */}
                 <div className="bg-card border border-border rounded-xl p-5 shadow-lg">
                   <div className="flex items-center justify-between mb-4">
@@ -271,6 +330,53 @@ export default async function Home() {
                   </div>
                 </div>
 
+                {/* Recent Jobs */}
+                <div className="bg-card border border-border rounded-xl p-5 shadow-lg">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold text-foreground">Jobs</h2>
+                    <Link href="/jobs" className="text-green-600 dark:text-green-400 text-sm hover:underline">
+                      See All
+                    </Link>
+                  </div>
+                  <div className="space-y-3">
+                    {recentJobs.length > 0 ? (
+                      recentJobs.map((job) => (
+                        <Link
+                          key={job.id}
+                          href={`/jobs/${job.id}`}
+                          className="flex items-center gap-3 p-3 bg-muted/30 hover:bg-accent transition-colors rounded-lg"
+                        >
+                          <div className="w-10 h-10 bg-muted rounded-lg overflow-hidden flex-shrink-0">
+                            {job.image_url ? (
+                              <img
+                                src={job.image_url}
+                                alt={job.company}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-green-600">
+                                <span className="text-white text-sm font-bold">
+                                  {job.company.charAt(0)}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm line-clamp-1 text-foreground">{job.title}</p>
+                            <p className="text-muted-foreground text-xs line-clamp-1">
+                              {job.company}
+                              {job.location ? ` · ${job.location}` : ''}
+                            </p>
+                          </div>
+                        </Link>
+                      ))
+                    ) : (
+                      <p className="text-muted-foreground text-sm py-2">No recent jobs</p>
+                    )}
+                  </div>
+                </div>
+
+
                 {/* Top Donors */}
                 <div className="bg-card border border-border rounded-xl py-4 px-6 shadow-lg">
                   <div className="flex items-center justify-between mb-4">
@@ -290,59 +396,8 @@ export default async function Home() {
                   </div>
                 </div>
 
-                {/* Recent Projects */}
-                <div className="bg-card border border-border rounded-xl p-5 shadow-lg">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold text-foreground">Recent Projects</h2>
-                    <Link
-                      href="/product-hunt"
-                      className="text-green-600 dark:text-green-400 text-sm hover:underline"
-                    >
-                      See All
-                    </Link>
-                  </div>
 
-                  <div className="space-y-3">
-                    {products && products.length > 0 ? (
-                      products.map((product) => (
-                        <Link
-                          href={`/product-hunt/${product.url}`}
-                          key={product.id}
-                          className="flex items-center gap-3 p-3 bg-muted/30 hover:bg-accent transition-colors rounded-lg"
-                        >
-                          <div className="w-10 h-10 bg-muted rounded-lg overflow-hidden">
-                            {product.image_url ? (
-                              <img
-                                src={product.image_url}
-                                alt={product.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-green-600">
-                                <span className="text-white text-sm font-bold">
-                                  {product.name.charAt(0)}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-medium text-sm line-clamp-1 text-foreground">
-                              {product.name}
-                            </p>
-                            <p className="text-muted-foreground text-xs">
-                              {new Date(product.created_at).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                              })}
-                            </p>
-                          </div>
-                        </Link>
-                      ))
-                    ) : (
-                      <p className="text-muted-foreground text-sm py-2">No recent projects</p>
-                    )}
-                  </div>
-                </div>
+
               </div>
             </div>
           </div>
