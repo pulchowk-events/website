@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { supabase } from "@/app/lib/supabase";
+import { normalizeRelation } from "@/app/lib/supabase-helpers";
 
 // ============================================================================
 // EVENT QUERIES
@@ -31,7 +32,15 @@ export const getEventsPage = unstable_cache(
     q = q.range(offset, offset + pageSize - 1);
 
     const { data, count } = await q;
-    return { events: data || [], totalCount: count || 0 };
+
+    // Normalize: Supabase types `author` as `T[]`, runtime is usually object.
+    // Safe either way.
+    const events = (data || []).map((e: any) => ({
+      ...e,
+      author: normalizeRelation(e.author),
+    }));
+
+    return { events, totalCount: count || 0 };
   },
   ["events-page"],
   { revalidate: 60, tags: ["events"] },
@@ -45,7 +54,9 @@ export const getEventById = unstable_cache(
       .eq("id", id)
       .eq("verified", true)
       .single();
-    return data;
+
+    if (!data) return null;
+    return { ...data, author: normalizeRelation((data as any).author) };
   },
   ["event-by-id"],
   { revalidate: 60, tags: ["events"] },
@@ -65,7 +76,11 @@ export const getUpcomingEvents = unstable_cache(
       .gte("event_date", new Date().toISOString())
       .order("event_date", { ascending: true })
       .limit(limit);
-    return data || [];
+
+    return (data || []).map((e: any) => ({
+      ...e,
+      author: normalizeRelation(e.author),
+    }));
   },
   ["upcoming-events"],
   { revalidate: 60, tags: ["events"] },
@@ -128,12 +143,16 @@ export const getLoungePosts = unstable_cache(
       .select(
         `
         *,
-        users:author_id (name, image)
+        users:author_id (id, name, image)
       `,
       )
       .order("created_at", { ascending: false })
       .limit(limit);
-    return data || [];
+
+    return (data || []).map((p: any) => ({
+      ...p,
+      users: normalizeRelation(p.users),
+    }));
   },
   ["lounge-posts"],
   { revalidate: 60, tags: ["lounge"] },
@@ -146,12 +165,14 @@ export const getLoungePostById = unstable_cache(
       .select(
         `
         *,
-        users:author_id (name, image, email, id)
+        users:author_id (id, name, image, email)
       `,
       )
       .eq("id", id)
       .single();
-    return data;
+
+    if (!data) return null;
+    return { ...data, users: normalizeRelation((data as any).users) };
   },
   ["lounge-post-by-id"],
   { revalidate: 60, tags: ["lounge"] },
@@ -207,11 +228,39 @@ export const getTopDonators = unstable_cache(
 );
 
 // ============================================================================
-// AGGREGATED SIDEBAR (used by events, product-hunt, about, home, search)
+// ABOUT PAGE STATS
 // ============================================================================
-// This is the single biggest perf win: previously each page re-fetched
-// donors + products + upcoming events independently. Now all pages share
-// one cache entry per 60s window.
+
+export const getAboutStats = unstable_cache(
+  async () => {
+    const [prizePool, { count: totalEvents }, { count: totalProducts }] =
+      await Promise.all([
+        getPrizePool(),
+        supabase
+          .from("events")
+          .select("*", { count: "exact", head: true })
+          .eq("verified", true),
+        supabase
+          .from("products")
+          .select("*", { count: "exact", head: true })
+          .eq("approved", true),
+      ]);
+
+    return {
+      currentAmount: prizePool.currentAmount,
+      targetAmount: prizePool.targetAmount,
+      totalDonors: prizePool.totalDonors,
+      totalEvents: totalEvents || 0,
+      totalProducts: totalProducts || 0,
+    };
+  },
+  ["about-stats"],
+  { revalidate: 60, tags: ["events", "products", "donations"] },
+);
+
+// ============================================================================
+// AGGREGATED SIDEBAR
+// ============================================================================
 
 export const getSidebarData = unstable_cache(
   async () => {
