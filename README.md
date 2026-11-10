@@ -9,7 +9,7 @@
 
 Every week, hackathons, workshops, internships and jobs are announced across a dozen different places — Discord servers, Facebook groups, college noticeboards, and event listings scattered over half a dozen websites. Students find out about most of them too late, or not at all. **Pulchowk Events brings the useful signal into one place.**
 
-The site lists verified campus events, showcases student projects in a Product Hunt–style leaderboard, hosts a community lounge for discussions, tracks a prize pool for student investing competitions, and adds a jobs board drawn from Nepal's top engineering recruiters. A Discord bot ([`pulchowk-events/aggregator`](https://github.com/pulchowk-events/aggregator)) scrapes events and jobs from ten sources, runs every item through deduplication and quality checks, posts the vetted results to a community of 5,000+ students, and syncs them to the website within seconds.
+The site lists verified campus events, showcases student projects in a Product Hunt–style leaderboard, hosts a community lounge for discussions, tracks a prize pool for student investing competitions, and adds a jobs board drawn from Nepal's top engineering recruiters. A Discord bot ([`pulchowk-events/aggregator`](https://github.com/pulchowk-events/aggregator)) scrapes events and jobs from ten sources, runs every item through deduplication and quality checks, posts the vetted results to a community of 11,000+ students (over 101+ servers), and syncs them to the website within seconds.
 
 The goal is a fast, discoverable, community-run index of what's actually happening — not another event aggregator that dumps scraped noise onto a page.
 
