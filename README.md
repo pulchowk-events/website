@@ -1,3 +1,7 @@
+<div align="left">
+<img width="1920" height="400" alt="Pulchowk Events" src="https://github.com/user-attachments/assets/4aeb44d8-af5e-46cf-9084-1d2857360c45" />
+
+
 # Pulchowk Events
 
 > A community platform for campus events, student projects, and engineering jobs across Nepal.
