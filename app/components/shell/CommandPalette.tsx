@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Home, Calendar, Briefcase, Box, MessageCircle, Bookmark, Heart, HelpCircle, Plus, PanelLeft, FileText } from "lucide-react";
+import { Home, Calendar, Briefcase, Box, MessageCircle, Bookmark, Heart, HelpCircle, Plus, PanelLeft, FileText, GraduationCap } from "lucide-react";
 
 interface Result {
   type: "post" | "event" | "job" | "project";
@@ -25,6 +25,7 @@ const PAGES = [
   { href: "/jobs", label: "Jobs", icon: Briefcase },
   { href: "/product-hunt", label: "Projects", icon: Box },
   { href: "/lounge", label: "Lounge", icon: MessageCircle },
+  { href: "/scholarships", label: "Scholarships", icon: GraduationCap },
   { href: "/saved", label: "Saved", icon: Bookmark },
   { href: "/donate", label: "Donate", icon: Heart },
   { href: "/help", label: "Help", icon: HelpCircle },

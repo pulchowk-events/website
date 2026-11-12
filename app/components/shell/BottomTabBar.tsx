@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Calendar, Briefcase, Box, MessageCircle } from "lucide-react";
+import { Home, Calendar, Briefcase, MessageCircle, GraduationCap } from "lucide-react";
 
 const TABS = [
   { href: "/", label: "Home", icon: Home },
   { href: "/events", label: "Events", icon: Calendar },
   { href: "/jobs", label: "Jobs", icon: Briefcase },
-  { href: "/product-hunt", label: "Projects", icon: Box },
+  { href: "/scholarships", label: "Scholarships", icon: GraduationCap },
   { href: "/lounge", label: "Lounge", icon: MessageCircle },
 ];
 

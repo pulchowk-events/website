@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Calendar, Briefcase, Box, MessageCircle, Bookmark, Heart, HelpCircle, LayoutGrid, MessageSquare, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
+import { Home, Calendar, Briefcase, Box, MessageCircle, Bookmark, Heart, HelpCircle, LayoutGrid, MessageSquare, GraduationCap, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
 
 export interface NavCounts {
   events_upcoming: number;
@@ -26,6 +26,7 @@ const BROWSE = [
   { href: "/jobs", label: "Jobs", icon: Briefcase, countKey: "jobs_open" as const },
   { href: "/product-hunt", label: "Projects", icon: Box },
   { href: "/lounge", label: "Lounge", icon: MessageCircle },
+  { href: "/scholarships", label: "Scholarships", icon: GraduationCap },
 ];
 
 const YOU = [
