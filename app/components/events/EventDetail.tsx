@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { format } from 'date-fns';
+import { formatWeekdayLong, formatTime } from '@/app/lib/formatDate';
 import {
   ArrowLeft, Calendar, Clock, MapPin, Building2, DollarSign,
   ExternalLink, Code, LucideCircuitBoard, Gamepad, Music, Dumbbell, Plus,
@@ -147,13 +147,13 @@ export default function EventDetail({
               <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-0.5 flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5" /> Date
               </dt>
-              <dd className="text-foreground">{format(eventDate, 'EEEE, MMMM d, yyyy')}</dd>
+              <dd className="text-foreground">{formatWeekdayLong(eventDate)}</dd>
             </div>
             <div>
               <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-0.5 flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5" /> Time
               </dt>
-              <dd className="text-foreground">{format(eventDate, 'h:mm a')}</dd>
+              <dd className="text-foreground">{formatTime(eventDate)}</dd>
             </div>
             {event.location && (
               <div>

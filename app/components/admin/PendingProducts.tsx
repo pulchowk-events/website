@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { CheckCircle, XCircle, ExternalLink, User, Calendar } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatDatePadded } from '@/app/lib/formatDate';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
@@ -154,7 +154,7 @@ export default function PendingProducts() {
                   </div>
                   <div className="flex items-center">
                     <Calendar className="h-4 w-4 mr-1" />
-                    <span>{format(new Date(product.created_at), 'MMM dd, yyyy')}</span>
+                    <span>{formatDatePadded(product.created_at)}</span>
                   </div>
                 </div>
               </div>

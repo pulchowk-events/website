@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { CheckCircle, XCircle, ExternalLink, Calendar, Clock } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatDateLong, formatTime } from '@/app/lib/formatDate';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
@@ -146,11 +146,11 @@ export default function AdminPendingEvents() {
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Calendar className="w-4 h-4" />
-                    <span>{format(new Date(event.event_date), 'PPP')}</span>
+                    <span>{formatDateLong(event.event_date)}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Clock className="w-4 h-4" />
-                    <span>{format(new Date(event.event_date), 'p')}</span>
+                    <span>{formatTime(event.event_date)}</span>
                   </div>
                 </div>
 

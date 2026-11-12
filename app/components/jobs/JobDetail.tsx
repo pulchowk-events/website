@@ -11,7 +11,7 @@ import {
   ExternalLink,
   Clock,
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatDateShort } from '@/app/lib/formatDate';
 import Markdown from '@/app/components/ui/Markdown';
 
 interface Job {
@@ -67,7 +67,7 @@ export default function JobDetail({ job }: { job: Job }) {
       value: job.application_ends_raw
         ? job.application_ends_raw
         : job.application_ends_at
-          ? format(new Date(job.application_ends_at), 'MMM d, yyyy')
+          ? formatDateShort(job.application_ends_at)
           : null,
     },
   ].filter((m) => m.value);
