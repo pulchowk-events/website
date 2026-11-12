@@ -6608,3 +6608,81 @@
   border-top: 1px solid var(--border);
   background: var(--surface);
 }
+
+/* Job detail */
+.job-detail {
+  display: flex; flex-direction: column; gap: 16px;
+  max-width: var(--content-w);
+}
+.job-detail__expired {
+  border: 1px solid rgba(255,92,92,0.3);
+  background: rgba(255,92,92,0.08);
+  color: var(--danger);
+  padding: 10px 14px;
+  border-radius: var(--radius-card);
+  font-size: 13px;
+}
+
+.job-detail__header {
+  display: flex; gap: 16px; align-items: flex-start;
+}
+.job-detail__logo {
+  width: 64px; height: 64px; border-radius: var(--radius-card);
+  background: var(--surface); box-shadow: 0 0 0 1px var(--border);
+  display: flex; align-items: center; justify-content: center;
+  flex: none; overflow: hidden;
+}
+.job-detail__logo img { width: 100%; height: 100%; object-fit: cover; }
+.job-detail__logo-initial { font-size: 24px; font-weight: 500; color: var(--text-2); }
+.job-detail__head-meta { flex: 1; min-width: 0; }
+.job-detail__title {
+  font-size: 24px; line-height: 30px; font-weight: 600;
+  letter-spacing: -0.04em; color: var(--text-1); margin: 0 0 4px;
+}
+.job-detail__company {
+  font-size: 14px; color: var(--text-2); margin: 0;
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.job-detail__source {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 11px; color: var(--text-3);
+  padding: 1px 6px; border-radius: 4px; box-shadow: 0 0 0 1px var(--border);
+}
+
+.job-detail__actions-bar {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.job-detail__facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 20px; margin: 0;
+  padding: 16px;
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--border);
+}
+@media (min-width: 640px) {
+  .job-detail__facts { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.job-detail__facts > div { display: flex; flex-direction: column; gap: 2px; }
+.job-detail__facts dt {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--text-3);
+  display: flex; align-items: center; gap: 6px;
+}
+.job-detail__facts dd { font-size: 13px; color: var(--text-1); margin: 0; }
+
+.job-detail__section {
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+.job-detail__section-title {
+  font-size: 14px; font-weight: 600; letter-spacing: -0.01em;
+  color: var(--text-1); margin: 0 0 12px;
+}
+.job-detail__skills { display: flex; flex-wrap: wrap; gap: 6px; }

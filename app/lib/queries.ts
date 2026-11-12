@@ -984,3 +984,22 @@ export const getEventsByOrganizer = unstable_cache(
   ["events-by-organizer"],
   { revalidate: 60, tags: ["events"] },
 );
+
+export const getSimilarJobs = unstable_cache(
+  async (jobId: string, employmentType: string | null, limit = 4) => {
+    const nowISO = new Date().toISOString();
+    let q = supabase
+      .from("jobs")
+      .select("id, title, company, location, employment_type, posted_at, image_url")
+      .eq("verified", true)
+      .neq("id", jobId)
+      .or("application_ends_at.is.null,application_ends_at.gte." + nowISO)
+      .order("posted_at", { ascending: false })
+      .limit(limit);
+    if (employmentType) q = q.ilike("employment_type", "%" + employmentType + "%");
+    const { data } = await q;
+    return data || [];
+  },
+  ["similar-jobs"],
+  { revalidate: 60, tags: ["jobs"] },
+);
