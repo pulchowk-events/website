@@ -1016,3 +1016,81 @@ export const getSimilarJobs = unstable_cache(
   ["similar-jobs"],
   { revalidate: 60, tags: ["jobs"] },
 );
+
+export interface LoungeFeedParams {
+  category: string;
+  sort: "latest" | "top";
+  page: number;
+  pageSize: number;
+  userId?: string;
+}
+
+export const getLoungeFeed = unstable_cache(
+  async (f: LoungeFeedParams) => {
+    const offset = (f.page - 1) * f.pageSize;
+    let q = supabase
+      .from("lounge_posts")
+      .select(
+        "id, title, content, category, created_at, updated_at, image_url, show_embed_image, redirect_url, score, comment_count, author_id, users:author_id(name, image)",
+        { count: "exact" },
+      );
+
+    if (f.category !== "all") q = q.eq("category", f.category);
+
+    if (f.sort === "top") {
+      q = q.order("score", { ascending: false }).order("created_at", { ascending: false });
+    } else {
+      q = q.order("created_at", { ascending: false });
+    }
+
+    q = q.range(offset, offset + f.pageSize - 1);
+
+    const { data, count } = await q;
+    const posts = (data || []).map((p: any) => ({
+      ...p,
+      users: normalizeRelation(p.users),
+    }));
+
+    let myVotes: Record<string, 1 | -1> = {};
+    let savedIds = new Set<string>();
+    if (f.userId && posts.length > 0) {
+      const ids = posts.map((p) => p.id);
+      const [votesRes, savesRes] = await Promise.all([
+        supabase
+          .from("post_votes")
+          .select("post_id, value")
+          .eq("user_id", f.userId)
+          .in("post_id", ids),
+        supabase
+          .from("saves")
+          .select("item_id")
+          .eq("user_id", f.userId)
+          .eq("item_type", "post")
+          .in("item_id", ids),
+      ]);
+      myVotes = Object.fromEntries(
+        (votesRes.data || []).map((v: any) => [v.post_id, v.value]),
+      );
+      savedIds = new Set((savesRes.data || []).map((s: any) => s.item_id));
+    }
+
+    return {
+      posts,
+      totalCount: count || 0,
+      myVotes,
+      savedIds: Array.from(savedIds),
+    };
+  },
+  ["lounge-feed"],
+  { revalidate: 60, tags: ["lounge"] },
+);
+
+export const getPostVoteForUser = async (postId: string, userId: string) => {
+  const { data } = await supabase
+    .from("post_votes")
+    .select("value")
+    .eq("user_id", userId)
+    .eq("post_id", postId)
+    .maybeSingle();
+  return data?.value as 1 | -1 | undefined;
+};
