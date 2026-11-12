@@ -2,6 +2,7 @@ import { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  devIndicators: false,
   images: {
     domains: [
       'anzrkakfmuohsyootolj.supabase.co',

@@ -5236,3 +5236,99 @@
     -webkit-font-smoothing: antialiased;
   }
 }
+
+/* ============================================================================
+   SPEC TOKENS — Phase 1 of the redesign.
+   Source of truth: Pulchowk_Events_UI_UX_Spec.pdf §3.1, §3.2, §3.4.
+   Old token names bridge via :root alias below. Each page migration removes
+   the ones it no longer needs; Phase 7 removes the block entirely.
+   ============================================================================ */
+:root {
+  /* Foundation — spec §3.1 */
+  --bg: #000000;
+  --surface: #0a0a0a;
+  --hover: rgba(255, 255, 255, 0.04);
+  --selected: rgba(255, 255, 255, 0.06);
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+
+  /* Text tiers — spec §3.1 */
+  --text-1: #ededed;
+  --text-2: #a1a1a1;
+  --text-3: #7d7d7d;
+
+  /* Semantic — spec §3.1 */
+  --accent: #3ecf8e;
+  --danger: #ff5c5c;
+  --warning: #f5a623;
+
+  /* Category dots — spec §3.2 */
+  --cat-discussions: #51aeff;
+  --cat-announcements: #3ecf8e;
+  --cat-opportunities: #f5a623;
+  --cat-confessions: #7d7d7d;
+  --cat-tech-help: #8b7cff;
+  --cat-showcases: #ff6b9d;
+  --cat-event-software: #51aeff;
+  --cat-event-hardware: #f5a623;
+  --cat-event-gaming: #8b7cff;
+  --cat-event-music: #ff6b9d;
+  --cat-event-sports: #3ecf8e;
+  --cat-event-extra: #a1a1a1;
+
+  /* Layout primitives — spec §3.4, §4 */
+  --topbar-h: 56px;
+  --sidebar-w: 232px;
+  --sidebar-w-collapsed: 56px;
+  --rail-w: 320px;
+  --content-w: 720px;
+  --content-w-wide: 960px;
+  --shell-max: 1600px;
+
+  /* Radii — spec §3.4 */
+  --radius-control: 6px;
+  --radius-card: 8px;
+  --radius-popover: 12px;
+  --radius-full: 9999px;
+
+  /* Sizing — spec §3.4 */
+  --control-h: 32px;
+  --control-h-compact: 28px;
+  --control-h-touch: 40px;
+  --row-py: 12px;
+  --row-px: 12px;
+
+  /* Motion — spec §8.3 */
+  --e: cubic-bezier(0.22, 1, 0.36, 1);
+  --t-fast: 150ms;
+  --t-med: 250ms;
+
+  /* Bridge — old token names. Delete during Phase 7. */
+  --t: var(--text-1);
+  --m: var(--text-2);
+  --l: var(--border-strong);
+  --l2: var(--border);
+  --g: var(--accent);
+  --a: var(--warning);
+  --v: #8b7cff;
+  --c: #51aeff;
+
+  --surface-0: var(--bg);
+  --surface-1: var(--surface);
+  --surface-2: #0d0d0d;
+  --surface-3: #1c1c1c;
+
+  --success: var(--accent);
+  --info: var(--c);
+  --error: var(--danger);
+
+  /* Kept for the landing page until it moves to /landing in Phase 2. */
+  --container-x: 24px;
+  --section-y: 130px;
+}
+
+@media (pointer: coarse) {
+  :root {
+    --control-h: var(--control-h-touch);
+  }
+}
