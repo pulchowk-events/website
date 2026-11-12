@@ -5321,7 +5321,7 @@
   --info: var(--c);
   --error: var(--danger);
 
-  /* Kept for the landing page until it moves to /landing in Phase 2. */
+  /* Landing page container. */
   --container-x: 24px;
   --section-y: 130px;
 }
