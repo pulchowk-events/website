@@ -12,6 +12,12 @@ interface DonateFormProps {
   };
 }
 
+function formatAmount(raw: string): string {
+  const n = parseFloat(raw);
+  if (!isFinite(n)) return '$0';
+  return '$' + n.toLocaleString('en-US');
+}
+
 export default function DonateForm({ initialUserData }: DonateFormProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -23,45 +29,34 @@ export default function DonateForm({ initialUserData }: DonateFormProps) {
     amount: '',
     showOnLeaderboard: true,
     transactionCode: '',
-    message: ''
+    message: '',
   });
 
-  const qrCodeUrl = "/esewaQR.jpg";
-
+  const qrCodeUrl = '/esewaQR.jpg';
   const donationAmounts = [25, 50, 100, 250, 500];
   const paymentDetails = {
-    accountName: "Sashmin Adhikari",
-    accountNumber: "9844568703",
-    bankName: "eSewa"
+    accountName: 'Sashmin Adhikari',
+    accountNumber: '9844568703',
+    bankName: 'eSewa',
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value, type } = e.target as HTMLInputElement;
 
     if (name === 'amount' && type === 'number') {
       const numValue = parseFloat(value);
-      setFormData({
-        ...formData,
-        [name]: numValue < 0 ? '0' : value
-      });
+      setFormData({ ...formData, [name]: numValue < 0 ? '0' : value });
     } else if (name === 'showOnLeaderboard') {
-      setFormData({
-        ...formData,
-        [name]: (e.target as HTMLInputElement).checked
-      });
+      setFormData({ ...formData, [name]: (e.target as HTMLInputElement).checked });
     } else {
-      setFormData({
-        ...formData,
-        [name]: value
-      });
+      setFormData({ ...formData, [name]: value });
     }
   };
 
   const selectAmount = (amount: number) => {
-    setFormData({
-      ...formData,
-      amount: amount.toString()
-    });
+    setFormData({ ...formData, amount: amount.toString() });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -72,14 +67,12 @@ export default function DonateForm({ initialUserData }: DonateFormProps) {
         toast.error('Please fill in all required fields');
         return;
       }
-
       setCurrentStep(2);
       return;
     }
 
     try {
       setIsLoading(true);
-
       if (!formData.transactionCode) {
         toast.error('Please enter the transaction code');
         return;
@@ -87,9 +80,7 @@ export default function DonateForm({ initialUserData }: DonateFormProps) {
 
       const response = await fetch('/api/donations/submit', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
@@ -108,36 +99,49 @@ export default function DonateForm({ initialUserData }: DonateFormProps) {
 
       toast.success(data?.message || 'Thank you for your donation!');
       setCurrentStep(3);
-
     } catch (error) {
       console.error('Donation error:', error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : 'Failed to submit donation'
-      );
+      toast.error(error instanceof Error ? error.message : 'Failed to submit donation');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedCode(true);
-    setTimeout(() => setCopiedCode(false), 2000);
+  const copyToClipboard = async (text: string) => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.cssText = 'position:fixed;opacity:0';
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand('copy');
+        } catch {
+          /* ignore */
+        }
+        ta.remove();
+      }
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2000);
+    } catch {
+      toast.error('Failed to copy');
+    }
   };
 
   return (
-    <div className="bg-card/50 rounded-lg shadow-lg border border-border p-6">
+    <div className="card">
       {currentStep === 1 && (
         <>
-          <h2 className="text-2xl font-bold text-foreground mb-6">Make a Donation</h2>
+          <h2 className="donate-form__title">Make a donation</h2>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-foreground mb-1">
-                  Your Name*
+          <form onSubmit={handleSubmit} className="donate-form__stack">
+            <div className="donate-form__row">
+              <div className="donate-form__field">
+                <label htmlFor="name" className="donate-form__label">
+                  Your name <span className="donate-form__req">*</span>
                 </label>
                 <input
                   type="text"
@@ -146,14 +150,14 @@ export default function DonateForm({ initialUserData }: DonateFormProps) {
                   value={formData.name}
                   onChange={handleInputChange}
                   placeholder="John Doe"
-                  className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="input"
                   required
                 />
               </div>
 
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1">
-                  Email Address*
+              <div className="donate-form__field">
+                <label htmlFor="email" className="donate-form__label">
+                  Email address <span className="donate-form__req">*</span>
                 </label>
                 <input
                   type="email"
@@ -161,53 +165,54 @@ export default function DonateForm({ initialUserData }: DonateFormProps) {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  placeholder="example@email.com"
-                  className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder="you@example.com"
+                  className="input"
                   required
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-3">
-                Select Amount*
-              </label>
-              <div className="grid grid-cols-3 md:grid-cols-5 gap-2 mb-4">
-                {donationAmounts.map((amount) => (
-                  <button
-                    key={amount}
-                    type="button"
-                    onClick={() => selectAmount(amount)}
-                    className={`py-3 rounded-lg text-center transition-colors ${
-                      formData.amount === amount.toString()
-                        ? 'bg-green-600 text-white'
-                        : 'bg-secondary text-foreground hover:bg-accent'
-                    }`}
-                  >
-                    ${amount}
-                  </button>
-                ))}
+            <div className="donate-form__field">
+              <p className="donate-form__label">
+                Select amount <span className="donate-form__req">*</span>
+              </p>
+              <div className="donate-form__amounts">
+                {donationAmounts.map((amount) => {
+                  const on = formData.amount === amount.toString();
+                  return (
+                    <button
+                      key={amount}
+                      type="button"
+                      onClick={() => selectAmount(amount)}
+                      className={
+                        'donate-form__amount' + (on ? ' donate-form__amount--on' : '')
+                      }
+                    >
+                      ${amount}
+                    </button>
+                  );
+                })}
               </div>
 
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
+              <div className="donate-form__custom">
+                <DollarSign size={16} className="donate-form__custom-icon" />
                 <input
                   type="number"
                   id="amount"
                   name="amount"
                   value={formData.amount}
                   onChange={handleInputChange}
-                  placeholder="Custom Amount"
-                  className="w-full bg-background border border-border rounded-lg pl-10 pr-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder="Custom amount"
+                  className="input"
                   min="1"
                   step="any"
                 />
               </div>
             </div>
 
-            <div>
-              <label htmlFor="message" className="block text-sm font-medium text-foreground mb-1">
-                Message (Optional)
+            <div className="donate-form__field">
+              <label htmlFor="message" className="donate-form__label">
+                Message <span className="donate-form__muted">(optional)</span>
               </label>
               <textarea
                 id="message"
@@ -216,104 +221,88 @@ export default function DonateForm({ initialUserData }: DonateFormProps) {
                 onChange={handleInputChange}
                 placeholder="Add a message with your donation"
                 rows={3}
-                className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="input input--multi"
               />
             </div>
 
-            <div className="flex items-center">
+            <label className="donate-form__check">
               <input
                 type="checkbox"
-                id="showOnLeaderboard"
                 name="showOnLeaderboard"
                 checked={formData.showOnLeaderboard}
                 onChange={handleInputChange}
-                className="h-4 w-4 rounded border-border text-green-600 focus:ring-green-500 bg-background"
               />
-              <label htmlFor="showOnLeaderboard" className="ml-2 block text-sm text-foreground">
-                Show my name on the leaderboard
-              </label>
-            </div>
+              <span>Show my name on the leaderboard</span>
+            </label>
 
-            <div className="mt-6">
-              <button
-                type="submit"
-                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium transition-colors shadow-lg flex items-center justify-center"
-              >
-                Continue to Payment
-              </button>
-            </div>
+            <button type="submit" className="btn btn--primary donate-form__cta">
+              <span className="btn__label">Continue to payment</span>
+              <span className="btn__label btn__label--dup" aria-hidden="true">
+                Continue to payment
+              </span>
+            </button>
           </form>
         </>
       )}
 
       {currentStep === 2 && (
         <>
-          <h2 className="text-2xl font-bold text-foreground mb-6">Complete Your Donation</h2>
+          <h2 className="donate-form__title">Complete your donation</h2>
 
-          <div className="space-y-6">
-            <div className="bg-muted/50 rounded-lg p-4 border border-border">
-              <div className="font-medium text-foreground mb-2">Donation Summary</div>
-              <div className="flex justify-between text-foreground">
-                <span>Amount:</span>
-                <span className="font-bold">${parseFloat(formData.amount).toLocaleString()}</span>
+          <div className="donate-form__stack">
+            <div className="donate-form__panel">
+              <p className="donate-form__panel-title">Donation summary</p>
+              <div className="donate-form__summary-row">
+                <span>Amount</span>
+                <span>{formatAmount(formData.amount)}</span>
               </div>
             </div>
 
-            <div className="bg-muted/50 rounded-lg p-4 border border-border">
-              <div className="mb-4">
-                <h3 className="font-medium text-foreground mb-2 flex items-center">
-                  <CreditCard className="h-5 w-5 mr-2" />
-                  Payment Details
-                </h3>
-
-                <div className="space-y-2 text-foreground">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Account Name:</span>
-                    <span>{paymentDetails.accountName}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Phone Number:</span>
-                    <span>{paymentDetails.accountNumber}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Bank/Wallet:</span>
-                    <span>{paymentDetails.bankName}</span>
-                  </div>
-                </div>
+            <div className="donate-form__panel">
+              <p className="donate-form__panel-title">
+                <CreditCard size={14} />
+                Payment details
+              </p>
+              <div className="donate-form__summary-row">
+                <span>Account name</span>
+                <span>{paymentDetails.accountName}</span>
+              </div>
+              <div className="donate-form__summary-row">
+                <span>Phone number</span>
+                <span>{paymentDetails.accountNumber}</span>
+              </div>
+              <div className="donate-form__summary-row">
+                <span>Bank / wallet</span>
+                <span>{paymentDetails.bankName}</span>
               </div>
 
-              <div className="mt-6 flex flex-col md:flex-row items-center justify-center gap-6">
-                <div className="text-center">
-                  <h4 className="text-foreground mb-2 flex items-center justify-center">
-                    <QrCode className="h-5 w-5 mr-2" />
-                    Scan QR Code
-                  </h4>
-                  <div className="bg-white p-2 rounded-lg inline-block">
-                    <Image
-                      src={qrCodeUrl}
-                      alt="Payment QR Code"
-                      width={200}
-                      height={200}
-                      className=""
-                    />
-                  </div>
+              <div className="donate-form__qr-row">
+                <div className="donate-form__qr-wrap">
+                  <Image
+                    src={qrCodeUrl}
+                    alt="Payment QR code"
+                    width={180}
+                    height={180}
+                    className="donate-form__qr-img"
+                  />
                 </div>
-
-                <div className="text-center md:text-left">
-                  <p className="text-foreground mb-4">
-                    Transfer the exact amount of ${parseFloat(formData.amount).toLocaleString()} using your banking app or website.
+                <div>
+                  <p className="donate-form__qr-head">
+                    <QrCode size={14} />
+                    Scan QR code
                   </p>
-                  <p className="text-foreground mb-2">
-                    After completing the transfer, enter the transaction code or reference number from your bank statement below.
+                  <p className="donate-form__qr-text">
+                    Transfer exactly {formatAmount(formData.amount)} using your banking app.
+                    After the transfer, enter the transaction code from your bank statement below.
                   </p>
                 </div>
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label htmlFor="transactionCode" className="block text-sm font-medium text-foreground mb-1">
-                  Transaction Code / Reference Number*
+            <form onSubmit={handleSubmit} className="donate-form__stack">
+              <div className="donate-form__field">
+                <label htmlFor="transactionCode" className="donate-form__label">
+                  Transaction code / reference number <span className="donate-form__req">*</span>
                 </label>
                 <input
                   type="text"
@@ -322,32 +311,32 @@ export default function DonateForm({ initialUserData }: DonateFormProps) {
                   value={formData.transactionCode}
                   onChange={handleInputChange}
                   placeholder="Enter the transaction code from your bank"
-                  className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="input"
                   required
                 />
-                <p className="text-xs text-muted-foreground mt-1">
-                  This helps us verify your donation
-                </p>
+                <p className="donate-form__hint">This helps us verify your donation.</p>
               </div>
 
-              <div className="flex gap-4">
+              <div className="donate-form__actions">
                 <button
                   type="button"
                   onClick={() => setCurrentStep(1)}
-                  className="flex-1 bg-secondary hover:bg-accent text-foreground py-3 rounded-lg font-medium transition-colors"
+                  className="btn btn--secondary"
                 >
-                  Back
+                  <span className="btn__label">Back</span>
+                  <span className="btn__label btn__label--dup" aria-hidden="true">Back</span>
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium transition-colors shadow-lg flex items-center justify-center"
+                  className="btn btn--primary"
                 >
-                  {isLoading ? (
-                    <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
-                  ) : (
-                    'Complete Donation'
-                  )}
+                  <span className="btn__label">
+                    {isLoading ? 'Processing…' : 'Complete donation'}
+                  </span>
+                  <span className="btn__label btn__label--dup" aria-hidden="true">
+                    {isLoading ? 'Processing…' : 'Complete donation'}
+                  </span>
                 </button>
               </div>
             </form>
@@ -356,34 +345,39 @@ export default function DonateForm({ initialUserData }: DonateFormProps) {
       )}
 
       {currentStep === 3 && (
-        <div className="text-center py-8">
-          <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-green-100 dark:bg-green-500/20 mb-6">
-            <Check className="h-8 w-8 text-green-600 dark:text-green-400" />
-          </div>
+        <div className="donate-form__success">
+          <span className="donate-form__success-icon">
+            <Check size={28} />
+          </span>
 
-          <h2 className="text-2xl font-bold text-foreground mb-2">Thank You for Your Donation!</h2>
-          <p className="text-foreground mb-6">
-            Your contribution of ${parseFloat(formData.amount).toLocaleString()} will help support student investors.
+          <h2 className="donate-form__success-title">Thank you for your donation!</h2>
+          <p className="donate-form__success-desc">
+            Your contribution of {formatAmount(formData.amount)} will help support student
+            investors.
           </p>
 
-          <div className="bg-muted/50 rounded-lg p-4 border border-border text-left mb-6">
-            <div className="font-medium text-foreground mb-2">Transaction Details</div>
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Reference Code:</span>
-              <div className="flex items-center">
-                <span className="text-foreground font-mono mr-2">{formData.transactionCode}</span>
+          <div className="donate-form__panel" style={{ textAlign: 'left', marginBottom: 16 }}>
+            <p className="donate-form__panel-title">Transaction details</p>
+            <div className="donate-form__summary-row">
+              <span>Reference code</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontFamily: 'var(--font-geist-mono), monospace' }}>
+                  {formData.transactionCode}
+                </span>
                 <button
+                  type="button"
                   onClick={() => copyToClipboard(formData.transactionCode)}
-                  className="text-muted-foreground hover:text-foreground"
+                  className="donate-form__copy"
+                  aria-label="Copy transaction code"
                 >
-                  {copiedCode ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  {copiedCode ? <Check size={14} /> : <Copy size={14} />}
                 </button>
-              </div>
+              </span>
             </div>
           </div>
 
-          <p className="text-muted-foreground text-sm">
-            You will receive a confirmation email at {formData.email} shortly.
+          <p className="donate-form__hint">
+            You&apos;ll receive a confirmation email at {formData.email} shortly.
           </p>
         </div>
       )}
