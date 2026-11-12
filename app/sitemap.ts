@@ -88,6 +88,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .eq("verified", true),
   ]);
 
+  const [{ data: scholarships }, { count: scholarshipsCount }] = await Promise.all([
+    supabase
+      .from("scholarships")
+      .select("id, posted_at")
+      .eq("verified", true)
+      .order("posted_at", { ascending: false }),
+    supabase
+      .from("scholarships")
+      .select("*", { count: "exact", head: true })
+      .eq("verified", true),
+  ]);
+
   const entries: MetadataRoute.Sitemap = [];
   const now = new Date();
 
@@ -347,6 +359,37 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: now,
         changeFrequency: "weekly",
         priority: 0.5,
+      }),
+    );
+  }
+
+  // Scholarships
+  entries.push(
+    url(`${SITE_URL}/scholarships`, {
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.85,
+    }),
+  );
+
+  const SCH_PAGE_SIZE = 24;
+  const totalScholarshipPages = Math.ceil((scholarshipsCount || 0) / SCH_PAGE_SIZE);
+  for (let p = 2; p <= Math.min(totalScholarshipPages, 5); p++) {
+    entries.push(
+      url(`${SITE_URL}/scholarships?page=${p}`, {
+        lastModified: now,
+        changeFrequency: "daily",
+        priority: 0.6,
+      }),
+    );
+  }
+
+  for (const s of scholarships || []) {
+    entries.push(
+      url(`${SITE_URL}/scholarships/${s.id}`, {
+        lastModified: s.posted_at ? new Date(s.posted_at) : now,
+        changeFrequency: "weekly",
+        priority: 0.7,
       }),
     );
   }
