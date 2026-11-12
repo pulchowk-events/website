@@ -1,39 +1,36 @@
-import type { Metadata } from 'next';
-import Layout from '@/app/components/layout/Layout';
-import DonateClient from '@/app/components/donate/DonateClient';
-import { getTopDonators, getPrizePool } from '@/app/lib/queries';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/auth';
-import { SITE_URL } from '@/app/lib/seo';
+import type { Metadata } from "next";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/auth";
+import Layout from "@/app/components/layout/Layout";
+import { PageHeader } from "@/components/ui/PageHeader";
+import DonateClient from "@/app/components/donate/DonateClient";
+import {
+  getTopDonators,
+  getPrizePool,
+  getVerifiedDonationsLedger,
+} from "@/app/lib/queries";
+import { SITE_URL } from "@/app/lib/seo";
 
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: 'Support Future Innovators',
+  title: "Donate",
   description:
-    'Fund student investing competitions and seed capital for student projects across Nepal. 100% of donations go directly to students.',
-  alternates: { canonical: '/donate' },
+    "Fund student investing competitions and seed capital for student projects across Nepal. 100% of donations go directly to students.",
+  alternates: { canonical: "/donate" },
   openGraph: {
-    title: 'Support Future Innovators — Pulchowk Events',
-    description:
-      'Fund student investing competitions and seed capital for student projects across Nepal.',
-    type: 'website',
-    url: SITE_URL + '/donate',
-    images: [SITE_URL + '/opengraph-image'],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Support Future Innovators — Pulchowk Events',
-    description:
-      'Fund student investing competitions and seed capital for student projects across Nepal.',
-    images: [SITE_URL + '/opengraph-image'],
+    title: "Donate — Pulchowk Events",
+    description: "100% of donations fund student competitions and awards.",
+    type: "website",
+    url: SITE_URL + "/donate",
   },
 };
 
 export default async function DonatePage() {
-  const [donators, prizePoolData, session] = await Promise.all([
-    getTopDonators(5),
+  const [donators, prizePoolData, ledger, session] = await Promise.all([
+    getTopDonators(10),
     getPrizePool(),
+    getVerifiedDonationsLedger(20),
     getServerSession(authOptions),
   ]);
 
@@ -43,8 +40,17 @@ export default async function DonatePage() {
   };
 
   return (
-    <Layout>
-      <DonateClient session={session} donators={donators} prizePool={prizePool} />
+    <Layout railContext="donate">
+      <PageHeader
+        title="Donate"
+        description="Every dollar funds student competitions and awards. No platform fee."
+      />
+      <DonateClient
+        session={session}
+        donators={donators}
+        prizePool={prizePool}
+        verifiedLedger={ledger}
+      />
     </Layout>
   );
 }

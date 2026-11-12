@@ -1094,3 +1094,17 @@ export const getPostVoteForUser = async (postId: string, userId: string) => {
     .maybeSingle();
   return data?.value as 1 | -1 | undefined;
 };
+
+export const getVerifiedDonationsLedger = unstable_cache(
+  async (limit = 20) => {
+    const { data } = await supabase
+      .from("donations")
+      .select("id, name, amount, created_at, verified_at")
+      .eq("verified", true)
+      .order("verified_at", { ascending: false, nullsFirst: false })
+      .limit(limit);
+    return data || [];
+  },
+  ["verified-donations-ledger"],
+  { revalidate: 60, tags: ["donations"] },
+);

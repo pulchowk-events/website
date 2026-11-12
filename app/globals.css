@@ -7434,3 +7434,280 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Donate page */
+.donate-page { display: flex; flex-direction: column; gap: 24px; }
+
+.donate-hero {
+  padding: 20px;
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.donate-hero__eyebrow {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--text-3); margin: 0;
+}
+.donate-hero__amount {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 28px; line-height: 1; font-weight: 600;
+  color: var(--text-1); margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.donate-hero__of {
+  font-size: 14px; font-weight: 400; color: var(--text-3);
+}
+.donate-progress {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--surface-2);
+  overflow: visible;
+}
+.donate-progress__fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--accent);
+  transition: width 800ms var(--e);
+}
+.donate-progress__tick {
+  position: absolute; top: -3px;
+  width: 2px; height: 12px;
+  background: var(--surface-2);
+  transform: translateX(-1px);
+  border-radius: 1px;
+}
+.donate-progress__tick--passed { background: rgba(255,255,255,0.5); }
+.donate-hero__meta {
+  display: flex; justify-content: space-between; gap: 12px;
+  font-size: 12px; color: var(--text-2);
+}
+.donate-hero__meta strong { color: var(--text-1); font-weight: 500; }
+.donate-hero__pct {
+  font-family: var(--font-geist-mono), monospace;
+  color: var(--text-3);
+}
+.donate-hero__where {
+  font-size: 12px; color: var(--text-3); margin: 0;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.donate-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+@media (min-width: 900px) {
+  .donate-layout { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+}
+.donate-layout__form, .donate-layout__ledger { min-width: 0; }
+
+/* Donate form */
+.donate-form-card {
+  padding: 16px;
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--border);
+}
+.donate-steps {
+  display: flex; gap: 8px;
+  list-style: none; padding: 0; margin: 0 0 16px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+}
+.donate-steps__item {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--text-3);
+  flex: 1;
+}
+.donate-steps__num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 50%;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 11px; font-weight: 600;
+  background: var(--surface-2); color: var(--text-3);
+  flex: none;
+}
+.donate-steps__item--on .donate-steps__num { background: var(--accent); color: #000; }
+.donate-steps__item--on { color: var(--text-1); }
+.donate-steps__item--done .donate-steps__num { background: rgba(62,207,142,0.2); color: var(--accent); }
+.donate-steps__item--done { color: var(--text-2); }
+
+.donate-form { display: flex; flex-direction: column; gap: 14px; }
+.donate-form__row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+}
+@media (max-width: 640px) { .donate-form__row { grid-template-columns: 1fr; } }
+.donate-form__actions {
+  display: flex; gap: 8px; padding-top: 4px;
+}
+.donate-form__actions .btn { flex: 1; height: 40px; }
+
+.donate-amount-chips {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.donate-custom-amount { position: relative; }
+.donate-custom-amount__icon {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  color: var(--text-3); pointer-events: none;
+}
+.donate-custom-amount .input { padding-left: 32px; }
+
+.donate-checkbox {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; color: var(--text-2);
+  cursor: pointer;
+}
+.donate-checkbox input { accent-color: var(--accent); }
+
+.donate-summary {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 12px; padding: 12px 14px;
+  border-radius: var(--radius-card);
+  background: var(--bg);
+  box-shadow: 0 0 0 1px var(--border);
+}
+.donate-summary__label { font-size: 12px; color: var(--text-2); margin: 0; }
+.donate-summary__amount {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 22px; font-weight: 600; color: var(--text-1);
+  font-variant-numeric: tabular-nums; margin: 0;
+}
+
+.donate-payment {
+  padding: 14px;
+  border-radius: var(--radius-card);
+  background: var(--bg);
+  box-shadow: 0 0 0 1px var(--border);
+  display: flex; flex-direction: column; gap: 12px;
+}
+.donate-payment__head {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--text-2);
+  font-family: var(--font-geist-mono), monospace;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.donate-payment__facts {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
+  margin: 0;
+}
+@media (max-width: 640px) { .donate-payment__facts { grid-template-columns: 1fr; } }
+.donate-payment__facts > div { display: flex; flex-direction: column; gap: 2px; }
+.donate-payment__facts dt {
+  font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--text-3);
+  font-family: var(--font-geist-mono), monospace;
+}
+.donate-payment__facts dd { font-size: 13px; color: var(--text-1); margin: 0; }
+
+.donate-qr {
+  display: flex; gap: 14px; align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.donate-qr__img-wrap {
+  display: inline-block;
+  padding: 6px;
+  border-radius: var(--radius-control);
+  background: #fff;
+  flex: none;
+}
+.donate-qr__img { display: block; }
+.donate-qr__head {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 500; color: var(--text-1);
+  margin: 0 0 6px;
+}
+.donate-qr__text {
+  font-size: 12px; line-height: 1.5; color: var(--text-2); margin: 0;
+}
+
+.donate-success {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 12px; padding: 24px 8px;
+  text-align: center;
+}
+.donate-success__icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 48px; height: 48px; border-radius: 50%;
+  background: rgba(62,207,142,0.15); color: var(--accent);
+}
+.donate-success__title {
+  font-size: 20px; font-weight: 600; letter-spacing: -0.03em;
+  color: var(--text-1); margin: 0;
+}
+.donate-success__desc {
+  font-size: 13px; line-height: 1.55; color: var(--text-2);
+  margin: 0; max-width: 380px;
+}
+.donate-success__tx {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-control);
+  background: var(--bg);
+  box-shadow: 0 0 0 1px var(--border);
+  margin-top: 4px;
+}
+.donate-success__tx-label {
+  font-size: 11px; color: var(--text-3);
+  font-family: var(--font-geist-mono), monospace;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.donate-success__tx-code {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 13px; color: var(--text-1);
+}
+
+/* Donate ledger */
+.donate-ledger {
+  padding: 16px;
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--border);
+}
+.donate-ledger__head { margin-bottom: 10px; }
+.donate-ledger__title {
+  font-size: 14px; font-weight: 600; letter-spacing: -0.01em;
+  color: var(--text-1); margin: 0 0 2px;
+}
+.donate-ledger__desc {
+  font-size: 12px; color: var(--text-3); margin: 0;
+}
+.donate-ledger__empty {
+  font-size: 13px; color: var(--text-3); padding: 8px 0;
+}
+.donate-ledger__list {
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column;
+}
+.donate-ledger__row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.donate-ledger__row:last-child { border-bottom: 0; }
+.donate-ledger__badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: rgba(62,207,142,0.15); color: var(--accent);
+  flex: none;
+}
+.donate-ledger__name { flex: 1; color: var(--text-1); min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.donate-ledger__date {
+  color: var(--text-3); font-size: 11px;
+  font-family: var(--font-geist-mono), monospace;
+}
+.donate-ledger__amount {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 13px; font-weight: 500; color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  min-width: 56px; text-align: right;
+}
