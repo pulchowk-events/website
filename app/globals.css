@@ -801,3 +801,17 @@
   .navbar__search span:not(.navbar__kbd) { display: none; }
   .navbar__search { padding: 0 8px; width: 32px; justify-content: center; }
 }
+
+/* App shell ------------------------------------------------------------- */
+.app-shell {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+.app-main {
+  flex: 1;
+  min-width: 0;
+}
+@media (max-width: 900px) {
+  .app-shell--with-sidebar .sidebar { display: none; }
+}
