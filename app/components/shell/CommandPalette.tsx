@@ -69,10 +69,14 @@ export function CommandPalette({ open, onClose, onToggleSidebar }: Props) {
 
   const filteredPages = PAGES.filter((p) => !q || p.label.toLowerCase().includes(q.toLowerCase()));
 
+  const trimmedQ = q.trim();
+  const showSearchAll = trimmedQ.length > 0;
+
   const combined = [
     ...filteredPages.map((p) => ({ kind: "page" as const, label: p.label, icon: p.icon, onClick: () => { onClose(); router.push(p.href); } })),
     ...actions.filter((a) => !q || a.label.toLowerCase().includes(q.toLowerCase())).map((a) => ({ kind: "action" as const, label: a.label, icon: a.icon, onClick: a.action })),
     ...results.map((r) => ({ kind: "result" as const, label: r.title, meta: r.meta, onClick: () => { onClose(); router.push(r.href); } })),
+    ...(showSearchAll ? [{ kind: "search" as const, label: "See all results for \"" + trimmedQ + "\"", meta: undefined, onClick: () => { onClose(); router.push("/search?q=" + encodeURIComponent(trimmedQ)); } }] : []),
   ];
 
   useEffect(() => {
@@ -107,14 +111,20 @@ export function CommandPalette({ open, onClose, onToggleSidebar }: Props) {
               <button
                 key={i}
                 type="button"
-                className={"palette__row" + (i === active ? " palette__row--active" : "")}
+                className={
+                  "palette__row" +
+                  (i === active ? " palette__row--active" : "") +
+                  (item.kind === "search" ? " palette__row--search" : "")
+                }
                 onMouseEnter={() => setActive(i)}
                 onClick={item.onClick}
               >
                 <Icon size={14} />
                 <span className="palette__row-label">{item.label}</span>
                 {"meta" in item && item.meta && <span className="palette__row-meta">{item.meta}</span>}
-                <span className="palette__row-kind">{item.kind}</span>
+                <span className="palette__row-kind">
+                  {item.kind === "search" ? "↵" : item.kind}
+                </span>
               </button>
             );
           })}

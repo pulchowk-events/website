@@ -1,290 +1,219 @@
-import type { Metadata } from 'next';
-import Layout from '@/app/components/layout/Layout';
-import Link from 'next/link';
-import Image from 'next/image';
-import { Calendar, Box, MessageSquare, Search as SearchIcon } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { PageHeader } from '@/components/ui/PageHeader';
-import { supabase } from '@/app/lib/supabase';
-import { getSidebarData } from '@/app/lib/queries';
-import { normalizeRelation } from '@/app/lib/supabase-helpers';
-import { formatDateShort } from '@/app/lib/formatDate';
+import type { Metadata } from "next";
+import Link from "next/link";
+import { Search, MessageSquare, Calendar, Briefcase, Package } from "lucide-react";
+import Layout from "@/app/components/layout/Layout";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { PostRow } from "@/app/components/shell/rows/PostRow";
+import { EventRow } from "@/app/components/shell/rows/EventRow";
+import { JobRow } from "@/app/components/shell/rows/JobRow";
+import { ProjectRow } from "@/app/components/shell/rows/ProjectRow";
+import { supabase } from "@/app/lib/supabase";
+import { normalizeRelation } from "@/app/lib/supabase-helpers";
 
 export const metadata: Metadata = {
-  title: 'Search',
-  description: 'Search events, projects, and community posts across Pulchowk Events.',
+  title: "Search",
   robots: { index: false, follow: true },
 };
+
+const PAGE_SIZE = 20;
+
+function escLike(q: string): string {
+  return q.replace(/[%_\\\\]/g, "\\\\$&");
+}
 
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string | string[] }>;
+  searchParams: Promise<{ q?: string | string[]; scope?: string | string[]; page?: string | string[] }>;
 }) {
-  const params = await searchParams;
-  const rawQuery = Array.isArray(params.q) ? params.q[0] : params.q;
-  const query = (rawQuery ?? '').trim();
-  const hasQuery = query.length > 0;
-  const safeQuery = query.replace(/[%_\\]/g, '\\$&');
+  const sp = await searchParams;
+  const rawQ = Array.isArray(sp.q) ? sp.q[0] : sp.q;
+  const rawScope = Array.isArray(sp.scope) ? sp.scope[0] : sp.scope;
+  const rawPage = Array.isArray(sp.page) ? sp.page[0] : sp.page;
+  const q = (rawQ || "").trim();
+  const scope =
+    rawScope === "posts" || rawScope === "events" || rawScope === "jobs" || rawScope === "projects"
+      ? rawScope
+      : "all";
+  const page = Math.max(1, parseInt(rawPage || "1", 10) || 1);
 
-  const sidebarData = hasQuery ? null : await getSidebarData();
+  if (!q) {
+    return (
+      <Layout railContext="utility">
+        <PageHeader title="Search" description="Find events, jobs, posts, and projects across the site." />
+        <form action="/search" method="get" className="search-form-lg">
+          <Search size={16} />
+          <input name="q" type="search" placeholder="Search anything..." autoFocus aria-label="Search" />
+          <button type="submit" className="btn btn--primary btn--sm">Search</button>
+        </form>
+        <div className="empty-row" style={{ marginTop: 16 }}>
+          <p>Type a query above to begin.</p>
+        </div>
+      </Layout>
+    );
+  }
 
-  const [postsRes, eventsRes, productsRes] = hasQuery
-    ? await Promise.all([
-        supabase
-          .from('lounge_posts')
-          .select('id, title, content, created_at, users:author_id (name, image)')
-          .or('title.ilike.%' + safeQuery + '%,content.ilike.%' + safeQuery + '%')
-          .order('created_at', { ascending: false })
-          .limit(5),
-        supabase
-          .from('events')
-          .select(
-            'id, title, description, event_date, created_at, category, image_url, users:created_by (name, image)'
-          )
-          .or('title.ilike.%' + safeQuery + '%,description.ilike.%' + safeQuery + '%')
-          .eq('verified', true)
-          .order('event_date', { ascending: true })
-          .limit(5),
-        supabase
-          .from('products')
-          .select(
-            'id, name, description, url, image_url, created_at, users:posted_by (name, image)'
-          )
-          .or('name.ilike.%' + safeQuery + '%,description.ilike.%' + safeQuery + '%')
-          .eq('approved', true)
-          .order('created_at', { ascending: false })
-          .limit(5),
-      ])
-    : [{ data: [] }, { data: [] }, { data: [] }];
+  const ilike = "%" + escLike(q) + "%";
+  const offset = (page - 1) * PAGE_SIZE;
 
-  const posts = (postsRes.data || []).map((p: any) => ({
-    ...p,
-    users: normalizeRelation(p.users),
-  }));
-  const events = (eventsRes.data || []).map((e: any) => ({
-    ...e,
-    users: normalizeRelation(e.users),
-  }));
-  const matchingProducts = (productsRes.data || []).map((p: any) => ({
-    ...p,
-    users: normalizeRelation(p.users),
-  }));
+  const [pc, ec, jc, prc] = await Promise.all([
+    supabase.from("lounge_posts").select("*", { count: "exact", head: true }).or("title.ilike." + ilike + ",content.ilike." + ilike),
+    supabase.from("events").select("*", { count: "exact", head: true }).eq("verified", true).or("title.ilike." + ilike + ",description.ilike." + ilike),
+    supabase.from("jobs").select("*", { count: "exact", head: true }).eq("verified", true).or("title.ilike." + ilike + ",company.ilike." + ilike),
+    supabase.from("products").select("*", { count: "exact", head: true }).eq("approved", true).or("name.ilike." + ilike + ",description.ilike." + ilike),
+  ]);
 
-  const totalResults = posts.length + events.length + matchingProducts.length;
+  const counts = {
+    posts: pc.count || 0,
+    events: ec.count || 0,
+    jobs: jc.count || 0,
+    projects: prc.count || 0,
+  };
+  const total = counts.posts + counts.events + counts.jobs + counts.projects;
+
+  let posts: any[] = [];
+  let events: any[] = [];
+  let jobs: any[] = [];
+  let projects: any[] = [];
+
+  if (scope === "all") {
+    const [p, e, j, pr] = await Promise.all([
+      supabase.from("lounge_posts").select("id, title, content, category, created_at, image_url, show_embed_image, users:author_id(name, image)").or("title.ilike." + ilike + ",content.ilike." + ilike).order("created_at", { ascending: false }).limit(5),
+      supabase.from("events").select("id, title, event_date, category, location, price").eq("verified", true).or("title.ilike." + ilike + ",description.ilike." + ilike).order("event_date", { ascending: true }).limit(5),
+      supabase.from("jobs").select("id, title, company, location, employment_type, posted_at").eq("verified", true).or("title.ilike." + ilike + ",company.ilike." + ilike).order("posted_at", { ascending: false }).limit(5),
+      supabase.from("products").select("id, name, url, description, image_url, votes").eq("approved", true).or("name.ilike." + ilike + ",description.ilike." + ilike).order("votes", { ascending: false }).limit(5),
+    ]);
+    posts = (p.data || []).map((x: any) => ({ ...x, users: normalizeRelation(x.users) }));
+    events = e.data || [];
+    jobs = j.data || [];
+    projects = pr.data || [];
+  } else if (scope === "posts") {
+    const { data } = await supabase.from("lounge_posts").select("id, title, content, category, created_at, image_url, show_embed_image, users:author_id(name, image)").or("title.ilike." + ilike + ",content.ilike." + ilike).order("created_at", { ascending: false }).range(offset, offset + PAGE_SIZE - 1);
+    posts = (data || []).map((x: any) => ({ ...x, users: normalizeRelation(x.users) }));
+  } else if (scope === "events") {
+    const { data } = await supabase.from("events").select("id, title, event_date, category, location, price").eq("verified", true).or("title.ilike." + ilike + ",description.ilike." + ilike).order("event_date", { ascending: true }).range(offset, offset + PAGE_SIZE - 1);
+    events = data || [];
+  } else if (scope === "jobs") {
+    const { data } = await supabase.from("jobs").select("id, title, company, location, employment_type, posted_at").eq("verified", true).or("title.ilike." + ilike + ",company.ilike." + ilike).order("posted_at", { ascending: false }).range(offset, offset + PAGE_SIZE - 1);
+    jobs = data || [];
+  } else if (scope === "projects") {
+    const { data } = await supabase.from("products").select("id, name, url, description, image_url, votes").eq("approved", true).or("name.ilike." + ilike + ",description.ilike." + ilike).order("votes", { ascending: false }).range(offset, offset + PAGE_SIZE - 1);
+    projects = data || [];
+  }
+
+  const scopeTotal =
+    scope === "posts" ? counts.posts :
+    scope === "events" ? counts.events :
+    scope === "jobs" ? counts.jobs :
+    scope === "projects" ? counts.projects :
+    total;
+  const totalPages = Math.max(1, Math.ceil(scopeTotal / PAGE_SIZE));
+
+  const tabs: { value: "all" | "posts" | "events" | "jobs" | "projects"; label: string; count: number }[] = [
+    { value: "all", label: "All", count: total },
+    { value: "posts", label: "Posts", count: counts.posts },
+    { value: "events", label: "Events", count: counts.events },
+    { value: "jobs", label: "Jobs", count: counts.jobs },
+    { value: "projects", label: "Projects", count: counts.projects },
+  ];
 
   return (
-    <Layout>
-      <div className="w">
-        <PageHeader
-          eyebrow="Search"
-          title={hasQuery ? '"' + query + '"' : 'Search Pulchowk Events.'}
-          description={
-            hasQuery
-              ? totalResults +
-                ' result' +
-                (totalResults === 1 ? '' : 's') +
-                ' across posts, events, and projects.'
-              : 'Find events, projects, and community posts.'
-          }
-        />
+    <Layout railContext="utility">
+      <PageHeader title={"Results for " + q} count={total > 0 ? total + " total" : undefined} />
 
-        <form action="/search" method="get" className="search-form" role="search">
-          <SearchIcon size={16} className="search-form__icon" aria-hidden="true" />
-          <input
-            type="search"
-            name="q"
-            defaultValue={query}
-            placeholder="Search events, projects, and posts…"
-            className="search-form__input"
-            aria-label="Search query"
-          />
-          <button type="submit" className="btn btn--primary btn--sm">
-            <span className="btn__label">Search</span>
-            <span className="btn__label btn__label--dup" aria-hidden="true">Search</span>
-          </button>
-        </form>
+      <form action="/search" method="get" className="search-form-lg">
+        <Search size={16} />
+        <input name="q" type="search" defaultValue={q} placeholder="Search anything..." aria-label="Search" />
+        <button type="submit" className="btn btn--primary btn--sm">Search</button>
+      </form>
 
-        {!hasQuery && (
-          <div className="search-idle">
-            <p className="search-idle__hint">
-              Start typing above, or explore what&apos;s already here.
-            </p>
-            {sidebarData && (
-              <div className="home-grid">
-                <section className="home-card">
-                  <header className="home-card__head">
-                    <h2 className="home-card__title">Upcoming events</h2>
-                    <Link href="/events" className="home-card__see">See all</Link>
-                  </header>
-                  {sidebarData.upcomingEvents.length > 0 ? (
-                    <ul className="home-list">
-                      {sidebarData.upcomingEvents.map((e: any) => (
-                        <li key={e.id}>
-                          <Link href={'/events/' + e.id} className="home-row">
-                            <span className="home-row__main">{e.title}</span>
-                            <span className="home-row__meta">{formatDateShort(e.event_date)}</span>
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="home-empty">No upcoming events.</p>
-                  )}
-                </section>
+      <nav className="search-tabs" aria-label="Scope">
+        {tabs.map((t) => (
+          <Link
+            key={t.value}
+            href={"/search?q=" + encodeURIComponent(q) + "&scope=" + t.value}
+            className={"search-tab" + (scope === t.value ? " search-tab--on" : "")}
+          >
+            {t.label}
+            <span className="search-tab__count">{t.count}</span>
+          </Link>
+        ))}
+      </nav>
 
-                <section className="home-card">
-                  <header className="home-card__head">
-                    <h2 className="home-card__title">Recent projects</h2>
-                    <Link href="/product-hunt" className="home-card__see">See all</Link>
-                  </header>
-                  {sidebarData.products.length > 0 ? (
-                    <ul className="home-list">
-                      {sidebarData.products.map((p: any) => (
-                        <li key={p.id}>
-                          <Link href={'/product-hunt/' + p.url} className="home-row">
-                            <span className="home-row__main">{p.name}</span>
-                            <span className="home-row__meta">{formatDateShort(p.created_at)}</span>
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="home-empty">No projects yet.</p>
-                  )}
-                </section>
-
-                <section className="home-card">
-                  <header className="home-card__head">
-                    <h2 className="home-card__title">Top donors</h2>
-                    <Link href="/donate" className="home-card__see">Donate</Link>
-                  </header>
-                  <p className="home-empty">Support student competitions.</p>
-                </section>
+      {total === 0 ? (
+        <div className="empty-row" style={{ marginTop: 16 }}>
+          <p>No results for {q}. Try a shorter phrase, or browse:</p>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
+            <Link href="/events" className="btn btn--secondary btn--sm">Browse events</Link>
+            <Link href="/jobs" className="btn btn--secondary btn--sm">Browse jobs</Link>
+            <Link href="/product-hunt" className="btn btn--secondary btn--sm">Browse projects</Link>
+          </div>
+        </div>
+      ) : scope === "all" ? (
+        <div className="search-groups">
+          {posts.length > 0 && (
+            <section className="search-group">
+              <header className="search-group__head">
+                <h2 className="search-group__title"><MessageSquare size={12} /> Posts <span>{counts.posts}</span></h2>
+                <Link href={"/search?q=" + encodeURIComponent(q) + "&scope=posts"} className="search-group__see">See all</Link>
+              </header>
+              <div className="row-list">{posts.map((p) => <PostRow key={p.id} post={p} showThumb showExcerpt />)}</div>
+            </section>
+          )}
+          {events.length > 0 && (
+            <section className="search-group">
+              <header className="search-group__head">
+                <h2 className="search-group__title"><Calendar size={12} /> Events <span>{counts.events}</span></h2>
+                <Link href={"/search?q=" + encodeURIComponent(q) + "&scope=events"} className="search-group__see">See all</Link>
+              </header>
+              <div className="row-list">{events.map((e) => <EventRow key={e.id} event={e} />)}</div>
+            </section>
+          )}
+          {jobs.length > 0 && (
+            <section className="search-group">
+              <header className="search-group__head">
+                <h2 className="search-group__title"><Briefcase size={12} /> Jobs <span>{counts.jobs}</span></h2>
+                <Link href={"/search?q=" + encodeURIComponent(q) + "&scope=jobs"} className="search-group__see">See all</Link>
+              </header>
+              <div className="row-list">{jobs.map((j) => <JobRow key={j.id} job={j} />)}</div>
+            </section>
+          )}
+          {projects.length > 0 && (
+            <section className="search-group">
+              <header className="search-group__head">
+                <h2 className="search-group__title"><Package size={12} /> Projects <span>{counts.projects}</span></h2>
+                <Link href={"/search?q=" + encodeURIComponent(q) + "&scope=projects"} className="search-group__see">See all</Link>
+              </header>
+              <div className="row-list">{projects.map((p, i) => <ProjectRow key={p.id} project={p} rank={i + 1} />)}</div>
+            </section>
+          )}
+        </div>
+      ) : (
+        <>
+          {scope === "posts" && posts.length > 0 && <div className="row-list">{posts.map((p) => <PostRow key={p.id} post={p} showThumb showExcerpt />)}</div>}
+          {scope === "events" && events.length > 0 && <div className="row-list">{events.map((e) => <EventRow key={e.id} event={e} />)}</div>}
+          {scope === "jobs" && jobs.length > 0 && <div className="row-list">{jobs.map((j) => <JobRow key={j.id} job={j} />)}</div>}
+          {scope === "projects" && projects.length > 0 && <div className="row-list">{projects.map((p) => <ProjectRow key={p.id} project={p} />)}</div>}
+          {scopeTotal === 0 && (
+            <div className="empty-row" style={{ marginTop: 16 }}>
+              <p>No results in this category.</p>
+            </div>
+          )}
+          {totalPages > 1 && (
+            <div className="jobs-pager">
+              <span className="jobs-pager__label">Page {page} of {totalPages}</span>
+              <div className="jobs-pager__actions">
+                {page > 1 && (
+                  <Link href={"/search?q=" + encodeURIComponent(q) + "&scope=" + scope + "&page=" + (page - 1)} className="btn btn--secondary btn--sm">Previous</Link>
+                )}
+                {page < totalPages && (
+                  <Link href={"/search?q=" + encodeURIComponent(q) + "&scope=" + scope + "&page=" + (page + 1)} className="btn btn--secondary btn--sm">Next</Link>
+                )}
               </div>
-            )}
-          </div>
-        )}
-
-        {hasQuery && totalResults === 0 && (
-          <div className="empty-state" style={{ marginTop: 24 }}>
-            <p className="empty-state__title">No results for &ldquo;{query}&rdquo;.</p>
-            <p className="empty-state__desc">
-              Try a shorter query, or search for a specific event or project name.
-            </p>
-          </div>
-        )}
-
-        {hasQuery && posts.length > 0 && (
-          <section className="search-section">
-            <header className="search-section__head">
-              <MessageSquare size={16} className="search-section__icon" />
-              <h2 className="search-section__title">Posts</h2>
-              <span className="search-section__count">{posts.length}</span>
-            </header>
-            <ul className="search-list">
-              {posts.map((post: any) => (
-                <li key={post.id}>
-                  <Link href={'/lounge/' + post.id} className="search-row">
-                    <span className="search-row__avatar">
-                      <Image
-                        src={post.users?.image || '/default-avatar.png'}
-                        alt={post.users?.name || 'User'}
-                        width={32}
-                        height={32}
-                        className="search-row__avatar-img"
-                      />
-                    </span>
-                    <div className="search-row__body">
-                      <p className="search-row__title">{post.title}</p>
-                      <p className="search-row__meta" suppressHydrationWarning>
-                        by {post.users?.name || 'Anonymous'} ·{' '}
-                        {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
-                      </p>
-                    </div>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        {hasQuery && events.length > 0 && (
-          <section className="search-section">
-            <header className="search-section__head">
-              <Calendar size={16} className="search-section__icon" />
-              <h2 className="search-section__title">Events</h2>
-              <span className="search-section__count">{events.length}</span>
-            </header>
-            <ul className="search-list">
-              {events.map((event: any) => (
-                <li key={event.id}>
-                  <Link href={'/events/' + event.id} className="search-row">
-                    <span className="search-row__thumb">
-                      {event.image_url ? (
-                        <Image
-                          src={event.image_url}
-                          alt={event.title || ''}
-                          fill
-                          unoptimized
-                          sizes="48px"
-                          className="search-row__thumb-img"
-                        />
-                      ) : (
-                        <Calendar size={18} />
-                      )}
-                    </span>
-                    <div className="search-row__body">
-                      <p className="search-row__title">{event.title}</p>
-                      <p className="search-row__meta">{formatDateShort(event.event_date)}</p>
-                    </div>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        {hasQuery && matchingProducts.length > 0 && (
-          <section className="search-section">
-            <header className="search-section__head">
-              <Box size={16} className="search-section__icon" />
-              <h2 className="search-section__title">Projects</h2>
-              <span className="search-section__count">{matchingProducts.length}</span>
-            </header>
-            <ul className="search-list">
-              {matchingProducts.map((product: any) => (
-                <li key={product.id}>
-                  <Link href={'/product-hunt/' + product.url} className="search-row">
-                    <span className="search-row__thumb">
-                      {product.image_url ? (
-                        <Image
-                          src={product.image_url}
-                          alt={product.name || ''}
-                          fill
-                          unoptimized
-                          sizes="48px"
-                          className="search-row__thumb-img"
-                        />
-                      ) : (
-                        <Box size={18} />
-                      )}
-                    </span>
-                    <div className="search-row__body">
-                      <p className="search-row__title">{product.name}</p>
-                      {product.description && (
-                        <p className="search-row__meta search-row__meta--clamp">
-                          {product.description}
-                        </p>
-                      )}
-                    </div>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-      </div>
+            </div>
+          )}
+        </>
+      )}
     </Layout>
   );
 }
