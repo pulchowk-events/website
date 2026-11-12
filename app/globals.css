@@ -302,3 +302,42 @@
 .nprogress-custom-parent #nprogress .bar {
   position: absolute;
 }
+/* ============================================================================
+   DESIGN SYSTEM TOKENS v1 — see docs/design-system.md
+   Added 2026-11-12. Coexists with OKLCH tokens above during migration.
+   OKLCH tokens are removed page-by-page; this block becomes the only source.
+   ============================================================================ */
+:root {
+  /* Foundation */
+  --bg: #000000;
+  --t: #ededed;
+  --m: #a1a1a1;
+  --l: rgba(255, 255, 255, 0.14);
+  --l2: rgba(255, 255, 255, 0.08);
+
+  /* Accents — semantic only */
+  --g: #3ecf8e;
+  --a: #f5a623;
+  --v: #8b7cff;
+  --c: #4cc9f0;
+  --danger: #ff5c5c;
+
+  /* Semantic aliases */
+  --success: var(--g);
+  --warning: var(--a);
+  --info: var(--c);
+  --error: var(--danger);
+
+  /* Surface ladder */
+  --surface-0: #000000;
+  --surface-1: #050505;
+  --surface-2: #0d0d0d;
+  --surface-3: #1c1c1c;
+
+  /* Motion */
+  --e: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Layout */
+  --container-x: 24px;
+  --section-y: 130px;
+}
