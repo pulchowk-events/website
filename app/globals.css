@@ -4267,3 +4267,21 @@
   color: var(--m);
   font-family: var(--font-geist-mono), ui-monospace, monospace;
 }
+
+/* App-page button behavior: color-only hover, no label slide.
+   The landing page keeps its own scoped .btn inside @scope (.landing-root). */
+.btn__label { justify-content: center; }
+.btn__label--dup { display: none; }
+.btn:hover .btn__label { transform: none; }
+.btn--primary:hover { background: #cccccc; }
+.btn--secondary:hover { background: #1f1f1f; }
+
+.admin-form { display: flex; flex-direction: column; gap: 16px; }
+.admin-form__row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+@media (min-width: 768px) {
+  .admin-form__row { grid-template-columns: 1fr 1fr; }
+}
