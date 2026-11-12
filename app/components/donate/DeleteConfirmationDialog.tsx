@@ -16,46 +16,56 @@ export function DeleteConfirmationDialog({
   onClose,
   onConfirm,
   title,
-  description
+  description,
 }: DeleteConfirmationDialogProps) {
   return (
-    <Dialog.Root open={isOpen} onOpenChange={onClose}>
+    <Dialog.Root open={isOpen} onOpenChange={(v) => !v && onClose()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-md rounded-lg bg-popover border border-border p-6 shadow-xl">
-          <Dialog.Title className="text-xl font-bold text-foreground mb-2">
-            {title}
-          </Dialog.Title>
-          <Dialog.Description className="text-muted-foreground mb-6">
-            {description}
-          </Dialog.Description>
+        <Dialog.Overlay className="modal-backdrop" />
+        <Dialog.Content
+          className="modal"
+          style={{ maxWidth: 420 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <header className="modal__head">
+            <Dialog.Title className="modal__title">{title}</Dialog.Title>
+            <Dialog.Close asChild>
+              <button type="button" className="modal__close" aria-label="Close">
+                <X size={18} />
+              </button>
+            </Dialog.Close>
+          </header>
 
-          <div className="flex justify-end gap-3">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 rounded bg-secondary text-foreground hover:bg-accent"
-            >
-              Cancel
+          <div className="modal__body">
+            <Dialog.Description style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--m)' }}>
+              {description}
+            </Dialog.Description>
+          </div>
+
+          <div className="modal__foot">
+            <button type="button" onClick={onClose} className="btn btn--secondary">
+              <span className="btn__label">Cancel</span>
+              <span className="btn__label btn__label--dup" aria-hidden="true">Cancel</span>
             </button>
             <button
+              type="button"
               onClick={() => {
                 onConfirm();
                 onClose();
               }}
-              className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
+              className="btn btn--primary"
+              style={{ background: 'var(--danger)', color: 'var(--t)' }}
             >
-              Delete
+              <span className="btn__label">Delete</span>
+              <span
+                className="btn__label btn__label--dup"
+                aria-hidden="true"
+                style={{ background: 'var(--danger)', color: 'var(--t)' }}
+              >
+                Delete
+              </span>
             </button>
           </div>
-
-          <Dialog.Close asChild>
-            <button
-              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
-              aria-label="Close"
-            >
-              <X size={16} />
-            </button>
-          </Dialog.Close>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
