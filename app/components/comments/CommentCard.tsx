@@ -3,10 +3,14 @@
 import { useEffect, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import Image from 'next/image';
-import { User, Edit2, X, Trash2, LoaderCircle, Loader } from 'lucide-react';
-import { toast } from 'sonner';
-import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { User, Edit2, X, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
+
+interface Profile {
+  name: string;
+  image: string | null;
+}
 
 interface CommentCardProps {
   comment: {
@@ -14,172 +18,173 @@ interface CommentCardProps {
     comment: string;
     created_at: string;
     user_id: string;
+    profiles?: {
+      username?: string;
+      avatar_url?: string;
+    };
   };
   isOwner: boolean;
   onDelete: (id: number) => Promise<void>;
+  onUpdate: (id: number, nextText: string) => Promise<void>;
 }
 
-export function CommentCard({ comment, isOwner, onDelete }: CommentCardProps) {
-  const [userData, setUserData] = useState<{ name: string; image: string | null } | null>(null);
-  const { data: session } = useSession();
+export function CommentCard({ comment, isOwner, onDelete, onUpdate }: CommentCardProps) {
+  const hasInlineProfile =
+    !!comment.profiles &&
+    (comment.profiles.name !== undefined || comment.profiles.username !== undefined);
+
+  const [userData, setUserData] = useState<Profile | null>(
+    hasInlineProfile
+      ? {
+          name: comment.profiles?.name ?? comment.profiles?.username ?? 'Anonymous',
+          image: comment.profiles?.image ?? comment.profiles?.avatar_url ?? null,
+        }
+      : null
+  );
   const [isDeleting, setIsDeleting] = useState(false);
   const [editedComment, setEditedComment] = useState(comment.comment);
   const [isEditing, setIsEditing] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
-    async function fetchUserData() {
+    if (hasInlineProfile) return;
+    let cancelled = false;
+    (async () => {
       try {
-        const response = await fetch(`/api/users/${comment.user_id}`);
-        if (!response.ok) throw new Error('Failed to fetch user data');
-        const data = await response.json();
-        setUserData(data);
+        const res = await fetch('/api/users/' + comment.user_id);
+        if (!res.ok) throw new Error('Failed to fetch user data');
+        const data = await res.json();
+        if (!cancelled) setUserData(data);
       } catch (error) {
         console.error('Error fetching user data:', error);
       }
-    }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [hasInlineProfile, comment.user_id]);
 
-    fetchUserData();
-  }, [comment.user_id]);
+  useEffect(() => {
+    setEditedComment(comment.comment);
+  }, [comment.comment]);
 
   async function handleDelete() {
-    if (!session) {
-      toast.error('Please sign in to delete comments');
-      return;
-    }
-
     setIsDeleting(true);
     try {
       await onDelete(comment.id);
     } catch (error) {
-      console.error('Error deleting comment:', error);
-      if (error instanceof Error) {
-        toast.error(error.message);
-      } else {
-        toast.error('Failed to delete comment');
-      }
+      toast.error(error instanceof Error ? error.message : 'Failed to delete comment');
     } finally {
       setIsDeleting(false);
     }
   }
 
   async function handleEdit() {
-    if (!session) {
-      toast.error('Please sign in to edit comments');
+    const next = editedComment.trim();
+    if (!next || next === comment.comment) {
+      setIsEditing(false);
       return;
     }
-
     setIsUpdating(true);
     try {
-      const response = await fetch(`/api/comments/${comment.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ comment: editedComment }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update comment');
-      }
-
-      toast.success('Comment updated successfully');
+      await onUpdate(comment.id, next);
       setIsEditing(false);
-      comment.comment = editedComment;
     } catch (error) {
-      console.error('Error updating comment:', error);
-      if (error instanceof Error) {
-        toast.error(error.message);
-      } else {
-        toast.error('Failed to update comment');
-      }
+      toast.error(error instanceof Error ? error.message : 'Failed to update comment');
     } finally {
       setIsUpdating(false);
     }
   }
 
+  function cancelEdit() {
+    setEditedComment(comment.comment);
+    setIsEditing(false);
+  }
+
   return (
-    <div className="flex gap-4 p-4 rounded-lg bg-card/50 border border-border">
+    <div className="comment-card">
       <Link
-        href={`/profile/${comment.user_id}`}
-        className="hover:opacity-80 transition-opacity"
+        href={'/profile/' + comment.user_id}
+        className="comment-card__avatar-link"
+        aria-label={userData?.name || 'User'}
       >
-        <div className="flex-shrink-0">
+        <span className="comment-card__avatar">
           {userData?.image ? (
             <Image
               src={userData.image}
               alt={userData.name || 'User'}
-              width={40}
-              height={40}
-              className="rounded-full"
+              width={36}
+              height={36}
+              className="comment-card__avatar-img"
             />
           ) : (
-            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-              <User className="w-6 h-6 text-muted-foreground" />
-            </div>
+            <User size={18} />
           )}
-        </div>
+        </span>
       </Link>
 
-      <div className="flex-grow">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-foreground">
-              {userData?.name || 'Anonymous'}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
-            </span>
-          </div>
+      <div className="comment-card__body">
+        <header className="comment-card__head">
+          <span className="comment-card__name">{userData?.name || 'Anonymous'}</span>
+          <span className="comment-card__time" suppressHydrationWarning>
+            {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+          </span>
 
           {isOwner && (
-            <div className="flex items-center gap-2">
+            <div className="comment-card__actions">
               {isEditing ? (
                 <>
                   <button
-                    onClick={() => setIsEditing(false)}
-                    className="text-muted-foreground hover:text-foreground text-sm"
+                    type="button"
+                    onClick={cancelEdit}
+                    aria-label="Cancel edit"
+                    className="comment-card__icon-btn"
                   >
-                    <X className="w-4 h-4" />
+                    <X size={14} />
                   </button>
                   <button
+                    type="button"
                     onClick={handleEdit}
                     disabled={isUpdating}
-                    className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 text-sm disabled:opacity-50"
+                    className="comment-card__save-btn"
                   >
-                    {isUpdating ? 'Saving...' : 'Save'}
+                    {isUpdating ? 'Saving…' : 'Save'}
                   </button>
                 </>
               ) : (
                 <>
                   <button
+                    type="button"
                     onClick={() => setIsEditing(true)}
-                    className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm"
+                    aria-label="Edit comment"
+                    className="comment-card__icon-btn"
                   >
-                    <Edit2 className="w-4 h-4" />
+                    <Edit2 size={14} />
                   </button>
                   <button
+                    type="button"
                     onClick={handleDelete}
                     disabled={isDeleting}
-                    className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-sm disabled:opacity-50"
+                    aria-label="Delete comment"
+                    className="comment-card__icon-btn comment-card__icon-btn--danger"
                   >
-                    {isDeleting ? (<><Loader height={16} width={16}></Loader></>) : (<><Trash2 height={16} width={16}></Trash2></>)}
+                    <Trash2 size={14} />
                   </button>
                 </>
               )}
             </div>
           )}
-        </div>
+        </header>
 
         {isEditing ? (
           <textarea
             value={editedComment}
             onChange={(e) => setEditedComment(e.target.value)}
-            className="mt-2 w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:border-green-500"
+            className="input input--multi comment-card__edit"
             rows={3}
           />
         ) : (
-          <p className="mt-1 text-foreground">{comment.comment}</p>
+          <p className="comment-card__text">{comment.comment}</p>
         )}
       </div>
     </div>
