@@ -10,7 +10,6 @@ interface PaginationProps {
 export default function Pagination({ page, totalPages, buildUrl }: PaginationProps) {
   if (totalPages <= 1) return null;
 
-  // Show up to 5 page numbers around current page
   const maxVisible = 5;
   let start = Math.max(1, page - Math.floor(maxVisible / 2));
   let end = Math.min(totalPages, start + maxVisible - 1);
@@ -25,55 +24,33 @@ export default function Pagination({ page, totalPages, buildUrl }: PaginationPro
   const hasNext = page < totalPages;
 
   return (
-    <nav
-      className="flex items-center justify-center gap-1 mt-8"
-      aria-label="Pagination"
-    >
-      {/* Previous */}
+    <nav className="pagination" aria-label="Pagination">
       {hasPrev ? (
-        <Link
-          href={buildUrl(page - 1)}
-          rel="prev"
-          className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium bg-muted text-foreground hover:bg-accent transition-colors"
-          aria-label="Previous page"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          <span className="hidden sm:inline">Previous</span>
+        <Link href={buildUrl(page - 1)} rel="prev" className="pagination__nav" aria-label="Previous page">
+          <ChevronLeft size={14} />
+          <span className="pagination__label">Previous</span>
         </Link>
       ) : (
-        <span className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium bg-muted/50 text-muted-foreground cursor-not-allowed opacity-50">
-          <ChevronLeft className="w-4 h-4" />
-          <span className="hidden sm:inline">Previous</span>
+        <span className="pagination__nav pagination__nav--off" aria-disabled="true">
+          <ChevronLeft size={14} />
+          <span className="pagination__label">Previous</span>
         </span>
       )}
 
-      {/* First page + ellipsis */}
       {start > 1 && (
         <>
-          <Link
-            href={buildUrl(1)}
-            className="px-3 py-2 rounded-lg text-sm font-medium bg-muted text-foreground hover:bg-accent transition-colors"
-          >
-            1
-          </Link>
-          {start > 2 && (
-            <span className="px-2 text-muted-foreground">…</span>
-          )}
+          <Link href={buildUrl(1)} className="tab">{1}</Link>
+          {start > 2 && <span className="pagination__gap">…</span>}
         </>
       )}
 
-      {/* Page numbers */}
       {pages.map((p) => {
         const active = p === page;
         return (
           <Link
             key={p}
             href={buildUrl(p)}
-            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-              active
-                ? 'bg-green-600 text-white'
-                : 'bg-muted text-foreground hover:bg-accent'
-            }`}
+            className={'tab' + (active ? ' tab--on' : '')}
             aria-current={active ? 'page' : undefined}
           >
             {p}
@@ -81,36 +58,22 @@ export default function Pagination({ page, totalPages, buildUrl }: PaginationPro
         );
       })}
 
-      {/* Last page + ellipsis */}
       {end < totalPages && (
         <>
-          {end < totalPages - 1 && (
-            <span className="px-2 text-muted-foreground">…</span>
-          )}
-          <Link
-            href={buildUrl(totalPages)}
-            className="px-3 py-2 rounded-lg text-sm font-medium bg-muted text-foreground hover:bg-accent transition-colors"
-          >
-            {totalPages}
-          </Link>
+          {end < totalPages - 1 && <span className="pagination__gap">…</span>}
+          <Link href={buildUrl(totalPages)} className="tab">{totalPages}</Link>
         </>
       )}
 
-      {/* Next */}
       {hasNext ? (
-        <Link
-          href={buildUrl(page + 1)}
-          rel="next"
-          className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium bg-muted text-foreground hover:bg-accent transition-colors"
-          aria-label="Next page"
-        >
-          <span className="hidden sm:inline">Next</span>
-          <ChevronRight className="w-4 h-4" />
+        <Link href={buildUrl(page + 1)} rel="next" className="pagination__nav" aria-label="Next page">
+          <span className="pagination__label">Next</span>
+          <ChevronRight size={14} />
         </Link>
       ) : (
-        <span className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium bg-muted/50 text-muted-foreground cursor-not-allowed opacity-50">
-          <span className="hidden sm:inline">Next</span>
-          <ChevronRight className="w-4 h-4" />
+        <span className="pagination__nav pagination__nav--off" aria-disabled="true">
+          <span className="pagination__label">Next</span>
+          <ChevronRight size={14} />
         </span>
       )}
     </nav>
