@@ -8552,3 +8552,98 @@ details.admin-panel[open] > summary { border-bottom: 1px solid var(--border); }
   display: flex;
   gap: 6px;
 }
+
+/* Route error boundary */
+.route-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 64px 24px;
+  max-width: 480px;
+  margin: 0 auto;
+  text-align: center;
+}
+.route-error__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 92, 92, 0.1);
+  color: var(--danger);
+  margin-bottom: 4px;
+}
+.route-error__title {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--text-1);
+  margin: 0;
+}
+.route-error__desc {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-2);
+  margin: 0;
+  max-width: 380px;
+}
+.route-error__code {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 11px;
+  color: var(--text-3);
+  margin: 0;
+}
+.route-error__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Terms + Privacy */
+.prose-page {
+  max-width: var(--content-w);
+  color: var(--text-1);
+  font-size: 15px;
+  line-height: 1.7;
+}
+.prose-page__meta {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--text-3);
+  text-transform: uppercase;
+  margin: 0 0 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.prose-page h2 {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-1);
+  margin: 32px 0 8px;
+}
+.prose-page p {
+  margin: 0 0 12px;
+  color: var(--text-2);
+}
+.prose-page ul {
+  padding-left: 20px;
+  margin: 0 0 12px;
+}
+.prose-page li {
+  margin-bottom: 6px;
+  color: var(--text-2);
+}
+.prose-page strong { color: var(--text-1); font-weight: 500; }
+.prose-page a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: rgba(62, 207, 142, 0.35);
+}
+.prose-page a:hover { text-decoration-color: var(--accent); }

@@ -245,6 +245,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "Bhaktapur",
     "Pokhara",
     "Remote",
+    { url: `${SITE_URL}/terms`, lastModified: new Date(), changeFrequency: "yearly" as const, priority: 0.3 },
+    { url: `${SITE_URL}/privacy`, lastModified: new Date(), changeFrequency: "yearly" as const, priority: 0.3 },
   ];
   for (const t of JOB_TYPES) {
     entries.push(
