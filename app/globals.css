@@ -7819,3 +7819,69 @@
 .help__stuck-desc {
   font-size: 12px; line-height: 1.5; color: var(--text-2); margin: 0;
 }
+
+/* Saved page */
+.saved-tabs {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+.saved-tabs__count {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 10px;
+  color: var(--text-3);
+  margin-left: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.saved-tabs .tab--on .saved-tabs__count { color: var(--text-2); }
+
+.saved-body { display: flex; flex-direction: column; gap: 20px; }
+
+.saved-group__head {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--text-3);
+  padding: 8px 0 6px;
+}
+.saved-group__body { border-top: 1px solid var(--border); }
+
+.saved-item {
+  display: flex; align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+.saved-item__row { flex: 1; min-width: 0; }
+.saved-item__row .row { border-bottom: 0; }
+.saved-item__action {
+  padding: 0 12px; flex: none;
+  opacity: 0.5;
+  transition: opacity var(--t-fast);
+}
+.saved-item:hover .saved-item__action { opacity: 1; }
+
+.saved-empty-hint {
+  font-size: 12px; color: var(--text-3);
+  max-width: 380px; text-align: center; margin: 0;
+}
+
+.saved-guest {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 12px; padding: 48px 16px; text-align: center;
+  border: 1px dashed var(--border); border-radius: var(--radius-card);
+}
+.saved-guest__icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--border);
+  color: var(--text-3);
+  margin-bottom: 4px;
+}
+.saved-guest__title {
+  font-size: 18px; font-weight: 600; letter-spacing: -0.03em;
+  color: var(--text-1); margin: 0;
+}
+.saved-guest__desc {
+  font-size: 13px; line-height: 1.55; color: var(--text-2);
+  margin: 0; max-width: 380px;
+}

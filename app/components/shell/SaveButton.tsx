@@ -11,9 +11,10 @@ interface Props {
   itemId: string;
   initialSaved: boolean;
   compact?: boolean;
+  onChange?: (saved: boolean) => void;
 }
 
-export function SaveButton({ itemType, itemId, initialSaved, compact = false }: Props) {
+export function SaveButton({ itemType, itemId, initialSaved, compact = false, onChange }: Props) {
   const [saved, setSaved] = useState(initialSaved);
   const [isPending, startTransition] = useTransition();
 
@@ -22,6 +23,7 @@ export function SaveButton({ itemType, itemId, initialSaved, compact = false }: 
     e.stopPropagation();
     const next = !saved;
     setSaved(next);
+    onChange?.(next);
 
     startTransition(async () => {
       try {
@@ -39,6 +41,7 @@ export function SaveButton({ itemType, itemId, initialSaved, compact = false }: 
                 label: "Undo",
                 onClick: () => {
                   setSaved(true);
+                  onChange?.(true);
                   fetch("/api/saves", {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
@@ -49,6 +52,7 @@ export function SaveButton({ itemType, itemId, initialSaved, compact = false }: 
         });
       } catch {
         setSaved(!next);
+        onChange?.(!next);
         toast.error("Could not save. Try again.");
       }
     });

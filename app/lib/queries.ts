@@ -1108,3 +1108,81 @@ export const getVerifiedDonationsLedger = unstable_cache(
   ["verified-donations-ledger"],
   { revalidate: 60, tags: ["donations"] },
 );
+
+export interface SavedItem {
+  type: "post" | "event" | "job" | "project";
+  data: any;
+  savedAt: string;
+}
+
+export async function getSavedItemsFull(userId: string): Promise<SavedItem[]> {
+  const { data: saves } = await supabase
+    .from("saves")
+    .select("item_type, item_id, created_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (!saves || saves.length === 0) return [];
+
+  const grouped: Record<string, string[]> = { post: [], event: [], job: [], project: [] };
+  for (const s of saves) {
+    if (grouped[s.item_type]) grouped[s.item_type].push(s.item_id);
+  }
+
+  const [postsRes, eventsRes, jobsRes, projectsRes] = await Promise.all([
+    grouped.post.length > 0
+      ? supabase
+          .from("lounge_posts")
+          .select("id, title, content, category, created_at, image_url, show_embed_image, users:author_id(name, image)")
+          .in("id", grouped.post)
+      : Promise.resolve({ data: [] as any[] }),
+    grouped.event.length > 0
+      ? supabase
+          .from("events")
+          .select("id, title, event_date, category, location, price, image_url")
+          .eq("verified", true)
+          .in("id", grouped.event)
+      : Promise.resolve({ data: [] as any[] }),
+    grouped.job.length > 0
+      ? supabase
+          .from("jobs")
+          .select("id, title, company, location, employment_type, salary, posted_at, image_url")
+          .eq("verified", true)
+          .in("id", grouped.job)
+      : Promise.resolve({ data: [] as any[] }),
+    grouped.project.length > 0
+      ? supabase
+          .from("products")
+          .select("id, name, description, url, image_url, votes")
+          .in(
+            "id",
+            grouped.project.map((n) => Number(n)).filter((n) => !isNaN(n)),
+          )
+      : Promise.resolve({ data: [] as any[] }),
+  ]);
+
+  const postMap = new Map(
+    (postsRes.data || []).map((p: any) => [p.id, { ...p, users: normalizeRelation(p.users) }]),
+  );
+  const eventMap = new Map((eventsRes.data || []).map((e: any) => [e.id, e]));
+  const jobMap = new Map((jobsRes.data || []).map((j: any) => [j.id, j]));
+  const projectMap = new Map((projectsRes.data || []).map((p: any) => [String(p.id), p]));
+
+  const items: SavedItem[] = [];
+  for (const s of saves) {
+    let data: any = null;
+    if (s.item_type === "post") data = postMap.get(s.item_id);
+    else if (s.item_type === "event") data = eventMap.get(s.item_id);
+    else if (s.item_type === "job") data = jobMap.get(s.item_id);
+    else if (s.item_type === "project") data = projectMap.get(s.item_id);
+    if (data) {
+      items.push({
+        type: s.item_type as SavedItem["type"],
+        data,
+        savedAt: s.created_at,
+      });
+    }
+  }
+
+  return items;
+}
