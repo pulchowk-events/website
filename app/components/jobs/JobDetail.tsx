@@ -50,20 +50,19 @@ function formatSourceLabel(origin: string): string | null {
 
 export default function JobDetail({ job }: { job: Job }) {
   const sourceLabel = formatSourceLabel(job.origin);
-  const isExpired =
-    job.application_ends_at && new Date(job.application_ends_at) < new Date();
+  const isExpired = job.application_ends_at && new Date(job.application_ends_at) < new Date();
 
   const metaItems: { icon: any; label: string; value: string | null }[] = [
     { icon: MapPin, label: 'Location', value: job.location },
-    { icon: Briefcase, label: 'Employment Type', value: job.employment_type },
+    { icon: Briefcase, label: 'Employment type', value: job.employment_type },
     { icon: DollarSign, label: 'Salary', value: job.salary },
     { icon: TrendingUp, label: 'Experience', value: job.experience },
     { icon: TrendingUp, label: 'Level', value: job.level },
     { icon: Users, label: 'Openings', value: job.openings ? String(job.openings) : null },
-    { icon: Clock, label: 'Work Mode', value: job.attendance_mode },
+    { icon: Clock, label: 'Work mode', value: job.attendance_mode },
     {
       icon: Calendar,
-      label: 'Apply By',
+      label: 'Apply by',
       value: job.application_ends_raw
         ? job.application_ends_raw
         : job.application_ends_at
@@ -73,57 +72,41 @@ export default function JobDetail({ job }: { job: Job }) {
   ].filter((m) => m.value);
 
   return (
-    <article className="space-y-6">
-      <Link
-        href="/jobs"
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
+    <article className="job-detail">
+      <Link href="/jobs" className="event-detail__back">
+        <ArrowLeft size={14} />
         Back to Jobs
       </Link>
 
       {isExpired && (
-        <div className="bg-red-100 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-400 rounded-xl p-4 text-sm">
-          This job&apos;s application deadline has passed. You can still view the
-          details below for reference.
+        <div className="job-detail__expired">
+          This job&rsquo;s application deadline has passed. You can still view the details below for reference.
         </div>
       )}
 
-      {/* Header */}
-      <header className="bg-card border border-border rounded-xl p-6 sm:p-8">
-        <div className="flex items-start gap-5 mb-6">
-        <div className="w-20 h-20 rounded-xl bg-muted flex-shrink-0 overflow-hidden">
-            <div className="w-20 h-20 rounded-xl bg-muted flex-shrink-0 overflow-hidden">
-                <JobImage
-                    src={job.image_url}
-                    alt={job.company}
-                    jobId={job.id}
-                />
-                </div>
-            </div>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
-              {job.title}
-            </h1>
-            <p className="text-lg font-medium text-foreground mb-2">{job.company}</p>
-            {sourceLabel && (
-              <p className="text-xs text-muted-foreground">via {sourceLabel}</p>
-            )}
+      <header className="job-detail__header">
+        <div className="job-detail__head">
+          <div className="job-detail__logo">
+            <JobImage src={job.image_url} alt={job.company} jobId={job.id} />
+          </div>
+          <div className="job-detail__head-text">
+            <h1 className="job-detail__title">{job.title}</h1>
+            <p className="job-detail__company">{job.company}</p>
+            {sourceLabel && <p className="job-detail__source">via {sourceLabel}</p>}
           </div>
         </div>
 
-        {/* Meta grid */}
         {metaItems.length > 0 && (
-          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 border-t border-border">
+          <dl className="job-detail__dl">
             {metaItems.map((item) => {
               const Icon = item.icon;
               return (
                 <div key={item.label}>
-                  <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1 flex items-center gap-1.5">
-                    <Icon className="w-3.5 h-3.5" />
+                  <dt className="event-detail__dt">
+                    <Icon size={12} />
                     {item.label}
                   </dt>
-                  <dd className="text-sm text-foreground">{item.value}</dd>
+                  <dd className="event-detail__dd">{item.value}</dd>
                 </div>
               );
             })}
@@ -131,16 +114,12 @@ export default function JobDetail({ job }: { job: Job }) {
         )}
       </header>
 
-      {/* Skills */}
       {job.skills && job.skills.length > 0 && (
-        <section className="bg-card border border-border rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-foreground mb-4">Skills</h2>
-          <div className="flex flex-wrap gap-2">
+        <section className="job-detail__section">
+          <h2 className="job-detail__section-title">Skills</h2>
+          <div className="tabs">
             {job.skills.map((skill, i) => (
-              <span
-                key={i}
-                className="inline-flex items-center bg-muted text-foreground px-3 py-1.5 rounded-full text-sm"
-              >
+              <span key={i} className="tab" style={{ pointerEvents: 'none' }}>
                 {skill}
               </span>
             ))}
@@ -148,24 +127,28 @@ export default function JobDetail({ job }: { job: Job }) {
         </section>
       )}
 
-        {/* Description */}
-        {job.description && (
-        <section className="bg-card border border-border rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-foreground mb-4">About this role</h2>
-            <Markdown content={job.description} />
+      {job.description && (
+        <section className="job-detail__section">
+          <h2 className="job-detail__section-title">About this role</h2>
+          <Markdown content={job.description} />
         </section>
-        )}
+      )}
 
-      {/* CTA */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="job-detail__cta-row">
         <a
           href={job.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex-1 inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg font-medium transition-colors"
+          className="btn btn--primary job-detail__cta"
         >
-          <ExternalLink className="w-4 h-4" />
-          View on {sourceLabel || 'Original Site'}
+          <span className="btn__label">
+            <ExternalLink size={16} style={{ marginRight: 8 }} />
+            View on {sourceLabel || 'Original Site'}
+          </span>
+          <span className="btn__label btn__label--dup" aria-hidden="true">
+            <ExternalLink size={16} style={{ marginRight: 8 }} />
+            View on {sourceLabel || 'Original Site'}
+          </span>
         </a>
       </div>
     </article>
