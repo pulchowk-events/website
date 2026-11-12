@@ -3,13 +3,6 @@
 **References:** Vercel dashboard (primary), Pulchowk Events landing, Notion (select affordances).
 **Source of truth for tokens:** the landing mockup CSS. Where the Vercel dashboard differs from our tokens, ours win.
 
-**Priority order, locked:**
-1. Performance on Netlify free tier.
-2. SEO.
-3. Visual consistency (Vercel-dashboard-derived).
-
-Any decision that trades 1 or 2 for 3 is wrong.
-
 ---
 
 ## 1. Color Tokens
