@@ -37,7 +37,14 @@ interface Props {
 
 function plain(md: string | null): string {
   if (!md) return "";
-  return md.replace(/[#*_`>[\\]\\-]/g, "").replace(/\\s+/g, " ").trim();
+  return md
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/```[\s\S]*?```/g, "")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/[*_~#>]+/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 export function LoungePostRow({ post, myVote, saved, density, isOwner, isAdmin, onDelete }: Props) {

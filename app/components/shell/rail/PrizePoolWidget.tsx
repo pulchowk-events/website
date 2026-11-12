@@ -21,7 +21,7 @@ export function PrizePoolWidget({ current, target, donors }: Props) {
       <div className="rail-pool__bar">
         <span style={{ width: pct + "%" }} />
       </div>
-      <p className="rail-pool__meta">{donors} donors</p>
+      <p className="rail-pool__meta">{donors} {donors === 1 ? "donor" : "donors"}</p>
     </RailWidget>
   );
 }

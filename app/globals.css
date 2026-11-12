@@ -354,11 +354,11 @@
 .input::placeholder { color: var(--m); }
 
 /* Row ------------------------------------------------------------------- */
-.row {
+.demo-row {
   display: flex;
   align-items: center;
   gap: 10px;
-  height: 34px;
+  
   padding: 0 10px;
   border-radius: 8px;
   background: var(--surface-2);
@@ -5478,7 +5478,6 @@
 .side__row:hover { background: var(--hover); color: var(--text-1); }
 .side__row[aria-current="page"] {
   background: var(--selected); color: var(--text-1);
-  box-shadow: inset 2px 0 0 var(--accent);
 }
 .side__icon { flex: none; }
 .side__label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -5714,6 +5713,55 @@
 
 /* Hide any landing-specific bits that leaked into shell pages */
 .orb, #bh { display: none !important; }
+
+
+
+/* ============================================================
+   Row sizing fix — cards were clipping their content
+   ============================================================ */
+
+/* Parent containers must let children grow, not shrink them. */
+.row-list { display: block; }
+.home-col,
+.home-grid { align-items: start; }
+.home-section { display: block; min-height: 0; }
+
+/* Post row: block body. flex column + -webkit-line-clamp collapses. */
+.post-row { min-height: 96px; align-items: stretch; }
+.post-row__body { display: block; min-width: 0; }
+
+/* Event row: align to top, let content grow. */
+.event-row { align-items: flex-start; }
+.event-row__date { flex: none; align-self: flex-start; }
+.event-row__body { display: block; min-width: 0; }
+.event-row__status {
+  display: inline-block;
+  margin-top: 6px;
+  line-height: 1;
+}
+.event-row--compact {
+  min-height: 68px;
+  padding: 12px;
+}
+
+/* Job row: same. */
+.job-row { align-items: flex-start; }
+.job-row-new { align-items: flex-start; }
+.job-row__body { display: block; min-width: 0; }
+.job-row-new__body { display: block; min-width: 0; }
+.job-row-new__meta { flex-wrap: wrap; row-gap: 2px; }
+
+/* Lounge row. */
+.lprow { align-items: flex-start; }
+.lprow__body { display: block; min-width: 0; }
+.lprow__thumb { flex: none; }
+
+/* Line heights generous enough that glyphs are never cut. */
+.row-title { line-height: 1.4; }
+.row-excerpt { line-height: 1.5; margin-top: 4px; }
+
+/* Meta wraps cleanly, never overflows. */
+.row-meta { flex-wrap: wrap; min-width: 0; }
 
 /* ============================================================================
    Rows + rail + home dashboard
@@ -8671,4 +8719,210 @@ details.admin-panel[open] > summary { border-bottom: 1px solid var(--border); }
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-3);
+}
+
+/* Row content — word-break safety + breathing room */
+.row-title {
+  overflow-wrap: break-word;
+  word-break: break-word;
+  line-height: 1.35;
+}
+.row-excerpt {
+  overflow-wrap: break-word;
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.post-row .row-title { margin-bottom: 4px; }
+.post-row .row-excerpt { margin-top: 2px; margin-bottom: 6px; }
+
+/* Event rows — give the status badge its own vertical space */
+.event-row__body {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+.event-row--compact {
+  min-height: 68px;
+  padding: 12px;
+  align-items: flex-start;
+}
+.event-row--compact .event-row__date {
+  margin-top: 2px;
+}
+.event-row__status {
+  margin-top: 6px;
+  line-height: 1;
+}
+
+/* Lounge post rows — same protections */
+.lprow__body { overflow-wrap: break-word; word-break: break-word; }
+.lprow__body .row-title { margin-top: 4px; margin-bottom: 4px; }
+
+/* Job rows — compact meta line */
+.job-row-new__body { min-width: 0; overflow-wrap: break-word; word-break: break-word; }
+.job-row__body { min-width: 0; overflow-wrap: break-word; word-break: break-word; }
+
+/* ============================================================
+   Row sizing fix
+   ============================================================ */
+
+.row-list { display: block; }
+.home-col,
+.home-grid { align-items: start; }
+.home-section { display: block; min-height: 0; }
+
+.post-row { min-height: 96px; align-items: stretch; }
+.post-row__body { display: block; min-width: 0; }
+
+.event-row { align-items: flex-start; }
+.event-row__date { flex: none; align-self: flex-start; }
+.event-row__body { display: block; min-width: 0; }
+.event-row__status {
+  display: inline-block;
+  margin-top: 6px;
+  line-height: 1;
+}
+.event-row--compact {
+  min-height: 68px;
+  padding: 12px;
+}
+
+.job-row { align-items: flex-start; }
+.job-row-new { align-items: flex-start; }
+.job-row__body { display: block; min-width: 0; }
+.job-row-new__body { display: block; min-width: 0; }
+.job-row-new__meta { flex-wrap: wrap; row-gap: 2px; }
+
+.lprow { align-items: flex-start; }
+.lprow__body { display: block; min-width: 0; }
+.lprow__thumb { flex: none; }
+
+.row-title { line-height: 1.4; }
+.row-excerpt { line-height: 1.5; margin-top: 4px; }
+
+.row-meta { flex-wrap: wrap; min-width: 0; }
+
+/* Row layout fix: grid instead of flex */
+/* Chrome collapses -webkit-line-clamp flex children to zero height. */
+/* Grid cells do not have this bug. */
+
+.row.post-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: start;
+  gap: 12px;
+}
+.row.post-row:has(> .row-thumb) {
+  grid-template-columns: 1fr auto;
+}
+
+.row.event-row,
+.row.event-row--compact {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 12px;
+}
+
+.row.job-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  gap: 12px;
+}
+.row.job-row--compact {
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+.row.project-row {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: start;
+  gap: 12px;
+}
+
+.post-row__body,
+.event-row__body,
+.job-row__body,
+.job-row-new__body,
+.lprow__body {
+  display: block;
+  min-width: 0;
+  height: auto;
+  overflow: visible;
+}
+
+.row-title {
+  min-height: 22px;
+  line-height: 22px;
+}
+
+.row-excerpt {
+  min-height: 18px;
+  line-height: 18px;
+}
+
+/* Row layout — grid, not flex. Chrome collapses -webkit-line-clamp
+   children of a flex container to zero intrinsic height, so the row
+   defaults to min-height and content overflows visibly. Grid cells
+   do not have this bug. */
+
+.row.post-row { display: grid; grid-template-columns: 1fr auto; align-items: start; gap: 12px; }
+.row.event-row { display: grid; grid-template-columns: auto 1fr; align-items: start; gap: 12px; }
+.row.event-row--compact { display: grid; grid-template-columns: auto 1fr; align-items: start; gap: 12px; padding: 12px; }
+.row.job-row { display: grid; grid-template-columns: auto 1fr auto; align-items: start; gap: 12px; }
+.row.job-row--compact { display: grid; grid-template-columns: 1fr; gap: 0; padding: 12px; }
+.row.project-row { display: grid; grid-template-columns: auto auto 1fr auto; align-items: start; gap: 12px; }
+.post-row__body, .event-row__body, .job-row__body, .job-row-new__body, .lprow__body { display: block; min-width: 0; height: auto; overflow: visible; }
+.row-title { min-height: 22px; line-height: 22px; }
+.row-excerpt { min-height: 18px; line-height: 18px; }
+
+/* Job row refinements */
+.job-row-new__title-row { display: block; }
+
+.job-row-new__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.job-row-new__source {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 12px;
+  color: var(--text-3);
+  font-weight: 400;
+  flex: none;
+}
+
+.job-row-new__badge {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 12px;
+  color: var(--text-2);
+  font-weight: 400;
+}
+
+.job-row-new__meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex: none;
+  min-width: 100px;
+  align-self: flex-start;
+  padding-top: 2px;
+}
+
+.job-row-new__salary {
+  line-height: 20px;
+}
+
+.job-row-new__deadline {
+  line-height: 18px;
+}
+
+.job-row-new__logo img {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
 }
