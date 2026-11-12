@@ -4563,3 +4563,40 @@
   word-break: break-word;
 }
 .admin-report__block-text--pre { white-space: pre-wrap; }
+
+/* Event modals ---------------------------------------------------------- */
+.event-form__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+@media (min-width: 768px) {
+  .event-form__grid { grid-template-columns: 1fr 1fr; }
+}
+.event-form__col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.event-form__desc { display: flex; flex-direction: column; }
+.event-form__desc .input--multi { flex: 1; }
+
+/* Small delete trigger used inside EventCard hover actions */
+.event-card__delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 0;
+  background: rgba(255, 92, 92, 0.2);
+  color: var(--danger);
+  cursor: pointer;
+  transition: background 150ms;
+  box-shadow: 0 0 0 1px rgba(255, 92, 92, 0.25);
+}
+.event-card__delete-btn:hover {
+  background: rgba(255, 92, 92, 0.3);
+  box-shadow: 0 0 0 1px rgba(255, 92, 92, 0.4);
+}

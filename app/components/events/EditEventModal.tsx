@@ -5,19 +5,16 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Dialog } from '@headlessui/react';
 import { X } from 'lucide-react';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 type EventCategory = 'software' | 'gaming' | 'hardware' | 'music' | 'sports' | 'extra';
 
-const categories = [
+const categories: { value: EventCategory; label: string }[] = [
   { value: 'software', label: 'Software' },
   { value: 'hardware', label: 'Hardware' },
   { value: 'gaming', label: 'Gaming' },
   { value: 'music', label: 'Music' },
   { value: 'sports', label: 'Sports' },
-  { value: 'extra', label: 'Extra' }
+  { value: 'extra', label: 'Extra' },
 ];
 
 interface EditEventModalProps {
@@ -33,53 +30,62 @@ interface EditEventModalProps {
   onClose: () => void;
 }
 
+function toNepalInputValue(iso: string): string {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kathmandu',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).formatToParts(new Date(iso));
+  const get = (t: string) => parts.find((p) => p.type === t)?.value || '';
+  const hour = get('hour') === '24' ? '00' : get('hour');
+  return get('year') + '-' + get('month') + '-' + get('day') + 'T' + hour + ':' + get('minute');
+}
+
 export default function EditEventModal({ event, onClose }: EditEventModalProps) {
   const router = useRouter();
   const [formData, setFormData] = useState({
     id: event.id,
     title: event.title,
     description: event.description,
-    eventDate: new Date(event.event_date).toISOString().slice(0, 16),
+    eventDate: toNepalInputValue(event.event_date),
     formLink: event.form_link,
-    category: event.category
+    category: event.category,
   });
   const [image, setImage] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = prev;
     };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       const formDataToSend = new FormData();
       formDataToSend.append('title', formData.title);
       formDataToSend.append('description', formData.description);
-      formDataToSend.append('eventDate', formData.eventDate);
+      formDataToSend.append('eventDate', formData.eventDate + ':00+05:45');
       formDataToSend.append('formLink', formData.formLink);
       formDataToSend.append('category', formData.category);
-      if (image) {
-        formDataToSend.append('image', image);
-      }
+      if (image) formDataToSend.append('image', image);
 
-      const response = await fetch(`/api/events/${event.id}`, {
+      const response = await fetch('/api/events/' + event.id, {
         method: 'PUT',
         body: formDataToSend,
       });
-
       const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to update event');
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to update event');
-      }
-
-      toast.success('Event updated successfully!');
+      toast.success('Event updated');
       router.refresh();
       onClose();
     } catch (error) {
@@ -91,140 +97,150 @@ export default function EditEventModal({ event, onClose }: EditEventModalProps) 
   };
 
   return (
-    <Dialog
-      open={true}
-      onClose={onClose}
-      className="fixed inset-0 z-50 overflow-y-auto"
-    >
-      <div className="flex min-h-screen items-center justify-center p-4">
-        {/* Backdrop */}
-        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm" aria-hidden="true" />
-
-        <div className="relative bg-popover border border-border rounded-xl w-full max-w-5xl shadow-2xl">
-          <div className="border-b border-border px-6 py-4">
-            <div className="flex items-center justify-between">
-              <Dialog.Title className="text-xl font-semibold text-foreground">
-                Edit Event
-              </Dialog.Title>
-              <button
-                onClick={onClose}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <X size={24} />
-              </button>
-            </div>
-            <p className="text-muted-foreground text-sm mt-1">Update event details</p>
+    <Dialog open={true} onClose={onClose} className="modal-backdrop">
+      <Dialog.Panel
+        className="modal modal--wide"
+        onClick={(e: React.MouseEvent) => e.stopPropagation()}
+      >
+        <header className="modal__head">
+          <div>
+            <Dialog.Title className="modal__title">Edit event</Dialog.Title>
+            <p style={{ fontSize: 13, color: 'var(--m)', marginTop: 4 }}>
+              Changes appear on the public page immediately.
+            </p>
           </div>
+          <button type="button" onClick={onClose} className="modal__close" aria-label="Close">
+            <X size={18} />
+          </button>
+        </header>
 
-          <form onSubmit={handleSubmit} className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="title" className="text-foreground">Event Title</Label>
-                  <Input
-                    id="title"
+        <form onSubmit={handleSubmit}>
+          <div className="modal__body">
+            <div className="event-form__grid">
+              <div className="event-form__col">
+                <div className="field">
+                  <label htmlFor="edit-ev-title" className="field__label">
+                    Title <span className="field__label-req">*</span>
+                  </label>
+                  <input
+                    id="edit-ev-title"
+                    type="text"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="mt-1 bg-background border-border text-foreground"
+                    className="input"
                     required
+                    disabled={loading}
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="category" className="text-foreground">Category</Label>
-                  <select
-                    id="category"
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value as EventCategory })}
-                    className="w-full mt-1 p-2 rounded bg-background border border-border text-foreground"
-                    required
-                  >
-                    {categories.map((category) => (
-                      <option key={category.value} value={category.value}>
-                        {category.label}
-                      </option>
+                <div className="field">
+                  <span className="field__label">
+                    Category <span className="field__label-req">*</span>
+                  </span>
+                  <div className="tabs" role="tablist" aria-label="Category">
+                    {categories.map((c) => (
+                      <button
+                        type="button"
+                        key={c.value}
+                        role="tab"
+                        aria-selected={formData.category === c.value}
+                        className={'tab' + (formData.category === c.value ? ' tab--on' : '')}
+                        onClick={() => setFormData({ ...formData, category: c.value })}
+                        disabled={loading}
+                      >
+                        {c.label}
+                      </button>
                     ))}
-                  </select>
+                  </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="eventDate" className="text-foreground">Event Date</Label>
-                  <Input
-                    id="eventDate"
+                <div className="field">
+                  <label htmlFor="edit-ev-date" className="field__label">
+                    Date and time (Nepal) <span className="field__label-req">*</span>
+                  </label>
+                  <input
+                    id="edit-ev-date"
                     type="datetime-local"
                     value={formData.eventDate}
                     onChange={(e) => setFormData({ ...formData, eventDate: e.target.value })}
-                    className="mt-1 bg-background border-border text-foreground"
+                    className="input"
                     required
+                    disabled={loading}
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="formLink" className="text-foreground">Registration Form Link</Label>
-                  <Input
-                    id="formLink"
+                <div className="field">
+                  <label htmlFor="edit-ev-link" className="field__label">
+                    Registration link <span className="field__label-req">*</span>
+                  </label>
+                  <input
+                    id="edit-ev-link"
                     type="url"
                     value={formData.formLink}
                     onChange={(e) => setFormData({ ...formData, formLink: e.target.value })}
+                    className="input"
                     placeholder="https://"
-                    className="mt-1 bg-background border-border text-foreground"
                     required
+                    disabled={loading}
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="image" className="text-foreground">Update Event Image</Label>
-                  <Input
-                    id="image"
+                <div className="field">
+                  <label htmlFor="edit-ev-image" className="field__label">
+                    Replace image <span style={{ color: 'var(--m)', fontWeight: 400 }}>(optional)</span>
+                  </label>
+                  <input
+                    id="edit-ev-image"
                     type="file"
                     accept="image/*"
                     onChange={(e) => setImage(e.target.files?.[0] || null)}
-                    className="mt-1 bg-background border-border text-foreground"
+                    className="input input--file"
+                    disabled={loading}
                   />
-                  {image && (
-                    <p className="text-sm text-muted-foreground mt-1">Selected: {image.name}</p>
-                  )}
-                  {event.image_url && !image && (
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Current image will be kept
-                    </p>
-                  )}
+                  {image ? (
+                    <p className="field__hint">Selected: {image.name}</p>
+                  ) : event.image_url ? (
+                    <p className="field__hint">Current image will be kept.</p>
+                  ) : null}
                 </div>
               </div>
 
-              <div>
-                <Label htmlFor="description" className="text-foreground">Description</Label>
+              <div className="field event-form__desc">
+                <label htmlFor="edit-ev-desc" className="field__label">
+                  Description <span className="field__label-req">*</span>
+                </label>
                 <textarea
-                  id="description"
+                  id="edit-ev-desc"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full mt-1 p-3 rounded bg-background border border-border text-foreground min-h-[330px] resize-none"
+                  className="input input--multi"
+                  style={{ minHeight: 320 }}
                   required
+                  disabled={loading}
                 />
               </div>
             </div>
+          </div>
 
-            <div className="mt-6 flex justify-end gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onClose}
-                disabled={loading}
-                className="bg-secondary hover:bg-accent border-border"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={loading}
-                className="bg-green-600 hover:bg-green-700 text-white"
-              >
-                {loading ? 'Updating...' : 'Update Event'}
-              </Button>
-            </div>
-          </form>
-        </div>
-      </div>
+          <div className="modal__foot">
+            <button
+              type="button"
+              onClick={onClose}
+              className="btn btn--secondary"
+              disabled={loading}
+            >
+              <span className="btn__label">Cancel</span>
+              <span className="btn__label btn__label--dup" aria-hidden="true">Cancel</span>
+            </button>
+            <button type="submit" className="btn btn--primary" disabled={loading}>
+              <span className="btn__label">{loading ? 'Updating…' : 'Update event'}</span>
+              <span className="btn__label btn__label--dup" aria-hidden="true">
+                {loading ? 'Updating…' : 'Update event'}
+              </span>
+            </button>
+          </div>
+        </form>
+      </Dialog.Panel>
     </Dialog>
   );
 }

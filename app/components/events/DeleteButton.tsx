@@ -1,91 +1,109 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { toast } from 'react-hot-toast'
-import { Trash2 } from 'lucide-react'
-import * as AlertDialog from '@radix-ui/react-alert-dialog'
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { Trash2 } from 'lucide-react';
+import * as AlertDialog from '@radix-ui/react-alert-dialog';
 
 interface DeleteButtonProps {
-  eventId: string
-  className?: string
-  onSuccess?: () => void
+  eventId: string;
+  className?: string;
+  onSuccess?: () => void;
 }
 
-export default function DeleteButton({
-  eventId,
-  className = '',
-  onSuccess
-}: DeleteButtonProps) {
-  const [isDeleting, setIsDeleting] = useState(false)
-  const router = useRouter()
+export default function DeleteButton({ eventId, className = '', onSuccess }: DeleteButtonProps) {
+  const [isDeleting, setIsDeleting] = useState(false);
+  const router = useRouter();
 
   const handleDelete = async () => {
-    setIsDeleting(true)
-
+    setIsDeleting(true);
     try {
-      const response = await fetch(`/api/events/remove?id=${eventId}`, {
-        method: 'DELETE'
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to delete event')
-      }
-
-      toast.success('Event deleted successfully')
-      onSuccess?.()
-      router.refresh()
+      const response = await fetch('/api/events/remove?id=' + eventId, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Failed to delete event');
+      toast.success('Event deleted');
+      onSuccess?.();
+      router.refresh();
     } catch (error) {
-      console.error('Delete error:', error)
-      toast.error('Failed to delete event')
+      console.error('Delete error:', error);
+      toast.error('Failed to delete event');
     } finally {
-      setIsDeleting(false)
+      setIsDeleting(false);
     }
-  }
+  };
 
   return (
     <AlertDialog.Root>
       <AlertDialog.Trigger asChild>
-        {/* Frosted trigger — sits on image overlay in EventCard, so keep dark-tinted */}
         <button
-          className={`${className} flex items-center justify-center gap-1.5 px-2.5 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-200 rounded-md backdrop-blur-sm transition-all duration-200 border border-red-500/10 shadow-sm group`}
+          className={className || 'event-card__delete-btn'}
           aria-label="Delete event"
         >
-          <Trash2 className="w-3.5 h-3.5 text-red-200/90 group-hover:text-red-100" />
+          <Trash2 size={14} />
         </button>
       </AlertDialog.Trigger>
 
       <AlertDialog.Portal>
-        <AlertDialog.Overlay className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm animate-in fade-in-0 z-50" />
-        <AlertDialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-popover border border-border rounded-xl p-6 w-[90vw] max-w-[450px] shadow-xl animate-in fade-in-0 zoom-in-95 z-50">
-          <AlertDialog.Title className="text-xl font-semibold mb-3 text-foreground">
-            Delete Event
-          </AlertDialog.Title>
+        <AlertDialog.Overlay
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 50,
+            background: 'rgba(0,0,0,.7)',
+            backdropFilter: 'blur(4px)',
+            WebkitBackdropFilter: 'blur(4px)',
+          }}
+        />
+        <AlertDialog.Content
+          className="modal"
+          style={{
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 'calc(100vw - 32px)',
+            maxWidth: 440,
+            zIndex: 51,
+          }}
+        >
+          <header className="modal__head">
+            <AlertDialog.Title className="modal__title">Delete event</AlertDialog.Title>
+          </header>
 
-          <AlertDialog.Description className="text-muted-foreground mb-6 text-sm leading-relaxed">
-            Are you sure you want to delete this event? This action cannot be undone and will permanently remove the event from the system.
-          </AlertDialog.Description>
+          <div className="modal__body">
+            <AlertDialog.Description style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--m)' }}>
+              This cannot be undone. The event is permanently removed.
+            </AlertDialog.Description>
+          </div>
 
-          <div className="flex justify-end gap-3">
+          <div className="modal__foot">
             <AlertDialog.Cancel asChild>
-              <button className="px-4 py-2 rounded-md bg-secondary text-secondary-foreground hover:bg-accent transition-colors text-sm font-medium">
-                Cancel
+              <button type="button" className="btn btn--secondary">
+                <span className="btn__label">Cancel</span>
+                <span className="btn__label btn__label--dup" aria-hidden="true">Cancel</span>
               </button>
             </AlertDialog.Cancel>
-
             <AlertDialog.Action asChild>
               <button
+                type="button"
                 onClick={handleDelete}
                 disabled={isDeleting}
-                className="px-4 py-2 rounded-md bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-500/20 dark:text-red-200 dark:hover:bg-red-500/30 transition-colors disabled:opacity-50 text-sm font-medium flex items-center gap-2"
+                className="btn btn--primary"
+                style={{ background: 'var(--danger)', color: 'var(--t)' }}
               >
-                <Trash2 className="w-4 h-4" />
-                {isDeleting ? 'Deleting...' : 'Delete Event'}
+                <span className="btn__label">{isDeleting ? 'Deleting…' : 'Delete event'}</span>
+                <span
+                  className="btn__label btn__label--dup"
+                  aria-hidden="true"
+                  style={{ background: 'var(--danger)', color: 'var(--t)' }}
+                >
+                  {isDeleting ? 'Deleting…' : 'Delete event'}
+                </span>
               </button>
             </AlertDialog.Action>
           </div>
         </AlertDialog.Content>
       </AlertDialog.Portal>
     </AlertDialog.Root>
-  )
+  );
 }
