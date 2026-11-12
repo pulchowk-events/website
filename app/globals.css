@@ -1282,3 +1282,23 @@
   font-size: 14px;
   box-shadow: 0 0 0 1px var(--l2);
 }
+
+/* Jobs list ------------------------------------------------------------- */
+.jobs-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.jobs-body { margin-bottom: 32px; }
+.jobs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.jobs-taxonomies {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
