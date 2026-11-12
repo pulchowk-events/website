@@ -22,41 +22,19 @@ export default function SignInModal({ isOpen, onClose }: Props) {
   return (
     <Dialog.Root open={isOpen} onOpenChange={(v) => !v && onClose()}>
       <Dialog.Portal>
-        <Dialog.Overlay
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 100,
-            background: "rgba(0,0,0,.7)",
-            backdropFilter: "blur(4px)",
-            WebkitBackdropFilter: "blur(4px)",
-          }}
-        />
+        <Dialog.Overlay className="signin-backdrop" />
         <Dialog.Content
-          className="modal"
-          style={{
-            position: "fixed",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: "calc(100vw - 32px)",
-            maxWidth: 400,
-            zIndex: 101,
-          }}
+          className="signin-panel"
           onClick={(e) => e.stopPropagation()}
+          aria-describedby={undefined}
         >
-          <header className="modal__head">
-            <Dialog.Title className="modal__title">Sign in</Dialog.Title>
-            <Dialog.Close asChild>
-              <button type="button" className="modal__close" aria-label="Close">
-                <X size={18} />
-              </button>
-            </Dialog.Close>
-          </header>
-
-          <div className="modal__body">
-            <SignInContent callbackUrl={callbackUrl} layout="modal" />
-          </div>
+          <Dialog.Title className="sr-only">Sign in</Dialog.Title>
+          <Dialog.Close asChild>
+            <button type="button" className="signin-panel__close" aria-label="Close">
+              <X size={16} />
+            </button>
+          </Dialog.Close>
+          <SignInContent callbackUrl={callbackUrl} layout="modal" />
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

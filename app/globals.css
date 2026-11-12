@@ -9014,3 +9014,196 @@ input[type="radio"]:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+
+/* Sign-in */
+.signin-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: signin-fade-in 150ms var(--e);
+}
+@keyframes signin-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.signin-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100vw - 32px);
+  max-width: 400px;
+  z-index: 101;
+  background: #0a0a0a;
+  border-radius: 14px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.14),
+    0 20px 60px rgba(0, 0, 0, 0.6);
+  padding: 28px 24px 20px;
+  animation: signin-panel-in 200ms var(--e);
+}
+@keyframes signin-panel-in {
+  from { opacity: 0; transform: translate(-50%, calc(-50% + 6px)); }
+  to { opacity: 1; transform: translate(-50%, -50%); }
+}
+.signin-panel--static {
+  position: relative;
+  top: auto;
+  left: auto;
+  transform: none;
+  width: 100%;
+  max-width: 400px;
+  animation: none;
+}
+.signin-panel__close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 0;
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: background 150ms, color 150ms;
+}
+.signin-panel__close:hover { background: rgba(255,255,255,.06); color: var(--text-1); }
+.signin-panel__close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.signin {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.signin__head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.signin__title {
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--text-1);
+  margin: 0;
+}
+.signin__sub {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-2);
+  margin: 0;
+}
+
+.signin__error {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 92, 92, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 92, 92, 0.28);
+  color: var(--danger);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.signin__stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.signin-provider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 0;
+  background: #000;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  color: var(--text-1);
+  font: 500 14px var(--font-geist-sans), system-ui, sans-serif;
+  cursor: pointer;
+  transition: box-shadow 150ms, background 150ms;
+}
+.signin-provider:hover:not(:disabled) {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+  background: #141414;
+}
+.signin-provider:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.signin-provider:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+.signin-provider img {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  object-fit: contain;
+}
+
+.signin__spinner {
+  animation: signin-spin 900ms linear infinite;
+  color: var(--text-2);
+  flex: none;
+}
+@keyframes signin-spin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .signin__spinner { animation: none; }
+}
+
+.signin__legal {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-3);
+  text-align: center;
+  margin: 0;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.signin__legal a {
+  color: var(--text-2);
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.28);
+  text-underline-offset: 2px;
+}
+.signin__legal a:hover {
+  color: var(--text-1);
+  text-decoration-color: var(--text-2);
+}
+
+.signin-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: #000;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

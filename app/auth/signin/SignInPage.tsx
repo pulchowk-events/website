@@ -9,9 +9,8 @@ export function SignInPage() {
   const callbackUrl = searchParams.get("callbackUrl") || "/";
 
   return (
-    <div className="auth-shell">
-      <div className="card auth-card" style={{ padding: 32 }}>
-        <h1 className="auth-title">Sign in to Pulchowk Events</h1>
+    <div className="signin-page">
+      <div className="signin-panel signin-panel--static">
         <SignInContent callbackUrl={callbackUrl} error={error} layout="page" />
       </div>
     </div>
