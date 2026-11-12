@@ -8,6 +8,7 @@ import Markdown from "@/app/components/ui/Markdown";
 import { SaveButton } from "@/app/components/shell/SaveButton";
 import { ShareMenu } from "@/app/components/shell/ShareMenu";
 import { formatDateShort } from "@/app/lib/formatDate";
+import { formatSalary } from "@/app/lib/formatSalary";
 
 interface Job {
   id: string;
@@ -58,7 +59,7 @@ export function JobDetailSheet({ job, saved, onClose }: Props) {
   const facts: { label: string; value: string | null }[] = [
     { label: "Location", value: job.location },
     { label: "Type", value: job.employment_type },
-    { label: "Salary", value: job.salary && job.salary.trim() ? job.salary : "Not disclosed" },
+    { label: "Salary", value: formatSalary(job.salary) },
     { label: "Experience", value: job.experience },
     { label: "Level", value: job.level },
     { label: "Openings", value: job.openings ? String(job.openings) : null },

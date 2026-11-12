@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { SaveButton } from "@/app/components/shell/SaveButton";
+import { formatSalary, isSalaryDisclosed } from "@/app/lib/formatSalary";
 
 interface Job {
   id: string;
@@ -64,7 +65,8 @@ export function JobRow({ job, saved, selected, onClick }: Props) {
   const dl = deadlineLabel(job.application_ends_at);
   const type = typeLabel(job.employment_type);
   const source = sourceLabel(job.origin);
-  const salaryShown = job.salary && job.salary.trim() ? job.salary : null;
+  const salaryDisplay = formatSalary(job.salary);
+  const salaryDisclosed = isSalaryDisclosed(job.salary);
   const [imgBroken, setImgBroken] = useState(false);
   const showLogo = !!job.image_url && !imgBroken;
 
@@ -98,8 +100,9 @@ export function JobRow({ job, saved, selected, onClick }: Props) {
       </div>
 
       <div className="job-row-new__meta">
-        {salaryShown && <span className="job-row-new__salary">{salaryShown}</span>}
-        {!salaryShown && <span className="job-row-new__salary job-row-new__salary--none">Not disclosed</span>}
+        <span className={"job-row-new__salary" + (salaryDisclosed ? "" : " job-row-new__salary--none")}>
+          {salaryDisplay}
+        </span>
         {dl && <span className={"job-row-new__deadline job-row-new__deadline--" + dl.tone}>{dl.text}</span>}
       </div>
 

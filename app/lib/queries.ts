@@ -417,9 +417,7 @@ export const getJobsPage = unstable_cache(
       q = q.or(orParts.join(","));
     }
 
-    if (f.salaryDisclosed) {
-      q = q.not("salary", "is", null).neq("salary", "");
-    }
+    if (f.salaryDisclosed) q = q.eq("salary_disclosed", true);
 
     if (f.closingSoon) {
       q = q.lte(

@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 import SignInModal from "@/app/components/signIn/SignInModal";
 import { formatDateShort } from "@/app/lib/formatDate";
+import { formatSalary } from "@/app/lib/formatSalary";
 import Markdown from "@/app/components/ui/Markdown";
 
 interface Job {
@@ -75,7 +76,7 @@ export default function JobDetail({ job, isSaved, similarJobs }: Props) {
   const facts: { icon: any; label: string; value: string | null }[] = [
     { icon: MapPin, label: "Location", value: job.location },
     { icon: Briefcase, label: "Type", value: job.employment_type },
-    { icon: DollarSign, label: "Salary", value: job.salary && job.salary.trim() ? job.salary : "Not disclosed" },
+    { icon: DollarSign, label: "Salary", value: formatSalary(job.salary) },
     { icon: TrendingUp, label: "Experience", value: job.experience },
     { icon: TrendingUp, label: "Level", value: job.level },
     { icon: Users, label: "Openings", value: job.openings ? String(job.openings) : null },
