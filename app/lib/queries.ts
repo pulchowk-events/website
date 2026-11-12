@@ -654,7 +654,7 @@ export const getActiveJobTaxonomies = unstable_cache(
 
     return {
       companies: [...companyCounts.entries()]
-        .filter(([, c]) => c >= 3)
+        .filter(([, c]) => c >= 1)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 20)
         .map(([slug]) => slug),
