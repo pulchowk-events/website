@@ -10,19 +10,21 @@ import { getLoungePosts, getSidebarData, getRecentJobs } from '@/app/lib/queries
 import { Briefcase } from 'lucide-react';
 import LeftSidebar from '@/app/components/layout/LeftSidebar';
 import RightSidebar from '@/app/components/layout/RightSidebar';
+import LandingRoot from '@/app/components/landing/LandingRoot';
+import '@/app/landing/landing.css';
 
 export const revalidate = 60;
 
 export default async function Home() {
+  const session = await getServerSession(authOptions);
+  if (!session) return <LandingRoot />;
+
   // All cached — no direct DB access. Both calls run in parallel.
   const [posts, { prizePool, donors, products, upcomingEvents }, recentJobs] = await Promise.all([
     getLoungePosts(6),
     getSidebarData(),
     getRecentJobs(3),
   ]);
-
-  // Session-dependent — runs fresh every request (small overhead)
-  const session = await getServerSession(authOptions);
 
   // Local aliases so the JSX below stays unchanged
   const events = upcomingEvents;
