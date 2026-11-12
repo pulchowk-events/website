@@ -11,7 +11,6 @@ import {
 } from 'lucide-react';
 import NotificationDropdown from './NotificationDropdown';
 import SignInModal from '@/app/components/signIn/SignInModal';
-import { ThemeToggle } from './ThemeToggle';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 
 const NAV_LINKS = [
@@ -96,7 +95,6 @@ export default function Navbar() {
         </button>
 
         <div className="navbar__actions">
-          <ThemeToggle />
           {session && (
             <div className="navbar__icon-slot">
               <NotificationDropdown />

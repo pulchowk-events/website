@@ -2790,56 +2790,6 @@
   color: var(--m);
 }
 
-/* Theme toggle ---------------------------------------------------------- */
-.theme-toggle { position: relative; }
-.theme-toggle__btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  border: 0;
-  background: transparent;
-  color: var(--m);
-  cursor: pointer;
-  transition: background 150ms, color 150ms;
-}
-.theme-toggle__btn:hover { background: var(--surface-2); color: var(--t); }
-.theme-toggle__btn:focus-visible { outline: 2px solid var(--g); outline-offset: 2px; }
-
-.theme-toggle__menu {
-  z-index: 60;
-  margin-top: 8px;
-  width: 152px;
-  padding: 6px;
-  border-radius: 10px;
-  background: var(--surface-1);
-  border: 1px solid var(--l);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
-  outline: none;
-  transition: opacity 100ms ease-out, transform 100ms ease-out;
-}
-.theme-toggle__menu[data-closed] {
-  opacity: 0;
-  transform: scale(0.95);
-}
-.theme-toggle__item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: 6px;
-  border: 0;
-  background: transparent;
-  color: var(--t);
-  font-size: 13px;
-  cursor: pointer;
-  transition: background 100ms;
-}
-.theme-toggle__item--focus { background: var(--surface-2); }
-.theme-toggle__check { margin-left: auto; color: var(--g); }
 
 /* Notifications --------------------------------------------------------- */
 .notif { position: relative; }

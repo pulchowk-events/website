@@ -134,4 +134,3 @@ export default async function FaqPage() {
     </Layout>
   );
 }
-EOFcat > app/faq/page.tsx << 'EOF'

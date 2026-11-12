@@ -25,7 +25,6 @@ import AdminUserForm from './AdminUserForm';
 import AdminNotificationAdder from './AdminNotificationAdder';
 import AdminReports from './AdminReports';
 import AdminPendingEvents from './AdminPendingEvents';
-import { ThemeToggle } from '@/app/components/layout/ThemeToggle';
 
 interface DashboardStats {
   totalProducts: number;
@@ -130,7 +129,6 @@ export default function AdminDashboard({ session, dashboardStats }: AdminDashboa
           <h1 className="admin-header__title">{activeLabel}</h1>
 
           <div className="admin-header__actions">
-            <ThemeToggle />
             <div className="admin-user">
               <span className="admin-user__avatar">
                 {session?.user?.image ? (
