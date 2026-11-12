@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Loader2 } from 'lucide-react';
 import PostCard from '../lounge/PostCard';
 import type { Post } from '@/app/api/lounge/posts/get/route';
 
@@ -12,7 +11,7 @@ export default function UserPosts({ userId }: { userId: string }) {
   useEffect(() => {
     async function fetchPosts() {
       try {
-        const response = await fetch(`/api/users/${userId}/posts`);
+        const response = await fetch('/api/users/' + userId + '/posts');
         const data = await response.json();
         setPosts(data.posts);
       } catch (error) {
@@ -21,30 +20,32 @@ export default function UserPosts({ userId }: { userId: string }) {
         setLoading(false);
       }
     }
-
     fetchPosts();
   }, [userId]);
 
   if (loading) {
     return (
-      <div className="flex justify-center py-12">
-        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      <div className="lounge-grid">
+        {[0, 1].map((i) => (
+          <div key={i} className="skeleton" style={{ height: 220 }} />
+        ))}
       </div>
     );
   }
 
   if (posts.length === 0) {
     return (
-      <div className="text-center py-12 text-muted-foreground">
-        No posts yet
+      <div className="empty-state">
+        <p className="empty-state__title">No posts yet.</p>
+        <p className="empty-state__desc">This user hasn&apos;t shared anything in the lounge.</p>
       </div>
     );
   }
 
   return (
-    <div className="grid gap-6 sm:grid-cols-2">
+    <div className="lounge-grid">
       {posts.map((post) => (
-        <PostCard key={post.id} post={post}/>
+        <PostCard key={post.id} post={post} />
       ))}
     </div>
   );
