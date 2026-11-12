@@ -3,12 +3,12 @@ import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/auth';
 import Layout from '@/app/components/layout/Layout';
-import LeftSidebar from '@/app/components/layout/LeftSidebar';
-import RightSidebar from '@/app/components/layout/RightSidebar';
 import EventsClient from '@/app/components/events/EventsClient';
 import ClientAddEventButton from '../components/events/ClientAddEventButton';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { getEventsPage, getActiveEventTaxonomies } from '@/app/lib/queries';
 import { formatMonthSlug } from '@/app/lib/seo';
+import { isAdmin } from '@/app/lib/isAdmin';
 
 export const revalidate = 60;
 
@@ -79,113 +79,85 @@ export default async function EventsPage({
 }) {
   const { tab, category, page } = parseParams(await searchParams);
 
-  const [{ events, totalCount }, eventTaxonomies] = await Promise.all([
+  const [{ events, totalCount }, eventTaxonomies, session] = await Promise.all([
     getEventsPage(tab, category, page, PAGE_SIZE),
     getActiveEventTaxonomies(),
+    getServerSession(authOptions),
   ]);
 
-  const session = await getServerSession(authOptions);
-  let isAdmin = false;
-  if (session?.user?.email) {
-    try {
-      const response = await fetch(
-        `${process.env.NEXTAUTH_URL}/api/admin/checkAdmin?email=${encodeURIComponent(session.user.email)}`,
-        { cache: 'no-store' }
-      );
-      const { isAdmin: adminStatus } = await response.json();
-      isAdmin = adminStatus;
-    } catch (error) {
-      console.error('Error checking admin status:', error);
-    }
-  }
+  const admin = await isAdmin(session?.user?.email);
 
   const hasTaxonomyLinks =
     eventTaxonomies.months.length > 0 || eventTaxonomies.cities.length > 0;
 
   return (
     <Layout>
-      <div className="bg-background min-h-screen">
-        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-          <div className="flex flex-col lg:flex-row lg:gap-6">
-            <LeftSidebar />
+      <div className="w">
+        <PageHeader
+          eyebrow="Events"
+          title={tab === 'past' ? 'Past events.' : 'Vetted campus events.'}
+          description={
+            tab === 'past'
+              ? 'Archive of everything that already happened.'
+              : 'Every listing is human-reviewed before it appears here. Filter by category, month, or city.'
+          }
+          action={session ? <ClientAddEventButton /> : undefined}
+        />
 
-            <div className="w-full lg:mx-auto">
-              <div className="bg-card border border-border rounded-xl shadow-lg overflow-hidden">
-                <div className="p-4 sm:p-5">
-                  <div className="lg:hidden flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold text-foreground">Events</h2>
-                    {session && <ClientAddEventButton />}
-                  </div>
-                  <div className="hidden lg:flex items-center justify-end mb-3">
-                    {session && <ClientAddEventButton />}
-                  </div>
-                  <EventsClient
-                    events={events}
-                    totalCount={totalCount}
-                    page={page}
-                    pageSize={PAGE_SIZE}
-                    tab={tab}
-                    category={category}
-                    isAdmin={isAdmin}
-                  />
-                </div>
-
-                {hasTaxonomyLinks && (
-                  <div className="border-t border-border p-4 sm:p-5 space-y-4">
-                    {eventTaxonomies.months.length > 0 && (
-                      <div>
-                        <h3 className="text-sm font-medium text-muted-foreground mb-2">
-                          Browse by month
-                        </h3>
-                        <div className="flex flex-wrap gap-2">
-                          {eventTaxonomies.months.map((m) => {
-                            const label = formatMonthSlug(m) || m;
-                            return (
-                              <Link
-                                key={m}
-                                href={`/events/month/${m}`}
-                                className="px-3 py-1.5 rounded-full text-sm bg-muted text-foreground hover:bg-accent transition-colors"
-                              >
-                                {label}
-                              </Link>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-
-                    {eventTaxonomies.cities.length > 0 && (
-                      <div>
-                        <h3 className="text-sm font-medium text-muted-foreground mb-2">
-                          Browse by location
-                        </h3>
-                        <div className="flex flex-wrap gap-2">
-                          {eventTaxonomies.cities.map((c) => {
-                            const label = c
-                              .split('-')
-                              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-                              .join(' ');
-                            return (
-                              <Link
-                                key={c}
-                                href={`/events/location/${c}`}
-                                className="px-3 py-1.5 rounded-full text-sm bg-muted text-foreground hover:bg-accent transition-colors"
-                              >
-                                {label}
-                              </Link>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <RightSidebar exclude={['events']} />
-          </div>
+        <div className="card" style={{ marginBottom: 32 }}>
+          <EventsClient
+            events={events}
+            totalCount={totalCount}
+            page={page}
+            pageSize={PAGE_SIZE}
+            tab={tab}
+            category={category}
+            isAdmin={admin}
+          />
         </div>
+
+        {hasTaxonomyLinks && (
+          <div className="card" style={{ marginBottom: 32 }}>
+            {eventTaxonomies.months.length > 0 && (
+              <div style={{ marginBottom: eventTaxonomies.cities.length > 0 ? 24 : 0 }}>
+                <p className="page-header__eyebrow" style={{ marginBottom: 12 }}>
+                  Browse by month
+                </p>
+                <div className="tabs">
+                  {eventTaxonomies.months.map((m) => {
+                    const label = formatMonthSlug(m) || m;
+                    return (
+                      <Link key={m} href={'/events/month/' + m} className="tab">
+                        {label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {eventTaxonomies.cities.length > 0 && (
+              <div>
+                <p className="page-header__eyebrow" style={{ marginBottom: 12 }}>
+                  Browse by location
+                </p>
+                <div className="tabs">
+                  {eventTaxonomies.cities.map((c) => {
+                    const label = c
+                      .split('-')
+                      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                      .join(' ');
+                    return (
+                      <Link key={c} href={'/events/location/' + c} className="tab">
+                        {label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </Layout>
   );
