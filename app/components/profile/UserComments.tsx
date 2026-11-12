@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Loader2, MessageSquare } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 
@@ -22,7 +22,7 @@ export default function UserComments({ userId }: { userId: string }) {
   useEffect(() => {
     async function fetchComments() {
       try {
-        const response = await fetch(`/api/users/${userId}/comments`);
+        const response = await fetch('/api/users/' + userId + '/comments');
         const data = await response.json();
         setComments(data.comments);
       } catch (error) {
@@ -31,46 +31,45 @@ export default function UserComments({ userId }: { userId: string }) {
         setLoading(false);
       }
     }
-
     fetchComments();
   }, [userId]);
 
   if (loading) {
     return (
-      <div className="flex justify-center py-12">
-        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      <div style={{ display: 'grid', gap: 8 }}>
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="skeleton" style={{ height: 92 }} />
+        ))}
       </div>
     );
   }
 
   if (comments.length === 0) {
     return (
-      <div className="text-center py-12 text-muted-foreground">
-        No comments yet
+      <div className="empty-state">
+        <p className="empty-state__title">No comments yet.</p>
+        <p className="empty-state__desc">This user hasn&apos;t replied to anything in the lounge.</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <ul className="user-comments">
       {comments.map((comment) => (
-        <div
-          key={comment.id}
-          className="bg-card border border-border rounded-lg p-4"
-        >
+        <li key={comment.id} className="user-comments__item">
           <Link
-            href={`/lounge/${comment.post.id}`}
-            className="text-sm text-muted-foreground hover:text-foreground mb-2 flex items-center gap-2 transition-colors"
+            href={'/lounge/' + comment.post.id}
+            className="user-comments__link"
           >
-            <MessageSquare className="w-4 h-4" />
-            on: {comment.post.title}
+            <MessageSquare size={12} />
+            <span className="user-comments__post-title">{comment.post.title}</span>
           </Link>
-          <p className="text-foreground">{comment.comment}</p>
-          <div className="mt-2 text-xs text-muted-foreground">
+          <p className="user-comments__text">{comment.comment}</p>
+          <p className="user-comments__time" suppressHydrationWarning>
             {formatDistanceToNow(new Date(comment.created_at))} ago
-          </div>
-        </div>
+          </p>
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }

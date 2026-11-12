@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Loader2, ExternalLink } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -10,6 +10,7 @@ interface Product {
   name: string;
   description: string;
   image_url: string;
+  url: string;
   approved: boolean;
   votes_count: number;
   created_at: string;
@@ -22,7 +23,7 @@ export default function UserProducts({ userId }: { userId: string }) {
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const response = await fetch(`/api/users/${userId}/products`);
+        const response = await fetch('/api/users/' + userId + '/products');
         const data = await response.json();
         setProducts(data.products);
       } catch (error) {
@@ -31,64 +32,59 @@ export default function UserProducts({ userId }: { userId: string }) {
         setLoading(false);
       }
     }
-
     fetchProducts();
   }, [userId]);
 
   if (loading) {
     return (
-      <div className="flex justify-center py-12">
-        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      <div className="user-products">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="skeleton" style={{ height: 240 }} />
+        ))}
       </div>
     );
   }
 
   if (products.length === 0) {
     return (
-      <div className="text-center py-12 text-muted-foreground">
-        No products yet
+      <div className="empty-state">
+        <p className="empty-state__title">No projects yet.</p>
+        <p className="empty-state__desc">This user hasn&apos;t shipped anything to Product Hunt.</p>
       </div>
     );
   }
 
   return (
-    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="user-products">
       {products.map((product) => (
         <Link
           key={product.id}
-          href={`/product-hunt/${product.id}`}
-          className="group bg-card border border-border rounded-lg overflow-hidden hover:border-green-500/50 transition-colors"
+          href={'/product-hunt/' + product.url}
+          className="user-product"
         >
-          <div className="aspect-video relative">
+          <div className="user-product__media">
             <Image
               src={product.image_url || '/product-placeholder.png'}
               alt={product.name}
               fill
-              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className="user-product__img"
             />
           </div>
-          <div className="p-4">
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <h3 className="font-medium text-foreground group-hover:text-green-600 dark:group-hover:text-green-500 transition-colors truncate">
-                {product.name}
-              </h3>
-              <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-green-600 dark:group-hover:text-green-500 transition-colors" />
+          <div className="user-product__body">
+            <div className="user-product__head">
+              <h3 className="user-product__title">{product.name}</h3>
+              <ExternalLink size={14} className="user-product__arrow" />
             </div>
-            <p className="text-sm text-muted-foreground line-clamp-2">
-              {product.description}
-            </p>
-            <div className="mt-3 flex items-center justify-between text-xs">
+            <p className="user-product__desc">{product.description}</p>
+            <div className="user-product__meta">
               <span
-                className={`px-2 py-1 rounded-full ${
-                  product.approved
-                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400'
-                    : 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'
-                }`}
+                className={'tag ' + (product.approved ? 'tag--event' : 'tag--job')}
               >
                 {product.approved ? 'Approved' : 'Pending'}
               </span>
-              <span className="text-muted-foreground">
-                {product.votes_count} votes
+              <span className="user-product__votes">
+                {product.votes_count ?? 0} {product.votes_count === 1 ? 'vote' : 'votes'}
               </span>
             </div>
           </div>
