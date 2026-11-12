@@ -325,7 +325,11 @@ html:has(.landing-root)::-webkit-scrollbar-thumb:hover{background:#3ecf8e}
     .nm div{padding:32px 20px}.nm strong{font-size:clamp(30px,8.4vw,64px)}
     .rc>div+div{border-left:0;border-top:1px solid var(--l)}
     .ly{flex-wrap:wrap;gap:10px 16px}.ly b{min-width:0}.ly em{opacity:1}.ly::after{left:28px}
-    .rail-steps{grid-template-columns:1fr;gap:36px;margin-top:48px}.rail-steps::before,.rail-steps::after{display:none}
+    .rail-steps{grid-template-columns:1fr;gap:32px;margin-top:48px}.rail-steps::before,.rail-steps::after{display:none}
+    .stp{display:grid;grid-template-columns:56px 1fr;column-gap:20px;align-items:start}
+    .stp .ic{grid-row:1 / span 2}
+    .stp h3{font-size:20px;margin:0 0 6px;align-self:end}
+    .stp p{max-width:none;margin:0;align-self:start}
     section{padding:90px 0}
     
     
