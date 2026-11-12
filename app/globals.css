@@ -8038,3 +8038,84 @@
 }
 .prof-saved-hint a { color: var(--accent); text-decoration: none; }
 .prof-saved-hint a:hover { text-decoration: underline; }
+
+/* Notifications — tabbed popover */
+.notif__head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px 8px;
+  border-bottom: 1px solid var(--border);
+}
+.notif__title {
+  font-size: 14px; font-weight: 600; letter-spacing: -0.01em;
+  color: var(--text-1); margin: 0;
+}
+.notif__mark-all {
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 22px; padding: 0 8px;
+  border: 0; border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--text-2);
+  font: 500 11px var(--font-geist-sans), system-ui, sans-serif;
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.notif__mark-all:hover { background: var(--hover); color: var(--text-1); }
+.notif__mark-all:disabled { opacity: 0.5; cursor: progress; }
+
+.notif__tabs {
+  display: flex; gap: 2px;
+  padding: 6px 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.notif__tab {
+  height: 28px; padding: 0 10px;
+  border: 0; background: transparent;
+  border-bottom: 2px solid transparent;
+  color: var(--text-3);
+  font: 500 12px var(--font-geist-sans), system-ui, sans-serif;
+  cursor: pointer;
+  transition: color var(--t-fast), border-color var(--t-fast);
+}
+.notif__tab:hover { color: var(--text-1); }
+.notif__tab--on { color: var(--text-1); border-bottom-color: var(--accent); }
+
+.notif__item {
+  padding: 10px 12px;
+  align-items: center;
+  gap: 10px;
+}
+.notif__dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: transparent;
+  flex: none;
+}
+.notif__item--unread .notif__dot { background: var(--accent); }
+
+.notif__icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--text-2);
+  flex: none;
+  overflow: hidden;
+}
+.notif__avatar-img { object-fit: cover; width: 100%; height: 100%; }
+
+.notif__content {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; gap: 2px;
+  text-align: left;
+}
+.notif__text {
+  font-size: 13px; line-height: 1.4;
+  color: var(--text-1);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.notif__time {
+  font-size: 11px; color: var(--text-3);
+  font-family: var(--font-geist-mono), monospace;
+}
