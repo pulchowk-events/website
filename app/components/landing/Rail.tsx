@@ -24,7 +24,7 @@ export default function Rail() {
     <section className="sec" data-fx="ring">
       <div className="w">
         <h2>Three steps. No effort.</h2>
-        <div className="rail" ref={ref}>
+        <div className="rail-steps" ref={ref}>
           <div className="stp" style={{ '--c': 'var(--a)' } as React.CSSProperties}>
             <span className="ic">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">

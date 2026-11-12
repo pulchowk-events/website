@@ -5712,7 +5712,6 @@
 .page-header__title { font-size: 24px !important; font-weight: 600 !important; letter-spacing: -0.04em !important; line-height: 32px !important; }
 
 /* Hide any landing-specific bits that leaked into shell pages */
-.orb, #bh { display: none !important; }
 
 
 

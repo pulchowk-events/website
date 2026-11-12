@@ -73,8 +73,8 @@ export default function Bento() {
                     <b>Aarav<em>10:02</em></b>
                     <p>Anyone doing the hackathon this Saturday?</p>
                     <div className="lr">
-                      <button>🙌 3</button>
-                      <button>💬 4</button>
+                      <ReactionButton emoji="🙌" initial={3} />
+                      <ReactionButton emoji="💬" initial={4} />
                     </div>
                   </div>
                 </div>
@@ -90,7 +90,7 @@ export default function Bento() {
                   <div>
                     <b>Bibek<em>10:09</em></b>
                     <p>Tip: bring a charger. Venue plugs fill up fast.</p>
-                    <div className="lr"><button>👍 9</button></div>
+                    <div className="lr"><ReactionButton emoji="👍" initial={9} /></div>
                   </div>
                 </div>
                 <div className="lm" style={{ '--c': '#3ecf8e' } as React.CSSProperties}>
@@ -98,7 +98,7 @@ export default function Bento() {
                   <div>
                     <b>Mina<em>10:12</em></b>
                     <p>Just shipped my first project. Feedback welcome!</p>
-                    <div className="lr"><button>🎉 8</button></div>
+                    <div className="lr"><ReactionButton emoji="🎉" initial={8} /></div>
                   </div>
                 </div>
               </div>
@@ -139,5 +139,19 @@ export default function Bento() {
         </div>
       </div>
     </section>
+  );
+}
+
+
+function ReactionButton({ emoji, initial }: { emoji: string; initial: number }) {
+  const [on, setOn] = useState(false);
+  return (
+    <button
+      type="button"
+      className={on ? 'on' : undefined}
+      onClick={() => setOn(!on)}
+    >
+      {emoji} {initial + (on ? 1 : 0)}
+    </button>
   );
 }
