@@ -98,7 +98,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
         count={totalCount + (totalCount === 1 ? " job" : " jobs")}
       />
 
-      <JobsActiveFilters totalCount={totalCount} />
+      <JobsActiveFilters />
 
       <div className="jobs-layout">
         <JobsFilterPanel facets={facets} />

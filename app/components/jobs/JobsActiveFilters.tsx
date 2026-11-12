@@ -38,11 +38,7 @@ interface Chip {
   label: string;
 }
 
-interface Props {
-  totalCount: number;
-}
-
-export function JobsActiveFilters({ totalCount }: Props) {
+export function JobsActiveFilters() {
   const router = useRouter();
   const pathname = usePathname();
   const sp = useSearchParams();
@@ -110,33 +106,27 @@ export function JobsActiveFilters({ totalCount }: Props) {
 
   return (
     <div className="jobs-active">
-      <div className="jobs-active__summary">
-        <span className="jobs-active__count">
-          {totalCount.toLocaleString("en-US")} {totalCount === 1 ? "job" : "jobs"}
-        </span>
-        {chips.length > 0 && (
-          <>
-            <span className="jobs-active__sep" aria-hidden="true">·</span>
-            <span className="jobs-active__chips">
-              {chips.map((c, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  className="jobs-active__chip"
-                  onClick={() => removeChip(c)}
-                  aria-label={`Remove filter ${c.label}`}
-                >
-                  {c.label}
-                  <X size={10} />
-                </button>
-              ))}
-            </span>
-            <button type="button" className="jobs-active__clear" onClick={clearAll}>
-              Clear all
-            </button>
-          </>
-        )}
-      </div>
+      {chips.length > 0 && (
+        <div className="jobs-active__summary">
+          <span className="jobs-active__chips">
+            {chips.map((c, i) => (
+              <button
+                key={i}
+                type="button"
+                className="jobs-active__chip"
+                onClick={() => removeChip(c)}
+                aria-label={`Remove filter ${c.label}`}
+              >
+                {c.label}
+                <X size={10} />
+              </button>
+            ))}
+          </span>
+          <button type="button" className="jobs-active__clear" onClick={clearAll}>
+            Clear all
+          </button>
+        </div>
+      )}
 
       <div className="jobs-active__sort">
         <label htmlFor="job-sort" className="jobs-active__sort-label">Sort by</label>

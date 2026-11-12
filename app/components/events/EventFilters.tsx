@@ -62,7 +62,7 @@ export function EventFilters({ state }: { state: EventFilterState }) {
   const clearAll = () => {
     const next = new URLSearchParams();
     if (state.tab === "past") next.set("tab", "past");
-    if (state.view === "grid") next.set("view", "grid");
+    if (state.view === "list") next.set("view", "list");
     const qs = next.toString();
     router.push(pathname + (qs ? "?" + qs : ""), { scroll: false });
   };
@@ -92,17 +92,17 @@ export function EventFilters({ state }: { state: EventFilterState }) {
         <div className="seg">
           <button
             type="button"
-            className={"seg__item" + (state.view === "list" ? " seg__item--on" : "")}
-            onClick={() => set("view", "list", "list")}
+            className={"seg__item" + (state.view === "grid" ? " seg__item--on" : "")}
+            onClick={() => set("view", "grid", "grid")}
           >
-            List
+            Grid
           </button>
           <button
             type="button"
-            className={"seg__item" + (state.view === "grid" ? " seg__item--on" : "")}
-            onClick={() => set("view", "grid", "list")}
+            className={"seg__item" + (state.view === "list" ? " seg__item--on" : "")}
+            onClick={() => set("view", "list", "grid")}
           >
-            Grid
+            List
           </button>
         </div>
       </div>

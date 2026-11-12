@@ -34,6 +34,6 @@ export function readEventFilters(sp: URLSearchParams): EventFilterState {
     when: (WHEN_VALUES as readonly string[]).includes(when || "") ? (when as string) : "all",
     city: (CITY_VALUES as readonly string[]).includes(city || "") ? (city as string) : "all",
     price: (PRICE_VALUES as readonly string[]).includes(price || "") ? (price as string) : "all",
-    view: view === "grid" ? "grid" : "list",
+    view: view === "list" ? "list" : "grid",
   };
 }
