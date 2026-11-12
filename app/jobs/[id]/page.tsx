@@ -6,7 +6,6 @@ import JsonLd from '@/app/components/seo/JsonLd';
 import { getJobById } from '@/app/lib/queries';
 import { SITE_URL, breadcrumbSchema } from '@/app/lib/seo';
 
-
 export const revalidate = 60;
 
 interface Props {
@@ -25,18 +24,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .replace(/\s+/g, ' ')
     .trim();
 
-  const title = `${job.title} at ${job.company}`;
-  const fallbackDescription = `${job.title} role at ${job.company}${job.location ? ` in ${job.location}` : ''}. Apply on Pulchowk Events.`;
+  const title = job.title + ' at ' + job.company;
+  const fallbackDescription =
+    job.title +
+    ' role at ' +
+    job.company +
+    (job.location ? ' in ' + job.location : '') +
+    '. Apply on Pulchowk Events.';
 
   return {
     title,
     description: description || fallbackDescription,
-    alternates: { canonical: `/jobs/${id}` },
+    alternates: { canonical: '/jobs/' + id },
     openGraph: {
       title,
       description: description || fallbackDescription,
       type: 'article',
-      url: `/jobs/${id}`,
+      url: '/jobs/' + id,
       images: job.image_url ? [job.image_url] : [],
     },
     twitter: {
@@ -48,9 +52,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-// Map human employment_type strings to schema.org employmentType values.
-// Schema.org expects uppercase enum: FULL_TIME, PART_TIME, CONTRACTOR,
-// TEMPORARY, INTERN, VOLUNTEER, PER_DIEM, OTHER.
 function mapEmploymentType(raw: string | null): string | undefined {
   if (!raw) return undefined;
   const s = raw.toLowerCase().replace(/[^a-z]/g, '');
@@ -71,7 +72,7 @@ export default async function JobPage({ params }: Props) {
   const job = await getJobById(id);
   if (!job) notFound();
 
-  const jobJsonLd: Record<string, any> = {
+  const jobJsonLd: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'JobPosting',
     title: job.title,
@@ -104,29 +105,21 @@ export default async function JobPage({ params }: Props) {
         skills: job.skills.join(', '),
       }),
     directApply: false,
-    url: `${SITE_URL}/jobs/${job.id}`,
+    url: SITE_URL + '/jobs/' + job.id,
   };
 
   const breadcrumbJsonLd = breadcrumbSchema([
     { name: 'Home', url: SITE_URL },
-    { name: 'Jobs', url: `${SITE_URL}/jobs` },
-    { name: `${job.title} at ${job.company}` },
+    { name: 'Jobs', url: SITE_URL + '/jobs' },
+    { name: job.title + ' at ' + job.company },
   ]);
 
   return (
     <Layout>
       <JsonLd data={jobJsonLd} />
       <JsonLd data={breadcrumbJsonLd} />
-      <div className="bg-background min-h-screen">
-        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-          <div className="flex flex-col lg:flex-row lg:gap-6">
-            <div className="w-full lg:mx-auto">
-              <div className="bg-card border border-border rounded-xl shadow-lg p-5 sm:p-6">
-                <JobDetail job={job} />
-              </div>
-            </div>
-          </div>
-        </div>
+      <div className="w">
+        <JobDetail job={job} />
       </div>
     </Layout>
   );
