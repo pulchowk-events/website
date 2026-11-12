@@ -1,10 +1,5 @@
-Save as `docs/design-system.md`.
-
----
-
 # Pulchowk Events — Design System
 
-**Version:** 1.0
 **References:** Vercel dashboard (primary), Pulchowk Events landing, Notion (select affordances).
 **Source of truth for tokens:** the landing mockup CSS. Where the Vercel dashboard differs from our tokens, ours win.
 
