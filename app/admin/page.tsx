@@ -1,52 +1,85 @@
-import { getServerSession } from 'next-auth';
-import { notFound } from 'next/navigation';
-import type { Metadata } from 'next';
-import { authOptions } from '@/auth';
-import { createServerSupabaseClient } from '../lib/supabase-server';
-import { isAdmin } from '@/app/lib/isAdmin';
-import AdminDashboard from '@/app/components/admin/AdminDashboard';
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { getAdminOverview } from "@/app/lib/queries";
+import { formatDateShort } from "@/app/lib/formatDate";
 
-export const metadata: Metadata = {
-  title: 'Admin',
-  robots: { index: false, follow: false },
-};
+export const dynamic = "force-dynamic";
 
-export default async function AdminPage() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) notFound();
+export default async function AdminOverview() {
+  const o = await getAdminOverview();
 
-  const admin = await isAdmin(session.user.email);
-  if (!admin) notFound();
+  const tiles = [
+    { label: "Verified events", value: o.totalEvents, href: "/admin/events" },
+    { label: "Pending events", value: o.pendingEvents, href: "/admin/events" },
+    { label: "Approved products", value: o.totalProducts, href: "/admin/products" },
+    { label: "Pending products", value: o.pendingProducts, href: "/admin/products" },
+    { label: "Users", value: o.totalUsers, href: "/admin/admins" },
+    { label: "Open reports", value: o.openReports, href: "/admin/reports" },
+  ];
 
-  const supabase = createServerSupabaseClient();
+  return (
+    <div className="admin-overview">
+      <dl className="admin-stats">
+        {tiles.map((t) => (
+          <Link key={t.label} href={t.href} className="admin-stat admin-stat--link">
+            <dd className="admin-stat__value">{t.value.toLocaleString("en-US")}</dd>
+            <dt className="admin-stat__label">{t.label}</dt>
+          </Link>
+        ))}
+      </dl>
 
-  const [
-    { count: totalProducts },
-    { count: approvedProducts },
-    { count: totalUsers },
-    { count: totalEvents },
-    { data: donations },
-  ] = await Promise.all([
-    supabase.from('products').select('*', { count: 'exact', head: true }),
-    supabase
-      .from('products')
-      .select('*', { count: 'exact', head: true })
-      .eq('approved', true),
-    supabase.from('users').select('*', { count: 'exact', head: true }),
-    supabase.from('events').select('*', { count: 'exact', head: true }),
-    supabase.from('donations').select('amount').eq('verified', true),
-  ]);
+      <section className="admin-panel">
+        <header className="admin-panel__head">
+          <h2 className="admin-panel__title">Recent verified donations</h2>
+          <p className="admin-panel__desc">The five most recently verified contributions.</p>
+        </header>
+        <div className="admin-panel__body">
+          {o.recentDonations.length === 0 ? (
+            <p className="admin-empty">No verified donations yet.</p>
+          ) : (
+            <ul className="admin-recent">
+              {o.recentDonations.map((d: any) => (
+                <li key={d.id} className="admin-recent__row">
+                  <span className="admin-recent__name">{d.name || "Anonymous"}</span>
+                  <span className="admin-recent__meta">
+                    {d.verified_at ? formatDateShort(d.verified_at) : "—"}
+                  </span>
+                  <span className="admin-recent__amount">
+                    ${d.amount.toLocaleString("en-US")}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+          <Link href="/admin/donations" className="admin-recent__more">
+            All donations <ArrowRight size={12} />
+          </Link>
+        </div>
+      </section>
 
-  const totalDonations = donations?.reduce((sum, d) => sum + d.amount, 0) || 0;
-
-  const dashboardStats = {
-    totalProducts: totalProducts || 0,
-    approvedProducts: approvedProducts || 0,
-    pendingProducts: (totalProducts || 0) - (approvedProducts || 0),
-    totalUsers: totalUsers || 0,
-    totalEvents: totalEvents || 0,
-    totalDonations,
-  };
-
-  return <AdminDashboard session={session} dashboardStats={dashboardStats} />;
+      <section className="admin-panel">
+        <header className="admin-panel__head">
+          <h2 className="admin-panel__title">Moderation queue</h2>
+          <p className="admin-panel__desc">What needs your attention right now.</p>
+        </header>
+        <div className="admin-panel__body admin-queue">
+          <Link href="/admin/events" className="admin-queue__item">
+            <span className="admin-queue__count">{o.pendingEvents}</span>
+            <span className="admin-queue__label">pending events</span>
+            <ArrowRight size={12} />
+          </Link>
+          <Link href="/admin/products" className="admin-queue__item">
+            <span className="admin-queue__count">{o.pendingProducts}</span>
+            <span className="admin-queue__label">pending products</span>
+            <ArrowRight size={12} />
+          </Link>
+          <Link href="/admin/reports" className="admin-queue__item">
+            <span className="admin-queue__count">{o.openReports}</span>
+            <span className="admin-queue__label">open reports</span>
+            <ArrowRight size={12} />
+          </Link>
+        </div>
+      </section>
+    </div>
+  );
 }

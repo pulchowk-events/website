@@ -1186,3 +1186,38 @@ export async function getSavedItemsFull(userId: string): Promise<SavedItem[]> {
 
   return items;
 }
+
+export async function getAdminOverview() {
+  const [
+    { count: totalEvents },
+    { count: pendingEvents },
+    { count: totalProducts },
+    { count: pendingProducts },
+    { count: totalUsers },
+    { count: openReports },
+    { data: recentDonations },
+  ] = await Promise.all([
+    supabase.from("events").select("*", { count: "exact", head: true }).eq("verified", true),
+    supabase.from("events").select("*", { count: "exact", head: true }).eq("verified", false),
+    supabase.from("products").select("*", { count: "exact", head: true }).eq("approved", true),
+    supabase.from("products").select("*", { count: "exact", head: true }).eq("approved", false),
+    supabase.from("users").select("*", { count: "exact", head: true }),
+    supabase.from("reports").select("*", { count: "exact", head: true }),
+    supabase
+      .from("donations")
+      .select("id, name, amount, verified_at")
+      .eq("verified", true)
+      .order("verified_at", { ascending: false, nullsFirst: false })
+      .limit(5),
+  ]);
+
+  return {
+    totalEvents: totalEvents || 0,
+    pendingEvents: pendingEvents || 0,
+    totalProducts: totalProducts || 0,
+    pendingProducts: pendingProducts || 0,
+    totalUsers: totalUsers || 0,
+    openReports: openReports || 0,
+    recentDonations: recentDonations || [],
+  };
+}
