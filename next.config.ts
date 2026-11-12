@@ -1,13 +1,13 @@
-import { NextConfig } from 'next';
+import { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   devIndicators: false,
   images: {
     domains: [
-      'anzrkakfmuohsyootolj.supabase.co',
-      'cdn.discordapp.com',
-      'lh3.googleusercontent.com',
+      "anzrkakfmuohsyootolj.supabase.co",
+      "cdn.discordapp.com",
+      "lh3.googleusercontent.com",
     ],
   },
   typescript: {
@@ -15,7 +15,8 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      { source: '/about', destination: '/faq', permanent: true },
+      { source: "/about", destination: "/help", permanent: true },
+      { source: "/faq", destination: "/help", permanent: true },
     ];
   },
 };

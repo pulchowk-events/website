@@ -113,7 +113,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "hourly",
       priority: 0.8,
     }),
-    url(`${SITE_URL}/faq`, {
+    url(`${SITE_URL}/help`, {
       lastModified: now,
       changeFrequency: "monthly",
       priority: 0.5,
