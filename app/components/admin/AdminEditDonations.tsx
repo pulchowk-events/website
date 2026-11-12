@@ -2,17 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  RefreshCw,
-  Plus,
-  X,
-  Edit,
-  Save,
-  Search,
-  Trash
+  RefreshCw, Plus, X, Edit, Save, Search, Trash, Check, Minus,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { error } from 'console';
 import { DeleteConfirmationDialog } from '@/app/components/donate/DeleteConfirmationDialog';
+import { formatDateShort } from '@/app/lib/formatDate';
 
 interface Donation {
   id: string;
@@ -35,6 +29,24 @@ interface PrizePool {
   last_updated: string;
 }
 
+function formatUSD(n: number | null | undefined, withCents = false): string {
+  const v = n || 0;
+  return '$' + v.toLocaleString('en-US', {
+    minimumFractionDigits: withCents ? 2 : 0,
+    maximumFractionDigits: withCents ? 2 : 0,
+  });
+}
+
+const EMPTY_NEW_DONATION = {
+  name: '',
+  email: '',
+  amount: '',
+  transaction_code: '',
+  message: '',
+  show_on_leaderboard: true,
+  use_admin_avatar: false,
+};
+
 export default function AdminEditDonations() {
   const [donations, setDonations] = useState<Donation[]>([]);
   const [filteredDonations, setFilteredDonations] = useState<Donation[]>([]);
@@ -46,28 +58,13 @@ export default function AdminEditDonations() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [donationToDelete, setDonationToDelete] = useState<string | null>(null);
 
-  const [editingPrizePool, setEditingPrizePool] = useState(false);
-  const [editedPrizePool, setEditedPrizePool] = useState({
-    current_amount: '',
-    target_amount: ''
-  });
-
   const [prizePool, setPrizePool] = useState<PrizePool | null>(null);
   const [isEditingPool, setIsEditingPool] = useState(false);
-  const [editedPoolValue, setEditedPoolValue] = useState(0);
   const [editedTargetValue, setEditedTargetValue] = useState(0);
   const [totalDonors, setTotalDonors] = useState(0);
 
   const [isAddingDonation, setIsAddingDonation] = useState(false);
-  const [newDonation, setNewDonation] = useState({
-    name: '',
-    email: '',
-    amount: '',
-    transaction_code: '',
-    message: '',
-    show_on_leaderboard: true,
-    use_admin_avatar: false
-  });
+  const [newDonation, setNewDonation] = useState({ ...EMPTY_NEW_DONATION });
 
   const [editingDonationId, setEditingDonationId] = useState<string | null>(null);
   const [editedDonation, setEditedDonation] = useState<Partial<Donation>>({});
@@ -78,14 +75,15 @@ export default function AdminEditDonations() {
     fetchDonations();
     fetchPrizePool();
     fetchDonors();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
 
   useEffect(() => {
     if (searchTerm) {
-      const filtered = donations.filter(donation =>
-        donation.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        donation.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        donation.transaction_code.toLowerCase().includes(searchTerm.toLowerCase())
+      const filtered = donations.filter((d) =>
+        d.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        d.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        d.transaction_code.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredDonations(filtered);
     } else {
@@ -96,18 +94,15 @@ export default function AdminEditDonations() {
   const fetchDonations = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/admin/donations?page=${currentPage}&limit=${itemsPerPage}`);
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch donations');
-      }
-
+      const response = await fetch(
+        '/api/admin/donations?page=' + currentPage + '&limit=' + itemsPerPage
+      );
+      if (!response.ok) throw new Error('Failed to fetch donations');
       const data = await response.json();
       const formattedDonations = data.donations.map((donation: Donation) => ({
         ...donation,
-        id: donation.id.toString()
+        id: donation.id.toString(),
       }));
-
       setDonations(formattedDonations);
       setFilteredDonations(formattedDonations);
       setTotalPages(Math.ceil(data.total / itemsPerPage));
@@ -125,25 +120,18 @@ export default function AdminEditDonations() {
       if (!response.ok) throw new Error('Failed to fetch donors');
       const data = await response.json();
       setTotalDonors(data.total_donors);
-      return data.total_donors;
     } catch (error) {
       console.error('Error fetching donors:', error);
       toast.error('Failed to load donors');
-      return null;
     }
   };
 
   const fetchPrizePool = async () => {
     try {
       const response = await fetch('/api/admin/donations/prize-pool');
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch prize pool data');
-      }
-
+      if (!response.ok) throw new Error('Failed to fetch prize pool data');
       const data = await response.json();
       setPrizePool(data);
-      setEditedPoolValue(data.current_amount);
       setEditedTargetValue(data.target_amount);
       setTotalDonors(data.total_donors);
     } catch (error) {
@@ -156,31 +144,20 @@ export default function AdminEditDonations() {
     e.preventDefault();
     try {
       setIsLoading(true);
-
       const targetAmount = Number(editedTargetValue);
       if (isNaN(targetAmount) || targetAmount <= 0) {
         throw new Error('Target amount must be a positive number');
       }
-
       const response = await fetch('/api/admin/donations/prize-pool', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          target_amount: targetAmount
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target_amount: targetAmount }),
       });
-
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to update target amount');
-      }
-
+      if (!response.ok) throw new Error(data.error || 'Failed to update target amount');
       await fetchPrizePool();
       setIsEditingPool(false);
-      toast.success('Target amount updated successfully');
+      toast.success('Target amount updated');
     } catch (error) {
       console.error('Error updating target amount:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to update target amount');
@@ -191,39 +168,21 @@ export default function AdminEditDonations() {
 
   const handleAddDonation = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
       const response = await fetch('/api/admin/donations/submit', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...newDonation,
           transaction_code: newDonation.transaction_code,
-          amount: parseFloat(newDonation.amount)
+          amount: parseFloat(newDonation.amount),
         }),
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to add donation');
-      }
-
-      await fetchDonations();
-      await fetchPrizePool();
-
-      setNewDonation({
-        name: '',
-        email: '',
-        amount: '',
-        transaction_code: '',
-        message: '',
-        show_on_leaderboard: true,
-        use_admin_avatar: false
-      });
-
+      if (!response.ok) throw new Error('Failed to add donation');
+      await Promise.all([fetchDonations(), fetchPrizePool(), fetchDonors()]);
+      setNewDonation({ ...EMPTY_NEW_DONATION });
       setIsAddingDonation(false);
-      toast.success('Donation added successfully');
+      toast.success('Donation added');
     } catch (error) {
       console.error('Error adding donation:', error);
       toast.error('Failed to add donation');
@@ -240,92 +199,47 @@ export default function AdminEditDonations() {
       toast.error('No donation selected for editing');
       return;
     }
-
     try {
       const payload = {
         ...editedDonation,
-        amount: typeof editedDonation.amount === 'string'
-          ? parseFloat(editedDonation.amount)
-          : editedDonation.amount,
-        show_on_leaderboard: Boolean(editedDonation.show_on_leaderboard)
+        amount:
+          typeof editedDonation.amount === 'string'
+            ? parseFloat(editedDonation.amount)
+            : editedDonation.amount,
+        show_on_leaderboard: Boolean(editedDonation.show_on_leaderboard),
       };
-
-      const response = await fetch(`/api/admin/donations/${editingDonationId}`, {
+      const response = await fetch('/api/admin/donations/' + editingDonationId, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-
       const result = await response.json();
-
       if (!response.ok) {
-        if (result.fieldErrors) {
-          const errorMessages = result.fieldErrors.map((err: any) =>
-            `${err.field}: ${err.message} (Received: ${err.received})`
-          ).join('\n');
-
-          toast.error(
-            <div>
-              <strong>Validation errors:</strong>
-              <pre className="text-sm mt-2">{errorMessages}</pre>
-              <p className="mt-2">Attempted changes:</p>
-              <pre className="text-xs mt-1">{JSON.stringify(result.receivedData, null, 2)}</pre>
-            </div>,
-            { duration: 10000 }
-          );
-        } else {
-          throw new Error(result.error || `Update failed with status ${response.status}`);
-        }
-        return;
+        throw new Error(result.error || 'Update failed');
       }
-
-      await Promise.all([
-        fetchDonations(),
-        fetchDonors(),
-        fetchPrizePool()
-      ]);
-
-      toast.success(
-        <div>
-          <p>Donation updated successfully</p>
-          <p className="text-sm mt-1">Changes applied:</p>
-          <pre className="text-xs mt-1">{JSON.stringify(result.updatedFields, null, 2)}</pre>
-        </div>
-      );
-
+      await Promise.all([fetchDonations(), fetchDonors(), fetchPrizePool()]);
+      toast.success('Donation updated');
       setEditingDonationId(null);
-
     } catch (error) {
       console.error('Update error:', error);
-      let errorMessage = 'Failed to update donation';
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      toast.error(errorMessage, { duration: 5000 });
+      toast.error(error instanceof Error ? error.message : 'Failed to update donation');
     }
   };
 
-  const handleDeleteDonation = async (id: string) => {
+  const handleDeleteDonation = (id: string) => {
     setDonationToDelete(id);
     setDeleteDialogOpen(true);
   };
 
   const confirmDelete = async () => {
     if (!donationToDelete) return;
-
     try {
-      const response = await fetch(`/api/admin/donations/${donationToDelete}`, {
+      const response = await fetch('/api/admin/donations/' + donationToDelete, {
         method: 'DELETE',
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete donation');
-      }
-
-      await fetchDonations();
-      await fetchPrizePool();
-
-      toast.success('Donation deleted successfully');
+      if (!response.ok) throw new Error('Failed to delete donation');
+      await Promise.all([fetchDonations(), fetchPrizePool(), fetchDonors()]);
+      toast.success('Donation deleted');
     } catch (error) {
       console.error('Error deleting donation:', error);
       toast.error('Failed to delete donation');
@@ -334,90 +248,46 @@ export default function AdminEditDonations() {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value, type } = e.target as HTMLInputElement;
-
     if (type === 'checkbox') {
-      setNewDonation({
-        ...newDonation,
-        [name]: (e.target as HTMLInputElement).checked
-      });
+      setNewDonation({ ...newDonation, [name]: (e.target as HTMLInputElement).checked });
     } else {
-      setNewDonation({
-        ...newDonation,
-        [name]: value
-      });
+      setNewDonation({ ...newDonation, [name]: value });
     }
   };
 
-  const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target as HTMLInputElement;
-
+  const handleEditInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target as HTMLInputElement;
     if (name === 'show_on_leaderboard') {
-      setEditedDonation({
-        ...editedDonation,
-        [name]: (e.target as HTMLInputElement).checked
-      });
+      setEditedDonation({ ...editedDonation, [name]: (e.target as HTMLInputElement).checked });
     } else if (name === 'amount') {
-      setEditedDonation({
-        ...editedDonation,
-        [name]: parseFloat(value)
-      });
+      setEditedDonation({ ...editedDonation, [name]: parseFloat(value) });
     } else {
-      setEditedDonation({
-        ...editedDonation,
-        [name]: value
-      });
+      setEditedDonation({ ...editedDonation, [name]: value });
     }
   };
 
   const handleVerifyDonation = async (donationId: string, verify: boolean) => {
     try {
       setIsLoading(true);
-      if (!donationId) {
-        throw new Error('Invalid donation ID');
-      }
-
-      const response = await fetch(`/api/admin/donations/${donationId}/verify`, {
+      if (!donationId) throw new Error('Invalid donation ID');
+      const response = await fetch('/api/admin/donations/' + donationId + '/verify', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          verified: verify
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ verified: verify }),
       });
-
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.error || 'Failed to update verification status');
       }
-
       const data = await response.json();
       toast.success(data.message);
-
-      await Promise.all([
-        fetchDonations(),
-        fetchDonors(),
-        fetchPrizePool()
-      ]);
-
-      const poolResponse = await fetch('/api/admin/donations/prize-pool', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          current_amount: prizePool?.current_amount || 0,
-          target_amount: prizePool?.target_amount || 0,
-          total_donors: totalDonors
-        }),
-      });
-
-      if (!poolResponse.ok) {
-        throw new Error('Failed to update prize pool with new donors count');
-      }
-
+      await Promise.all([fetchDonations(), fetchDonors(), fetchPrizePool()]);
     } catch (error) {
       console.error('Error verifying donation:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to update verification status');
@@ -426,490 +296,511 @@ export default function AdminEditDonations() {
     }
   };
 
+  const progressPct = prizePool
+    ? Math.min(100, (prizePool.current_amount / Math.max(prizePool.target_amount, 1)) * 100)
+    : 0;
+
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <h1 className="text-2xl font-bold text-foreground">Manage Donations</h1>
-
-        <div className="flex flex-col md:flex-row gap-4">
+    <div className="admin-donations">
+      <header className="admin-donations__toolbar">
+        <p className="admin-donations__hint">
+          Manage the prize pool target and every donation submission.
+        </p>
+        <div className="admin-donations__actions">
           <button
-            onClick={() => { fetchDonations(); fetchPrizePool(); }}
-            className="flex items-center justify-center bg-secondary hover:bg-accent text-foreground px-4 py-2 rounded-lg"
+            type="button"
+            onClick={() => {
+              fetchDonations();
+              fetchPrizePool();
+              fetchDonors();
+            }}
+            className="btn btn--secondary"
           >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
+            <span className="btn__label">
+              <RefreshCw size={14} style={{ marginRight: 8 }} />
+              Refresh
+            </span>
+            <span className="btn__label btn__label--dup" aria-hidden="true">
+              <RefreshCw size={14} style={{ marginRight: 8 }} />
+              Refresh
+            </span>
           </button>
-
           <button
-            onClick={() => setIsAddingDonation(!isAddingDonation)}
-            className="flex items-center justify-center bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
+            type="button"
+            onClick={() => setIsAddingDonation((v) => !v)}
+            className="btn btn--primary"
           >
-            {isAddingDonation ? (
-              <>
-                <X className="h-4 w-4 mr-2" />
-                Cancel
-              </>
-            ) : (
-              <>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Donation
-              </>
-            )}
+            <span className="btn__label">
+              {isAddingDonation ? (
+                <>
+                  <X size={14} style={{ marginRight: 8 }} />
+                  Cancel
+                </>
+              ) : (
+                <>
+                  <Plus size={14} style={{ marginRight: 8 }} />
+                  Add donation
+                </>
+              )}
+            </span>
+            <span className="btn__label btn__label--dup" aria-hidden="true">
+              {isAddingDonation ? 'Cancel' : 'Add donation'}
+            </span>
           </button>
         </div>
-      </div>
+      </header>
 
-      {/* Prize Pool Management */}
-      <div className="bg-card/50 rounded-lg border border-border p-6">
-        <h2 className="text-xl font-bold text-foreground mb-4">Prize Pool</h2>
-
-        {prizePool ? (
-          <>
-            {isEditingPool ? (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">
-                    Current Amount
-                  </label>
-                  <div className="w-full bg-muted border border-border rounded-lg px-4 py-2 text-foreground">
-                    ${prizePool.current_amount.toLocaleString()}
+      <section className="admin-panel">
+        <header className="admin-panel__head">
+          <h2 className="admin-panel__title">Prize pool</h2>
+          <p className="admin-panel__desc">Public-facing totals shown on the donate page.</p>
+        </header>
+        <div className="admin-panel__body">
+          {prizePool ? (
+            isEditingPool ? (
+              <form onSubmit={handleUpdatePrizePool} className="admin-donations__pool-form">
+                <div className="admin-donations__pool-grid">
+                  <div className="field">
+                    <span className="field__label">Current amount</span>
+                    <div className="admin-donations__readonly">
+                      {formatUSD(prizePool.current_amount, true)}
+                    </div>
+                  </div>
+                  <div className="field">
+                    <label className="field__label" htmlFor="pool-target">
+                      Target amount (USD) <span className="field__label-req">*</span>
+                    </label>
+                    <input
+                      id="pool-target"
+                      type="number"
+                      value={editedTargetValue}
+                      onChange={(e) => setEditedTargetValue(parseFloat(e.target.value))}
+                      className="input"
+                      min="0"
+                      step="0.01"
+                      required
+                    />
+                  </div>
+                  <div className="field">
+                    <span className="field__label">Total donors</span>
+                    <div className="admin-donations__readonly">{totalDonors}</div>
                   </div>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">
-                    Target Amount ($)
-                  </label>
-                  <input
-                    type="number"
-                    value={editedTargetValue}
-                    onChange={(e) => setEditedTargetValue(parseFloat(e.target.value))}
-                    className="w-full bg-background border border-border rounded-lg px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-green-500"
-                    min="0"
-                    step="0.01"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">
-                    Total Donors
-                  </label>
-                  <div className="w-full bg-muted border border-border rounded-lg px-4 py-2 text-foreground">
-                    {totalDonors}
-                  </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleUpdatePrizePool}
-                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center"
-                  >
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Changes
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button type="submit" className="btn btn--primary btn--sm">
+                    <span className="btn__label">
+                      <Save size={14} style={{ marginRight: 6 }} />
+                      Save
+                    </span>
+                    <span className="btn__label btn__label--dup" aria-hidden="true">Save</span>
                   </button>
-
                   <button
+                    type="button"
                     onClick={() => {
                       setIsEditingPool(false);
-                      setEditedPoolValue(prizePool.current_amount);
                       setEditedTargetValue(prizePool.target_amount);
                     }}
-                    className="bg-secondary hover:bg-accent text-foreground px-4 py-2 rounded-lg flex items-center"
+                    className="btn btn--secondary btn--sm"
                   >
-                    <X className="h-4 w-4 mr-2" />
-                    Cancel
+                    <span className="btn__label">Cancel</span>
+                    <span className="btn__label btn__label--dup" aria-hidden="true">Cancel</span>
                   </button>
                 </div>
-              </div>
+              </form>
             ) : (
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-muted/50 p-4 rounded-lg">
-                    <div className="text-muted-foreground text-sm">Current Amount</div>
-                    <div className="text-2xl font-bold text-foreground">
-                      ${prizePool.current_amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </div>
+              <>
+                <dl className="admin-donations__pool-stats">
+                  <div>
+                    <dt>Current</dt>
+                    <dd>{formatUSD(prizePool.current_amount, true)}</dd>
                   </div>
-
-                  <div className="bg-muted/50 p-4 rounded-lg">
-                    <div className="text-muted-foreground text-sm">Target Amount</div>
-                    <div className="text-2xl font-bold text-foreground">
-                      ${prizePool.target_amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </div>
+                  <div>
+                    <dt>Target</dt>
+                    <dd>{formatUSD(prizePool.target_amount, true)}</dd>
                   </div>
-
-                  <div className="bg-muted/50 p-4 rounded-lg">
-                    <div className="text-muted-foreground text-sm">Progress</div>
-                    <div className="text-2xl font-bold text-foreground">
-                      {Math.min(100, (prizePool.current_amount / prizePool.target_amount * 100)).toFixed(1)}%
-                    </div>
+                  <div>
+                    <dt>Progress</dt>
+                    <dd>{progressPct.toFixed(1)}%</dd>
                   </div>
-
-                  <div className="bg-muted/50 p-4 rounded-lg">
-                    <div className="text-muted-foreground text-sm">Total Donors</div>
-                    <div className="text-2xl font-bold text-foreground">
-                      {totalDonors}
-                    </div>
+                  <div>
+                    <dt>Donors</dt>
+                    <dd>{totalDonors.toLocaleString('en-US')}</dd>
                   </div>
-                </div>
-
+                </dl>
                 <button
+                  type="button"
                   onClick={() => setIsEditingPool(true)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center"
+                  className="btn btn--secondary btn--sm"
+                  style={{ marginTop: 16 }}
                 >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Prize Pool
+                  <span className="btn__label">
+                    <Edit size={14} style={{ marginRight: 6 }} />
+                    Edit prize pool
+                  </span>
+                  <span className="btn__label btn__label--dup" aria-hidden="true">
+                    <Edit size={14} style={{ marginRight: 6 }} />
+                    Edit prize pool
+                  </span>
                 </button>
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="text-center py-6">
-            <div className="animate-spin h-8 w-8 border-2 border-green-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading prize pool data...</p>
-          </div>
-        )}
-      </div>
+              </>
+            )
+          ) : (
+            <div className="skeleton" style={{ height: 96 }} />
+          )}
+        </div>
+      </section>
 
-      {/* Add Donation Form */}
       {isAddingDonation && (
-        <div className="bg-card/50 rounded-lg border border-border p-6">
-          <h2 className="text-xl font-bold text-foreground mb-4">Add New Donation</h2>
-
-          <form onSubmit={handleAddDonation} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-foreground mb-1">
-                  Donor Name*
+        <section className="admin-panel">
+          <header className="admin-panel__head">
+            <h2 className="admin-panel__title">Add donation</h2>
+            <p className="admin-panel__desc">Directly insert a verified donation.</p>
+          </header>
+          <form onSubmit={handleAddDonation} className="admin-panel__body admin-donations__form">
+            <div className="admin-donations__form-row">
+              <div className="field">
+                <label htmlFor="new-name" className="field__label">
+                  Donor name <span className="field__label-req">*</span>
                 </label>
                 <input
+                  id="new-name"
                   type="text"
-                  id="name"
                   name="name"
                   value={newDonation.name}
                   onChange={handleInputChange}
-                  className="w-full bg-background border border-border rounded-lg px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="input"
                   required
                 />
               </div>
-
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1">
-                  Email*
+              <div className="field">
+                <label htmlFor="new-email" className="field__label">
+                  Email <span className="field__label-req">*</span>
                 </label>
                 <input
+                  id="new-email"
                   type="email"
-                  id="email"
                   name="email"
                   value={newDonation.email}
                   onChange={handleInputChange}
-                  className="w-full bg-background border border-border rounded-lg px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="input"
                   required
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="amount" className="block text-sm font-medium text-foreground mb-1">
-                  Amount ($)*
+            <div className="admin-donations__form-row">
+              <div className="field">
+                <label htmlFor="new-amount" className="field__label">
+                  Amount (USD) <span className="field__label-req">*</span>
                 </label>
                 <input
+                  id="new-amount"
                   type="number"
-                  id="amount"
                   name="amount"
                   value={newDonation.amount}
                   onChange={handleInputChange}
-                  className="w-full bg-background border border-border rounded-lg px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="input"
                   min="0"
                   step="0.01"
                   required
                 />
               </div>
-
-              <div>
-                <label htmlFor="transaction_code" className="block text-sm font-medium text-foreground mb-1">
-                  Transaction Code*
+              <div className="field">
+                <label htmlFor="new-tx" className="field__label">
+                  Transaction code <span className="field__label-req">*</span>
                 </label>
                 <input
+                  id="new-tx"
                   type="text"
-                  id="transaction_code"
                   name="transaction_code"
                   value={newDonation.transaction_code}
                   onChange={handleInputChange}
-                  className="w-full bg-background border border-border rounded-lg px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="input"
                   required
                 />
               </div>
             </div>
 
-            <div>
-              <label htmlFor="message" className="block text-sm font-medium text-foreground mb-1">
-                Message (Optional)
+            <div className="field">
+              <label htmlFor="new-message" className="field__label">
+                Message <span style={{ color: 'var(--m)', fontWeight: 400 }}>(optional)</span>
               </label>
               <textarea
-                id="message"
+                id="new-message"
                 name="message"
                 value={newDonation.message}
                 onChange={handleInputChange}
-                className="w-full bg-background border border-border rounded-lg px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="input input--multi"
                 rows={3}
               />
             </div>
 
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center">
+            <div className="admin-donations__checks">
+              <label className="admin-donations__check">
                 <input
                   type="checkbox"
-                  id="show_on_leaderboard"
                   name="show_on_leaderboard"
                   checked={newDonation.show_on_leaderboard}
                   onChange={handleInputChange}
-                  className="h-4 w-4 rounded border-border text-green-600 focus:ring-green-500 bg-background"
                 />
-                <label htmlFor="show_on_leaderboard" className="ml-2 block text-sm text-foreground">
-                  Show on leaderboard
-                </label>
-              </div>
-
-              <div className="flex items-center">
+                <span>Show on leaderboard</span>
+              </label>
+              <label className="admin-donations__check">
                 <input
                   type="checkbox"
-                  id="use_admin_avatar"
                   name="use_admin_avatar"
                   checked={newDonation.use_admin_avatar}
                   onChange={handleInputChange}
-                  className="h-4 w-4 rounded border-border text-green-600 focus:ring-green-500 bg-background"
                 />
-                <label htmlFor="use_admin_avatar" className="ml-2 block text-sm text-foreground">
-                  Use admin profile picture
-                </label>
-              </div>
+                <span>Use admin profile picture</span>
+              </label>
             </div>
 
-            <div className="flex gap-2">
-              <button
-                type="submit"
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg flex items-center"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Donation
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button type="submit" className="btn btn--primary">
+                <span className="btn__label">
+                  <Plus size={14} style={{ marginRight: 8 }} />
+                  Add donation
+                </span>
+                <span className="btn__label btn__label--dup" aria-hidden="true">
+                  <Plus size={14} style={{ marginRight: 8 }} />
+                  Add donation
+                </span>
               </button>
-
               <button
                 type="button"
                 onClick={() => setIsAddingDonation(false)}
-                className="bg-secondary hover:bg-accent text-foreground px-4 py-2 rounded-lg"
+                className="btn btn--secondary"
               >
-                Cancel
+                <span className="btn__label">Cancel</span>
+                <span className="btn__label btn__label--dup" aria-hidden="true">Cancel</span>
               </button>
             </div>
           </form>
-        </div>
+        </section>
       )}
 
-      {/* Donations List */}
-      <div className="bg-card/50 rounded-lg border border-border p-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-          <h2 className="text-xl font-bold text-foreground">Donations List</h2>
-
-          <div className="relative w-full md:w-64">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-            <input
-              type="text"
-              placeholder="Search donations..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-background border border-border rounded-lg pl-10 pr-4 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-green-500"
-            />
+      <section className="admin-panel">
+        <header className="admin-panel__head">
+          <div className="admin-donations__list-head">
+            <div>
+              <h2 className="admin-panel__title">Donations</h2>
+              <p className="admin-panel__desc">All submissions, verified or pending.</p>
+            </div>
+            <div className="admin-donations__search">
+              <Search size={14} />
+              <input
+                type="search"
+                placeholder="Search name, email, or code"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="admin-donations__search-input"
+                aria-label="Search donations"
+              />
+            </div>
           </div>
+        </header>
+
+        <div className="admin-donations__table-wrap">
+          {isLoading ? (
+            <div style={{ display: 'grid', gap: 8, padding: 16 }}>
+              {[0, 1, 2, 3, 4].map((i) => (
+                <div key={i} className="skeleton" style={{ height: 40 }} />
+              ))}
+            </div>
+          ) : filteredDonations.length > 0 ? (
+            <table className="admin-donations__table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th style={{ textAlign: 'right' }}>Amount</th>
+                  <th>Code</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th style={{ textAlign: 'center' }}>Public</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredDonations.map((donation) =>
+                  editingDonationId === donation.id ? (
+                    <tr key={donation.id} className="admin-donations__row admin-donations__row--editing">
+                      <td>
+                        <input
+                          type="text"
+                          name="name"
+                          value={editedDonation.name || ''}
+                          onChange={handleEditInputChange}
+                          className="input"
+                          style={{ height: 32, fontSize: 13 }}
+                          aria-label="Name"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="email"
+                          name="email"
+                          value={editedDonation.email || ''}
+                          onChange={handleEditInputChange}
+                          className="input"
+                          style={{ height: 32, fontSize: 13 }}
+                          aria-label="Email"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          name="amount"
+                          value={editedDonation.amount || 0}
+                          onChange={handleEditInputChange}
+                          className="input"
+                          style={{ height: 32, fontSize: 13, textAlign: 'right' }}
+                          min="0"
+                          step="0.01"
+                          aria-label="Amount"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          name="transaction_code"
+                          value={editedDonation.transaction_code || ''}
+                          onChange={handleEditInputChange}
+                          className="input"
+                          style={{ height: 32, fontSize: 13 }}
+                          aria-label="Transaction code"
+                        />
+                      </td>
+                      <td className="admin-donations__muted">{formatDateShort(donation.created_at)}</td>
+                      <td>
+                        <button
+                          type="button"
+                          onClick={() => handleVerifyDonation(donation.id, !donation.verified)}
+                          className="admin-donations__verify-btn"
+                          data-on={donation.verified ? 'true' : 'false'}
+                        >
+                          {donation.verified ? 'Unverify' : 'Verify'}
+                        </button>
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        <input
+                          type="checkbox"
+                          name="show_on_leaderboard"
+                          checked={editedDonation.show_on_leaderboard || false}
+                          onChange={handleEditInputChange}
+                          aria-label="Show on leaderboard"
+                          style={{ accentColor: 'var(--g)' }}
+                        />
+                      </td>
+                      <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                        <button
+                          type="button"
+                          onClick={handleUpdateDonation}
+                          className="admin-donations__icon-btn admin-donations__icon-btn--ok"
+                          aria-label="Save changes"
+                        >
+                          <Save size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingDonationId(null)}
+                          className="admin-donations__icon-btn"
+                          aria-label="Cancel edit"
+                        >
+                          <X size={14} />
+                        </button>
+                      </td>
+                    </tr>
+                  ) : (
+                    <tr key={donation.id} className="admin-donations__row">
+                      <td className="admin-donations__cell-strong">{donation.name}</td>
+                      <td className="admin-donations__muted">{donation.email}</td>
+                      <td className="admin-donations__amount">{formatUSD(donation.amount, true)}</td>
+                      <td className="admin-donations__mono">{donation.transaction_code}</td>
+                      <td className="admin-donations__muted">{formatDateShort(donation.created_at)}</td>
+                      <td>
+                        {donation.verified ? (
+                          <span className="tag tag--event">
+                            <Check size={10} />
+                            Verified
+                          </span>
+                        ) : (
+                          <span className="tag" style={{ '--c': 'var(--m)' } as React.CSSProperties}>
+                            <Minus size={10} />
+                            Pending
+                          </span>
+                        )}
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        {donation.show_on_leaderboard ? (
+                          <span className="admin-donations__dot" data-on="true" aria-label="Visible" />
+                        ) : (
+                          <span className="admin-donations__dot" aria-label="Hidden" />
+                        )}
+                      </td>
+                      <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                        <button
+                          type="button"
+                          onClick={() => startEditDonation(donation)}
+                          className="admin-donations__icon-btn"
+                          aria-label="Edit donation"
+                        >
+                          <Edit size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteDonation(donation.id)}
+                          className="admin-donations__icon-btn admin-donations__icon-btn--danger"
+                          aria-label="Delete donation"
+                        >
+                          <Trash size={14} />
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                )}
+              </tbody>
+            </table>
+          ) : (
+            <p className="admin-donations__empty">No donations found.</p>
+          )}
         </div>
 
-        {isLoading ? (
-          <div className="text-center py-10">
-            <div className="animate-spin h-8 w-8 border-2 border-green-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading donations...</p>
-          </div>
-        ) : filteredDonations.length > 0 ? (
-          <>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-border">
-                <thead>
-                  <tr>
-                    <th className="px-4 py-3 bg-muted text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Name</th>
-                    <th className="px-4 py-3 bg-muted text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</th>
-                    <th className="px-4 py-3 bg-muted text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">Amount</th>
-                    <th className="px-4 py-3 bg-muted text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Transaction Code</th>
-                    <th className="px-4 py-3 bg-muted text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Date</th>
-                    <th className="px-4 py-3 bg-muted text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Verification</th>
-                    <th className="px-4 py-3 bg-muted text-center text-xs font-medium text-muted-foreground uppercase tracking-wider">Leaderboard</th>
-                    <th className="px-4 py-3 bg-muted text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {filteredDonations.map((donation) => (
-                    <tr key={donation.id} className="hover:bg-accent/30">
-                      {editingDonationId === donation.id ? (
-                        <>
-                          <td className="px-4 py-3">
-                            <input
-                              type="text"
-                              name="name"
-                              value={editedDonation.name || ''}
-                              onChange={handleEditInputChange}
-                              className="w-full bg-background border border-border rounded px-2 py-1 text-foreground text-sm"
-                            />
-                          </td>
-                          <td className="px-4 py-3">
-                            <input
-                              type="email"
-                              name="email"
-                              value={editedDonation.email || ''}
-                              onChange={handleEditInputChange}
-                              className="w-full bg-background border border-border rounded px-2 py-1 text-foreground text-sm"
-                            />
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <input
-                              type="number"
-                              name="amount"
-                              value={editedDonation.amount || 0}
-                              onChange={handleEditInputChange}
-                              className="w-24 bg-background border border-border rounded px-2 py-1 text-foreground text-sm text-right"
-                              min="0"
-                              step="0.01"
-                            />
-                          </td>
-                          <td className="px-4 py-3">
-                            <input
-                              type="text"
-                              name="transaction_code"
-                              value={editedDonation.transaction_code || ''}
-                              onChange={handleEditInputChange}
-                              className="w-full bg-background border border-border rounded px-2 py-1 text-foreground text-sm"
-                            />
-                          </td>
-                          <td className="px-4 py-3 text-muted-foreground text-sm">
-                            {new Date(donation.created_at).toLocaleDateString()}
-                          </td>
-                          <td className="px-4 py-4 text-left space-x-2">
-                            <button
-                              onClick={() => handleVerifyDonation(donation.id, !donation.verified)}
-                              className={`${
-                                donation.verified
-                                  ? 'bg-yellow-600 hover:bg-yellow-700'
-                                  : 'bg-green-600 hover:bg-green-700'
-                              } text-white px-3 py-1 rounded transition-colors`}
-                            >
-                              {donation.verified ? 'Unverify' : 'Verify'}
-                            </button>
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            <input
-                              type="checkbox"
-                              name="show_on_leaderboard"
-                              checked={editedDonation.show_on_leaderboard || false}
-                              onChange={handleEditInputChange}
-                              className="h-4 w-4 rounded border-border text-green-600 focus:ring-green-500 bg-background"
-                            />
-                          </td>
-                          <td className="px-4 py-3 text-right space-x-1">
-                            <button
-                              onClick={handleUpdateDonation}
-                              className="bg-green-600 hover:bg-green-700 text-white p-1 rounded"
-                            >
-                              <Save className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => setEditingDonationId(null)}
-                              className="bg-secondary hover:bg-accent text-foreground p-1 rounded"
-                            >
-                              <X className="h-4 w-4" />
-                            </button>
-                          </td>
-                        </>
-                      ) : (
-                        <>
-                          <td className="px-4 py-3 text-foreground">{donation.name}</td>
-                          <td className="px-4 py-3 text-muted-foreground text-sm">{donation.email}</td>
-                          <td className="px-4 py-3 text-right font-medium text-green-600 dark:text-green-400">
-                            ${donation.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </td>
-                          <td className="px-4 py-3 text-muted-foreground font-mono text-sm">{donation.transaction_code}</td>
-                          <td className="px-4 py-3 text-muted-foreground text-sm">
-                            {new Date(donation.created_at).toLocaleDateString()}
-                          </td>
-                          <td className="px-4 py-3 text-muted-foreground text-sm">
-                            {(donation.verified.valueOf() ? 'Verified' : 'Unverified') + (donation.verified_at ? ` (${new Date(donation.verified_at).toLocaleDateString()})` : '')}
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            {donation.show_on_leaderboard ? (
-                              <span className="inline-flex items-center justify-center w-6 h-6 bg-green-500/20 rounded-full">
-                                <span className="h-2 w-2 rounded-full bg-green-500"></span>
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center justify-center w-6 h-6 bg-muted rounded-full">
-                                <span className="h-2 w-2 rounded-full bg-muted-foreground/50"></span>
-                              </span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-right space-x-1">
-                            <button
-                              onClick={() => startEditDonation(donation)}
-                              className="bg-blue-600 hover:bg-blue-700 text-white p-1 rounded"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteDonation(donation.id)}
-                              className="bg-red-600 hover:bg-red-700 text-white p-1 rounded"
-                            >
-                              <Trash className="h-4 w-4" />
-                            </button>
-                          </td>
-                        </>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        {totalPages > 1 && (
+          <div className="admin-donations__pager">
+            <span className="admin-donations__pager-label">
+              Page {currentPage} of {totalPages}
+            </span>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button
+                type="button"
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="btn btn--secondary btn--sm"
+              >
+                <span className="btn__label">Previous</span>
+                <span className="btn__label btn__label--dup" aria-hidden="true">Previous</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                className="btn btn--secondary btn--sm"
+              >
+                <span className="btn__label">Next</span>
+                <span className="btn__label btn__label--dup" aria-hidden="true">Next</span>
+              </button>
             </div>
-
-            {totalPages > 1 && (
-              <div className="flex justify-between items-center mt-6">
-                <div className="text-sm text-muted-foreground">
-                  Page {currentPage} of {totalPages}
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
-                    className="px-3 py-1 rounded bg-secondary text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Previous
-                  </button>
-                  <button
-                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                    disabled={currentPage === totalPages}
-                    className="px-3 py-1 rounded bg-secondary text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="text-center py-10">
-            <p className="text-muted-foreground">No donations found.</p>
           </div>
         )}
-      </div>
+      </section>
+
       <DeleteConfirmationDialog
         isOpen={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={confirmDelete}
-        title="Delete Donation"
+        title="Delete donation"
         description="Are you sure you want to delete this donation? This action cannot be undone."
       />
     </div>
