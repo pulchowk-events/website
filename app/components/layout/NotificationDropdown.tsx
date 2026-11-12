@@ -1,9 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Bell, CheckCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 import useNotifications from '@/app/hooks/useNotifications';
@@ -13,17 +12,32 @@ export default function NotificationDropdown({ isMobile = false }: { isMobile?: 
   const [isMarkingAll, setIsMarkingAll] = useState(false);
   const router = useRouter();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen || isMobile) return;
+    const onClick = (e: MouseEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
+    document.addEventListener('mousedown', onClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [isOpen, isMobile]);
 
   const handleNotificationClick = async (notification: any) => {
-    // Pre-flight: for lounge post notifications, verify the post still exists
-    // before navigating. Otherwise we'd mark it read and land on a 404.
     if (notification.link?.startsWith('/lounge/')) {
       const postId = notification.link.split('/lounge/')[1]?.split(/[?#]/)[0];
       if (postId) {
         try {
-          const res = await fetch(
-            `/api/lounge/posts/exists?id=${encodeURIComponent(postId)}`
-          );
+          const res = await fetch('/api/lounge/posts/exists?id=' + encodeURIComponent(postId));
           if (res.ok) {
             const { exists } = await res.json();
             if (!exists) {
@@ -57,92 +71,79 @@ export default function NotificationDropdown({ isMobile = false }: { isMobile?: 
     }
   };
 
-  const containerClass = isMobile ? 'w-full' : 'relative';
-
-  const dropdownClass = isMobile
-    ? 'w-full border-0 shadow-none bg-transparent'
-    : 'absolute right-0 mt-2 w-80 bg-popover border border-border rounded-lg shadow-lg overflow-hidden';
-
   return (
-    <div className={containerClass}>
+    <div className={isMobile ? 'notif notif--mobile' : 'notif'} ref={rootRef}>
       {!isMobile && (
         <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="relative p-2 rounded-full hover:bg-accent transition-colors text-foreground"
+          type="button"
+          onClick={() => setIsOpen((v) => !v)}
+          className="notif__btn"
           aria-label="Notifications"
+          aria-expanded={isOpen}
         >
-          <Bell className="w-5 h-5" />
+          <Bell size={16} />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
-              {unreadCount}
+            <span className="notif__badge" aria-hidden="true">
+              {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
         </button>
       )}
 
       {isMobile && (
-        <div className="flex justify-between items-center mb-2 px-1">
-          <h3 className="text-base font-medium text-foreground">Notifications</h3>
+        <header className="notif__mobile-head">
+          <h3 className="notif__mobile-title">Notifications</h3>
           {unreadCount > 0 && (
-            <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+            <span className="notif__badge notif__badge--inline">
               {unreadCount} new
             </span>
           )}
-        </div>
+        </header>
       )}
 
-      <AnimatePresence>
-        {(isOpen || isMobile) && (
-          <motion.div
-            initial={isMobile ? { opacity: 1 } : { opacity: 0, y: 10 }}
-            animate={isMobile ? { opacity: 1 } : { opacity: 1, y: 0 }}
-            exit={isMobile ? { opacity: 1 } : { opacity: 0, y: 10 }}
-            className={dropdownClass}
-          >
-            <div className={`${isMobile ? 'max-h-[70vh]' : 'max-h-96'} overflow-y-auto`}>
-              {notifications.length > 0 ? (
-                notifications.map((notification: any) => (
-                  <button
-                    key={notification.id}
-                    onClick={() => handleNotificationClick(notification)}
-                    className={`w-full p-4 text-left hover:bg-accent flex items-start gap-3 border-b border-border last:border-0 transition-colors ${
-                      !notification.is_read ? 'bg-muted/50' : ''
-                    }`}
-                  >
-                    <div className="flex-grow">
-                      <p className="text-sm text-foreground">{notification.title}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {formatDistanceToNow(new Date(notification.created_at))} ago
-                      </p>
-                    </div>
-                    {!notification.is_read && (
-                      <span className="w-2 h-2 bg-green-500 rounded-full mt-1.5" />
-                    )}
-                  </button>
-                ))
-              ) : (
-                <div className="p-4 text-center text-muted-foreground text-sm">
-                  No notifications
-                </div>
-              )}
-            </div>
-
-            {/* Mark all as read — shown whenever there are unread items */}
-            {unreadCount > 0 && notifications.length > 0 && (
-              <div className="p-2 border-t border-border">
+      {(isOpen || isMobile) && (
+        <div className={isMobile ? 'notif__panel notif__panel--mobile' : 'notif__panel'}>
+          <div className="notif__list">
+            {notifications.length > 0 ? (
+              notifications.map((notification: any) => (
                 <button
-                  onClick={handleMarkAllAsRead}
-                  disabled={isMarkingAll}
-                  className="w-full flex items-center justify-center gap-2 py-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 disabled:opacity-50 transition-colors"
+                  type="button"
+                  key={notification.id}
+                  onClick={() => handleNotificationClick(notification)}
+                  className={
+                    'notif__item' +
+                    (notification.is_read ? '' : ' notif__item--unread')
+                  }
                 >
-                  <CheckCheck className="w-4 h-4" />
-                  {isMarkingAll ? 'Marking…' : 'Mark all as read'}
+                  <div className="notif__item-body">
+                    <p className="notif__item-title">{notification.title}</p>
+                    <p className="notif__item-time" suppressHydrationWarning>
+                      {formatDistanceToNow(new Date(notification.created_at))} ago
+                    </p>
+                  </div>
+                  {!notification.is_read && <span className="notif__dot" aria-hidden="true" />}
                 </button>
-              </div>
+              ))
+            ) : (
+              <p className="notif__empty">No notifications.</p>
             )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+
+          {unreadCount > 0 && notifications.length > 0 && (
+            <div className="notif__foot">
+              <button
+                type="button"
+                onClick={handleMarkAllAsRead}
+                disabled={isMarkingAll}
+                className="notif__mark"
+              >
+                <CheckCheck size={14} />
+                {isMarkingAll ? 'Marking…' : 'Mark all as read'}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,13 +1,9 @@
 export default function Footer() {
   return (
-    <footer className="relative z-50 border-t border-border bg-background/95 py-4 mt-auto">
-      <div className="max-w-7xl mx-auto px-4 md:px-8">
-        <div className="flex flex-col justify-between items-center gap-4">
-          <div className="flex gap-6 text-muted-foreground text-sm">
-            © 2025 Pulchowk Events
-          </div>
-        </div>
+    <footer className="site-footer">
+      <div className="w site-footer__inner">
+        <p>© 2025 Pulchowk Events</p>
       </div>
     </footer>
-  )
+  );
 }
