@@ -1,49 +1,28 @@
-'use client';
+import { ReactNode } from "react";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/auth";
+import { AppShell } from "@/app/components/shell/AppShell";
+import { getNavCounts } from "@/app/lib/queries";
+import { isAdmin } from "@/app/lib/isAdmin";
+import { readLayoutPrefs } from "@/app/lib/preferences";
 
-import { ReactNode, useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
-import { SessionProvider } from 'next-auth/react';
-import { VoteProvider } from '../../lib/VoteContext';
-import Navbar from './Navbar';
-import Sidebar from './Sidebar';
-import Footer from './Footer';
-
-const FULLSCREEN_ROUTES = ['/admin'];
-
-export default function Layout({ children }: { children: ReactNode }) {
-  const [mounted, setMounted] = useState(false);
-  const pathname = usePathname();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const isFullscreen =
-    pathname !== null &&
-    FULLSCREEN_ROUTES.some((p) => pathname === p || pathname?.startsWith(p + '/'));
-
-  if (isFullscreen) {
-    return (
-      <SessionProvider>
-        {mounted && <div id="portal-root" />}
-        <VoteProvider>{children}</VoteProvider>
-      </SessionProvider>
-    );
-  }
+export default async function Layout({ children }: { children: ReactNode }) {
+  const session = await getServerSession(authOptions);
+  const [counts, prefs, adminFlag] = await Promise.all([
+    getNavCounts(session?.user?.id),
+    readLayoutPrefs(),
+    session?.user?.email ? isAdmin(session.user.email) : Promise.resolve(false),
+  ]);
 
   return (
-    <SessionProvider>
-      {mounted && <div id="portal-root" />}
-      <div className="root min-h-screen flex flex-col">
-        <Navbar />
-        <div className="app-shell app-shell--with-sidebar">
-          <Sidebar />
-          <main className="app-main flex-grow">
-            <VoteProvider>{children}</VoteProvider>
-          </main>
-        </div>
-        <Footer />
-      </div>
-    </SessionProvider>
+    <AppShell
+      counts={counts}
+      isAdmin={adminFlag}
+      isSignedIn={!!session?.user?.id}
+      initialCollapsed={prefs.sidebarCollapsed}
+      density={prefs.density}
+    >
+      {children}
+    </AppShell>
   );
 }
