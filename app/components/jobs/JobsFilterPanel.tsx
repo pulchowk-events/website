@@ -19,6 +19,7 @@ const LOC_LABELS: Record<string, string> = {
   bhaktapur: "Bhaktapur",
   pokhara: "Pokhara",
   remote: "Remote",
+  other: "Other",
 };
 
 const SRC_LABELS: Record<string, string> = {

@@ -345,7 +345,7 @@ export const getJobFacets = unstable_cache(
   async (): Promise<JobFacets> => {
     const { data } = await supabase
       .from("jobs")
-      .select("employment_type, location, origin")
+      .select("employment_type, city, origin")
       .eq("verified", true);
     const types: Record<string, number> = {};
     const locations: Record<string, number> = {};
@@ -358,12 +358,8 @@ export const getJobFacets = unstable_cache(
           break;
         }
       }
-      const loc = (row.location || "").toLowerCase();
-      for (const known of KNOWN_LOCATIONS) {
-        if (loc.includes(known)) {
-          locations[known] = (locations[known] || 0) + 1;
-          break;
-        }
+      if (row.city) {
+        locations[row.city] = (locations[row.city] || 0) + 1;
       }
       if (row.origin?.startsWith("scraper:")) {
         const key = row.origin.slice(8);
@@ -405,8 +401,7 @@ export const getJobsPage = unstable_cache(
     }
 
     if (f.locations.length > 0) {
-      const orParts = f.locations.map((l) => "location.ilike.%" + l + "%");
-      q = q.or(orParts.join(","));
+      q = q.in("city", f.locations);
     }
 
     if (f.posted === "24h") {
