@@ -44,7 +44,7 @@ export function LoungeComposer({ userId, postId, initialValues, onSaved, onCance
   const [redirectUrl, setRedirectUrl] = useState(initialValues?.redirect_url || "");
 
   useEffect(() => {
-    if (!isEdit || !expanded || !userId) return;
+    if (isEdit || !expanded || !userId) return;
     const d = readDraft(userId);
     if (d && (d.title || d.content)) {
       setTitle(d.title);

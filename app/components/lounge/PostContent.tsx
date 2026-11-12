@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ArrowLeft, ExternalLink, MessageSquare, Bookmark, Share2, MoreHorizontal, Copy } from "lucide-react";
@@ -12,7 +13,7 @@ import { PostCategory, categoryDisplayMap, categoryIcons } from "@/types/posts";
 import Markdown from "@/app/components/ui/Markdown";
 import { PostVoteButton } from "./PostVoteButton";
 import { LoungeComments } from "./comments/LoungeComments";
-import EditPostModal from "./EditPostModal";
+import { LoungeComposer } from "./LoungeComposer";
 import DeletePostDialog from "./DeletePostDialog";
 import ReportModal from "./ReportModal";
 
@@ -44,6 +45,7 @@ interface PostContentProps {
 
 export default function PostContent({ post, isAdmin, isAuthor, isSaved, myVote, userId }: PostContentProps) {
   const { data: session } = useSession();
+  const router = useRouter();
   const [signInOpen, setSignInOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -112,6 +114,33 @@ export default function PostContent({ post, isAdmin, isAuthor, isSaved, myVote, 
   }
   if (!isAuthor) {
     overflowItems.push({ label: "Report", onClick: () => setReportOpen(true) });
+  }
+
+  if (editOpen) {
+    return (
+      <article className="post-detail">
+        <Link href="/lounge" className="ev-detail__back">
+          <ArrowLeft size={14} />
+          Lounge
+        </Link>
+        <LoungeComposer
+          userId={userId}
+          postId={post.id}
+          initialValues={{
+            title: post.title,
+            content: post.content,
+            category: post.category,
+            redirect_url: post.redirect_url || "",
+            created_at: post.created_at,
+          }}
+          onCancel={() => setEditOpen(false)}
+          onSaved={() => {
+            setEditOpen(false);
+            router.refresh();
+          }}
+        />
+      </article>
+    );
   }
 
   return (
@@ -255,7 +284,6 @@ export default function PostContent({ post, isAdmin, isAuthor, isSaved, myVote, 
         </section>
       </article>
 
-      {editOpen && <EditPostModal post={post} onClose={() => setEditOpen(false)} />}
       {deleteOpen && (
         <DeletePostDialog
           postId={post.id}
