@@ -1,10 +1,11 @@
 import { getServerSession } from 'next-auth';
+import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 import { authOptions } from '@/auth';
 import { supabase } from '@/app/lib/supabase';
 import Layout from '@/app/components/layout/Layout';
 import ProfileContent from '@/app/components/profile/ProfileContent';
-import { redirect } from 'next/navigation';
-import { Metadata } from 'next';
+import { SITE_URL } from '@/app/lib/seo';
 
 interface Props {
   params: Promise<{ userId: string }>;
@@ -12,12 +13,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { userId } = await params;
-
-  if (!userId) {
-    return {
-      title: 'Profile Not Found | Pulchowk Events',
-    };
-  }
+  if (!userId) return { title: 'Profile Not Found' };
 
   const { data: userData } = await supabase
     .from('users')
@@ -25,10 +21,28 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .eq('id', userId)
     .single();
 
+  const name = userData?.name;
+  const title = name ? name + "'s Profile" : 'Profile';
+  const description = name
+    ? 'See ' + name + "'s activity on Pulchowk Events: posts, projects, and comments."
+    : 'Community profile on Pulchowk Events.';
+  const url = SITE_URL + '/profile/' + userId;
+
   return {
-    title: userData?.name
-      ? `${userData.name}'s Profile | Pulchowk Events`
-      : 'Profile | Pulchowk Events',
+    title,
+    description,
+    alternates: { canonical: '/profile/' + userId },
+    openGraph: {
+      title,
+      description,
+      type: 'profile',
+      url,
+    },
+    twitter: {
+      card: 'summary',
+      title,
+      description,
+    },
   };
 }
 
@@ -36,18 +50,14 @@ export default async function ProfilePage({ params }: Props) {
   const { userId } = await params;
   const session = await getServerSession(authOptions);
 
-  // Fetch user data
   const { data: userData, error: userError } = await supabase
     .from('users')
     .select('*')
     .eq('id', userId)
     .single();
 
-  if (userError || !userData) {
-    redirect('/');
-  }
+  if (userError || !userData) notFound();
 
-  // Fetch user stats
   const [
     { count: postsCount },
     { count: commentsCount },
@@ -69,8 +79,7 @@ export default async function ProfilePage({ params }: Props) {
 
   return (
     <Layout>
-      <div id="portal-root"></div>
-      <div className="max-w-7xl mx-auto min-h-200 px-4 sm:px-6 lg:px-8 py-8">
+      <div className="w">
         <ProfileContent
           user={userData}
           stats={{
