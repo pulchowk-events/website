@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { motion } from 'framer-motion';
 import {
   Calendar, Clock, Code, LucideCircuitBoard, Gamepad, Music, Dumbbell, Plus,
 } from 'lucide-react';
@@ -70,7 +69,7 @@ function buildUrl(params: {
   if (params.category && params.category !== 'all') url.set('category', params.category);
   if (params.page && params.page > 1) url.set('page', String(params.page));
   const qs = url.toString();
-  return `/events${qs ? `?${qs}` : ''}`;
+  return '/events' + (qs ? '?' + qs : '');
 }
 
 export default function EventsClient({
@@ -87,108 +86,91 @@ export default function EventsClient({
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
   return (
-    <div className="space-y-6">
-      {/* Header + tab switcher */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <div className="events-toolbar">
         <div>
-          <h2 className="text-xl font-medium text-foreground">
-            {tab === 'past' ? 'Past Events' : 'Upcoming Events'}
+          <h2 className="events-toolbar__title">
+            {tab === 'past' ? 'Past events' : 'Upcoming events'}
           </h2>
           {totalCount > 0 && (
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="events-toolbar__meta">
               Showing {from}–{to} of {totalCount}
-              {category !== 'all' ? ` ${category}` : ''} event{totalCount === 1 ? '' : 's'}
+              {category !== 'all' ? ' ' + category : ''} event{totalCount === 1 ? '' : 's'}
             </p>
           )}
         </div>
 
-        <div className="flex items-center gap-2 bg-muted p-1 rounded-full">
+        <div className="tabs" role="tablist" aria-label="Time range">
           <Link
             href={buildUrl({ tab: 'upcoming', category, page: 1 })}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
-              tab === 'upcoming'
-                ? 'bg-green-600 text-white'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
+            className={'tab' + (tab === 'upcoming' ? ' tab--on' : '')}
             aria-current={tab === 'upcoming' ? 'page' : undefined}
           >
-            <Calendar className="w-4 h-4" />
-            <span className="text-sm font-medium">Upcoming</span>
+            <Calendar size={14} />
+            <span>Upcoming</span>
           </Link>
           <Link
             href={buildUrl({ tab: 'past', category, page: 1 })}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
-              tab === 'past'
-                ? 'bg-green-600 text-white'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
+            className={'tab' + (tab === 'past' ? ' tab--on' : '')}
             aria-current={tab === 'past' ? 'page' : undefined}
           >
-            <Clock className="w-4 h-4" />
-            <span className="text-sm font-medium">Past</span>
+            <Clock size={14} />
+            <span>Past</span>
           </Link>
         </div>
       </div>
 
-      {/* Category tabs — URL-driven, each is indexable */}
-      <div className="grid grid-cols-3 md:grid-cols-7 gap-2">
+      <div className="tabs" aria-label="Categories">
         {categories.map(({ value, label, icon: Icon }) => {
           const active = category === value;
           return (
             <Link
               key={value}
               href={buildUrl({ tab, category: value, page: 1 })}
-              className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                active
-                  ? 'bg-green-600 text-white'
-                  : 'bg-muted text-foreground hover:bg-accent'
-              }`}
+              className={'tab' + (active ? ' tab--on' : '')}
               aria-current={active ? 'page' : undefined}
             >
-              <Icon className="w-4 h-4" />
-              <span className="hidden sm:inline">{label}</span>
+              <Icon size={14} />
+              <span>{label}</span>
             </Link>
           );
         })}
       </div>
 
-      {/* Events grid */}
-      <div>
-        <motion.div
-          key={`${tab}-${category}-${page}`}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.15 }}
-        >
-          {events.length > 0 ? (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
-                {events.map((event) => (
-                  <EventCard
-                    key={event.id}
-                    event={event}
-                    isPast={tab === 'past'}
-                    isAdmin={isAdmin}
-                  />
-                ))}
-              </div>
-
-              <Pagination
-                page={page}
-                totalPages={totalPages}
-                buildUrl={(p) => buildUrl({ tab, category, page: p })}
-              />
-            </>
-          ) : (
-            <div className="text-center py-12 bg-card/50 border border-border rounded-xl">
-              <p className="text-muted-foreground">
-                {tab === 'past'
-                  ? `No past ${category !== 'all' ? category + ' ' : ''}events to show`
-                  : `No upcoming ${category !== 'all' ? category + ' ' : ''}events scheduled`}
-              </p>
+      <div key={tab + '-' + category + '-' + page} className="events-fade">
+        {events.length > 0 ? (
+          <>
+            <div className="events-grid">
+              {events.map((event) => (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  isPast={tab === 'past'}
+                  isAdmin={isAdmin}
+                />
+              ))}
             </div>
-          )}
-        </motion.div>
+
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              buildUrl={(p) => buildUrl({ tab, category, page: p })}
+            />
+          </>
+        ) : (
+          <div className="empty-state">
+            <p className="empty-state__title">
+              {tab === 'past'
+                ? 'No past' + (category !== 'all' ? ' ' + category : '') + ' events'
+                : 'No upcoming' + (category !== 'all' ? ' ' + category : '') + ' events'}
+            </p>
+            <p className="empty-state__desc">
+              {tab === 'past'
+                ? 'Try a different category.'
+                : 'Check back soon, or submit the first one.'}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
