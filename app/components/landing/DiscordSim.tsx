@@ -109,7 +109,7 @@ export default function DiscordSim() {
         <div className="dc" data-open={open ? '1' : '0'}>
           <aside className="dsb" id="dc-drawer" aria-label="Channels">
             <div className="dsh">
-              <span className="sv">PE</span>Pulchowk Events
+              <img className="sv" src="https://avatars.githubusercontent.com/u/208609754?s=200&v=4" alt="" width={22} height={22} />Pulchowk Events
               <span className="ia"><Icon k="chev" /></span>
             </div>
             <div className="dsc">
@@ -162,7 +162,7 @@ export default function DiscordSim() {
             </div>
             <div className="dfd">
               <div className="dm">
-                <div className="dav">PE</div>
+                <img className="dav" src="https://avatars.githubusercontent.com/u/208609754?s=200&v=4" alt="Pulchowk Events" width={40} height={40} />
                 <div className="dbd">
                   <div className="dn">
                     <b>Pulchowk Events</b><i>APP</i><em>11/12/2026 10:43 AM</em>
@@ -176,9 +176,6 @@ export default function DiscordSim() {
             </div>
           </div>
         </div>
-        <p className="mo" style={{ fontSize: 12, color: 'var(--m)', marginTop: 16 }}>
-          Sample posts. Every event shown is made up.
-        </p>
       </div>
     </section>
   );

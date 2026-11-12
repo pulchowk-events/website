@@ -174,7 +174,7 @@ html:has(.landing-root)::-webkit-scrollbar-thumb:hover{background:#3ecf8e}
   .cl{display:flex;justify-content:space-between;align-items:center;gap:12px;font:400 14px var(--font-geist-mono),monospace;padding:14px 16px;border-bottom:1px solid var(--l2);color:#d4d4d4}
   .cl:last-child{border:0}.cl button{height:28px;font-size:12px;padding:0 12px}
   .cl span{flex:1;min-width:0;overflow-x:auto;white-space:nowrap;scrollbar-width:none}
-  footer{padding:80px 0 0;border-top:1px solid var(--l2);overflow:hidden}
+  footer{padding:80px 0 48px;border-top:1px solid var(--l2);overflow:hidden}
   .fr{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;color:var(--m);font-size:14px}
   .fr nav{display:flex;gap:22px;flex-wrap:wrap}.fr a:hover{color:#fff}
   .by{color:#fff;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px;text-decoration-color:rgba(255,255,255,.35);transition:text-decoration-color .2s}.by:hover{text-decoration-color:#fff}
@@ -206,7 +206,7 @@ html:has(.landing-root)::-webkit-scrollbar-thumb:hover{background:#3ecf8e}
   .fi{display:flex;align-items:center;gap:16px;padding:16px 20px;border-radius:12px;background:#050505;box-shadow:0 0 0 1px var(--l);transition:all .45s var(--e);overflow:hidden;max-height:120px}
   .fi.h{max-height:0;padding-block:0;opacity:0;margin-top:-10px}
   .fi b{font-weight:400;letter-spacing:-.02em;flex:1}.fi span{color:var(--m);font-size:13px}
-  .fi em{font:500 11px var(--font-geist-mono),monospace;font-style:normal;padding:3px 9px;border-radius:6px;color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent)}
+  .fi em{font:500 11px var(--font-geist-mono),monospace;font-style:normal;padding:3px 9px;border-radius:6px;color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent);min-width:56px;text-align:center;flex:none}
   .cmp{position:relative;height:470px;border:1px solid var(--l);border-radius:14px;overflow:hidden;margin-top:48px;--p:50%;background:#050505}
   .lay{position:absolute;inset:0;padding:56px 28px 20px;display:grid;align-content:start;gap:8px}
   .lay.raw{clip-path:inset(0 calc(100% - var(--p)) 0 0);background:#0a0805}
@@ -245,7 +245,7 @@ html:has(.landing-root)::-webkit-scrollbar-thumb:hover{background:#3ecf8e}
   .dc{display:grid;grid-template-columns:252px minmax(0,1fr);height:640px;border:1px solid var(--l);border-radius:14px;overflow:hidden;margin-top:48px;background:#000}
   .dsb{display:flex;flex-direction:column;min-height:0;border-right:1px solid #1c1c1f}
   .dsh{display:flex;align-items:center;gap:8px;height:50px;padding:0 14px;border-bottom:1px solid #1c1c1f;font-weight:600;flex:none}
-  .dsh .sv{width:22px;height:22px;border-radius:7px;background:#232327;display:grid;place-items:center;font:700 9px var(--font-geist-sans)}
+  .dsh .sv{width:22px;height:22px;border-radius:7px;object-fit:cover;display:block}
   .dsh .ia{margin-left:auto;color:#b5bac1;display:flex}
   .dsc{flex:1;overflow:auto;padding:8px;min-height:0;scrollbar-width:none}
   .dr2{display:flex;align-items:center;gap:7px;width:100%;height:32px;padding:0 8px;border:0;border-radius:6px;background:none;color:#949ba4;font:500 15px var(--font-geist-sans);text-align:left;cursor:pointer;white-space:nowrap}
@@ -259,7 +259,7 @@ html:has(.landing-root)::-webkit-scrollbar-thumb:hover{background:#3ecf8e}
   .dhd{height:50px;flex:none;display:flex;align-items:center;gap:8px;padding:0 16px;border-bottom:1px solid #1c1c1f;font-weight:600;color:#f2f3f5}.dhd svg{color:#949ba4}
   .dfd{flex:1;overflow:auto;padding:20px 16px;min-height:0}
   .dm{display:flex;gap:14px;animation:in .5s var(--e);color:#dbdee1;font-size:15px;line-height:1.4}
-  .dav{width:40px;height:40px;border-radius:50%;flex:none;background:linear-gradient(135deg,#3ecf8e,#17171a);display:grid;place-items:center;font:700 12px var(--font-geist-sans);color:#fff}
+  .dav{width:40px;height:40px;border-radius:50%;flex:none;object-fit:cover;display:block}
   .dbd{min-width:0}.dn{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   .dn b{font-weight:500;color:#7fe0c3}
   .dn i{font:600 10px var(--font-geist-sans);font-style:normal;background:#5865f2;color:#fff;border-radius:4px;padding:1px 5px}

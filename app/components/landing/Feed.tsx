@@ -17,6 +17,12 @@ const FC: Record<string, string> = {
   Scholarship: '#8b7cff',
 };
 
+const LABEL: Record<string, string> = {
+  Event: 'Event',
+  Job: 'Job',
+  Scholarship: 'Grant',
+};
+
 const TABS = ['All', 'Event', 'Job', 'Scholarship'];
 
 export default function Feed() {
@@ -40,7 +46,7 @@ export default function Feed() {
               className={`fi${active !== 'All' && active !== type ? ' h' : ''}`}
               style={{ '--c': FC[type] } as React.CSSProperties}
             >
-              <em>{type}</em>
+              <em>{LABEL[type] ?? type}</em>
               <b>{title}</b>
               <span>{meta}</span>
             </div>

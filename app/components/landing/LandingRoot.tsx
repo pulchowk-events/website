@@ -71,6 +71,7 @@ export default function LandingRoot() {
       <main id="top">
         <Hero onSignIn={() => setSignInOpen(true)} />
         <Chaos />
+        <TechMarquee />
         <Rail />
         <DiscordSim />
         <Personas />
@@ -84,7 +85,6 @@ export default function LandingRoot() {
         <Layers />
         <MarkerRace />
         <Drift />
-        <TechMarquee />
         <OpenSource />
         <FinalCTA onSignIn={() => setSignInOpen(true)} />
       </main>
