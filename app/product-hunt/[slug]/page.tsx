@@ -1,23 +1,20 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 import Layout from "@/app/components/layout/Layout";
-import { ProjectDetailActions } from "@/app/components/product/ProjectDetailActions";
-import { Comments } from "@/app/components/comments/CommentSection";
+import { ProductDetail } from "@/app/components/product/ProductDetail";
 import JsonLd from "@/app/components/seo/JsonLd";
 import { getProductBySlug, getSavedIds } from "@/app/lib/queries";
 import { isAdmin } from "@/app/lib/isAdmin";
-import { formatDateLong } from "@/app/lib/formatDate";
 import { SITE_URL, breadcrumbSchema } from "@/app/lib/seo";
 
 export const revalidate = 60;
 
 interface Props {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ edit?: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -46,8 +43,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function ProductPage({ params }: Props) {
+export default async function ProductPage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const sp = await searchParams;
+  const initialEditMode = sp.edit === "true";
   if (!slug) notFound();
   const product = await getProductBySlug(slug);
   if (!product) notFound();
@@ -83,46 +82,13 @@ export default async function ProductPage({ params }: Props) {
 
       <div id="portal-root" />
 
-      <article className="pd">
-        <Link href="/product-hunt" className="ev-detail__back">
-          <ArrowLeft size={14} />
-          Projects
-        </Link>
-
-        <header className="pd__head">
-          <span className="pd__logo">
-            {product.image_url ? (
-              <Image src={product.image_url} alt="" width={96} height={96} unoptimized />
-            ) : (
-              <span className="pd__logo-initial">{product.name.charAt(0).toUpperCase()}</span>
-            )}
-          </span>
-          <div className="pd__head-body">
-            <h1 className="pd__title">{product.name}</h1>
-            {product.description && <p className="pd__tagline">{product.description}</p>}
-            <p className="pd__meta">
-              Launched {formatDateLong(product.created_at)}
-              {product.users?.name && <> · by {product.users.name}</>}
-            </p>
-          </div>
-        </header>
-
-        <ProjectDetailActions
-          product={product}
-          isSaved={saves.has(String(product.id))}
-          isAdmin={adminFlag}
-        />
-
-        {product.description && (
-          <section className="pd__body">
-            <p>{product.description}</p>
-          </section>
-        )}
-
-        <section className="pd__comments">
-          <Comments productId={product.id} />
-        </section>
-      </article>
+      <ProductDetail
+        product={product}
+        isSaved={saves.has(String(product.id))}
+        isAdmin={adminFlag}
+        userId={session?.user?.id}
+        initialEditMode={initialEditMode}
+      />
     </Layout>
   );
 }

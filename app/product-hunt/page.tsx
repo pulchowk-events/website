@@ -1,9 +1,11 @@
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/auth";
 import Layout from "@/app/components/layout/Layout";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ProjectRow } from "@/app/components/product/ProjectRow";
-import { ProjectSubmitButton } from "@/app/components/product/ProjectSubmitButton";
+import { ProductComposer } from "@/app/components/product/ProductComposer";
 import { getApprovedProducts } from "@/app/lib/queries";
 import { SITE_URL } from "@/app/lib/seo";
 
@@ -35,6 +37,7 @@ export default async function ProductHuntPage({
   searchParams: Promise<{ sort?: string }>;
 }) {
   const sp = await searchParams;
+  const session = await getServerSession(authOptions);
   const sort: Sort =
     sp.sort === "today" || sp.sort === "week" ? sp.sort : "all";
 
@@ -48,8 +51,10 @@ export default async function ProductHuntPage({
       <PageHeader
         title="Projects"
         count={products.length > 0 ? products.length + (products.length === 1 ? " project" : " projects") : undefined}
-        actions={<ProjectSubmitButton />}
+        actions={<Link href="/product-hunt/new" className="btn btn--primary btn--sm">Submit project</Link>}
       />
+
+      {session?.user?.id && <ProductComposer userId={session.user.id} />}
 
       <div className="phead-tabs">
         {TABS.map((t) => (
@@ -66,7 +71,7 @@ export default async function ProductHuntPage({
       {products.length === 0 ? (
         <div className="empty-row">
           <p>No projects launched {sort === "today" ? "today" : sort === "week" ? "this week" : "yet"}.</p>
-          <ProjectSubmitButton />
+          <Link href="/product-hunt/new" className="btn btn--primary btn--sm">Submit project</Link>
         </div>
       ) : (
         <div className="plist">
@@ -76,7 +81,7 @@ export default async function ProductHuntPage({
           {isSparse && (
             <div className="plist__sparse">
               <p>Launch yours</p>
-              <ProjectSubmitButton />
+              <Link href="/product-hunt/new" className="btn btn--primary btn--sm">Submit project</Link>
             </div>
           )}
         </div>

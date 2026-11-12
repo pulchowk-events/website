@@ -33,7 +33,7 @@ export function FloatingCreate() {
           <div className="menu fab__menu">
             <Link href="/lounge/new" className="menu__item" onClick={() => setOpen(false)}>Post</Link>
             <Link href="/events/new" className="menu__item" onClick={() => setOpen(false)}>Event</Link>
-            <Link href="/product-hunt?showAddProduct=true" className="menu__item" onClick={() => setOpen(false)}>Project</Link>
+            <Link href="/product-hunt/new" className="menu__item" onClick={() => setOpen(false)}>Project</Link>
           </div>
         )}
       </div>

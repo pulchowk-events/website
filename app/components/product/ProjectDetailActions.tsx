@@ -6,7 +6,6 @@ import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import SignInModal from "@/app/components/signIn/SignInModal";
 import { ProjectVoteButton } from "./ProjectVoteButton";
-import EditButton from "./EditProduct";
 import { RemoveButton } from "./RemoveProduct";
 
 interface Product {
@@ -24,9 +23,10 @@ interface Props {
   product: Product;
   isSaved: boolean;
   isAdmin: boolean;
+  onEdit?: () => void;
 }
 
-export function ProjectDetailActions({ product, isSaved, isAdmin }: Props) {
+export function ProjectDetailActions({ product, isSaved, isAdmin, onEdit }: Props) {
   const { data: session } = useSession();
   const [saved, setSaved] = useState(isSaved);
   const [saving, setSaving] = useState(false);
@@ -115,7 +115,9 @@ export function ProjectDetailActions({ product, isSaved, isAdmin }: Props) {
       </div>
       {canManage && (
         <>
-          <EditButton product={product} />
+          <button type="button" className="btn btn--secondary" onClick={onEdit}>
+            Edit project
+          </button>
           <RemoveButton productId={product.id} productName={product.name} isOwner={isOwner} />
         </>
       )}
