@@ -19,6 +19,8 @@ interface CommentCardProps {
     created_at: string;
     user_id: string;
     profiles?: {
+      name?: string;
+      image?: string | null;
       username?: string;
       avatar_url?: string;
     };

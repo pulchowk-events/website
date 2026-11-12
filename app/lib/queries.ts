@@ -577,3 +577,174 @@ export const getActiveEventTaxonomies = unstable_cache(
   ["active-event-taxonomies"],
   { revalidate: 60, tags: ["events"] },
 );
+
+// ============================================================================
+// Redesign queries — sidebar counts, rail data, trending, recent supporters
+// ============================================================================
+
+const DISCORD_URL = "https://discord.gg/cQ5gxusATk";
+
+export const getNavGlobal = unstable_cache(
+  async () => {
+    const { data, error } = await supabase.rpc("nav_counts");
+    if (error) {
+      console.error("nav_counts rpc error:", error);
+      return { events_upcoming: 0, jobs_open: 0 };
+    }
+    return data as { events_upcoming: number; jobs_open: number };
+  },
+  ["nav-global"],
+  { revalidate: 60, tags: ["events", "jobs"] },
+);
+
+export const getSavedCount = unstable_cache(
+  async (userId: string) => {
+    const { count } = await supabase
+      .from("saves")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId);
+    return count || 0;
+  },
+  ["saved-count"],
+  { revalidate: 60, tags: ["saves"] },
+);
+
+export async function getNavCounts(userId?: string) {
+  const [global, saved] = await Promise.all([
+    getNavGlobal(),
+    userId ? getSavedCount(userId) : Promise.resolve(0),
+  ]);
+  return {
+    events_upcoming: global.events_upcoming,
+    jobs_open: global.jobs_open,
+    saved_count: saved,
+  };
+}
+
+export const getTrendingPosts = unstable_cache(
+  async (limit = 5) => {
+    const cutoff = new Date(Date.now() - 7 * 864e5)
+      .toISOString()
+      .slice(0, 19)
+      .replace("T", " ");
+    const { data } = await supabase
+      .from("lounge_posts")
+      .select("id, title, score, comment_count, category")
+      .gte("created_at", cutoff)
+      .order("comment_count", { ascending: false })
+      .order("score", { ascending: false })
+      .limit(limit);
+    return data || [];
+  },
+  ["trending-posts"],
+  { revalidate: 60, tags: ["lounge"] },
+);
+
+export const getRecentSupporters = unstable_cache(
+  async (limit = 5) => {
+    const { data } = await supabase
+      .from("donations")
+      .select("id, name, amount, created_at")
+      .eq("verified", true)
+      .eq("show_on_leaderboard", true)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    return data || [];
+  },
+  ["recent-supporters"],
+  { revalidate: 60, tags: ["donations"] },
+);
+
+async function getSavedJobs(userId: string, limit: number) {
+  const { data: saves } = await supabase
+    .from("saves")
+    .select("item_id")
+    .eq("user_id", userId)
+    .eq("item_type", "job")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (!saves || saves.length === 0) return [];
+  const ids = saves.map((s) => s.item_id);
+  const { data: jobs } = await supabase
+    .from("jobs")
+    .select("id, title, company, location")
+    .in("id", ids)
+    .eq("verified", true);
+  const byId = new Map((jobs || []).map((j) => [j.id, j]));
+  return ids.map((id) => byId.get(id)).filter(Boolean);
+}
+
+export const getCurrentMonthEvents = unstable_cache(
+  async () => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const { data } = await supabase
+      .from("events")
+      .select("id, title, event_date")
+      .eq("verified", true)
+      .gte("event_date", start.toISOString())
+      .lt("event_date", end.toISOString())
+      .order("event_date", { ascending: true });
+    return data || [];
+  },
+  ["current-month-events"],
+  { revalidate: 60, tags: ["events"] },
+);
+
+export type RailContext =
+  | "home"
+  | "lounge"
+  | "events"
+  | "jobs"
+  | "projects"
+  | "donate"
+  | "utility";
+
+export async function getRailData(context: RailContext, userId?: string) {
+  switch (context) {
+    case "home":
+      return {
+        community: { discordUrl: DISCORD_URL },
+        prizePool: await getPrizePool(),
+        topDonors: await getTopDonators(5),
+      };
+    case "lounge":
+      return {
+        trending: await getTrendingPosts(5),
+        upcomingEvents: await getUpcomingEvents(3),
+        prizePool: await getPrizePool(),
+      };
+    case "events":
+      return {
+        calendarEvents: await getCurrentMonthEvents(),
+        jobs: await getRecentJobs(3),
+        prizePool: await getPrizePool(),
+      };
+    case "jobs":
+      return {
+        savedJobs: userId ? await getSavedJobs(userId, 5) : null,
+        upcomingEvents: await getUpcomingEvents(3),
+        prizePool: await getPrizePool(),
+      };
+    case "projects":
+      return {
+        recentPosts: await getLoungePosts(3),
+        upcomingEvents: await getUpcomingEvents(3),
+        prizePool: await getPrizePool(),
+      };
+    case "donate":
+      return {
+        topDonors: await getTopDonators(10),
+        recentSupporters: await getRecentSupporters(5),
+      };
+    case "utility":
+    default:
+      return {
+        community: { discordUrl: DISCORD_URL },
+        prizePool: await getPrizePool(),
+      };
+  }
+}
+
+export type RailData = Awaited<ReturnType<typeof getRailData>>;
