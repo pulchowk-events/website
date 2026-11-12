@@ -68,7 +68,7 @@ export function TopBar({ onMenuToggle, onPaletteOpen }: Props) {
                 </button>
                 {createOpen && (
                   <div className="menu menu--right">
-                    <Link href="/lounge?showAddPost=true" className="menu__item" onClick={() => setCreateOpen(false)}>Post</Link>
+                    <Link href="/lounge/new" className="menu__item" onClick={() => setCreateOpen(false)}>Post</Link>
                     <Link href="/events?showAddEvent=true" className="menu__item" onClick={() => setCreateOpen(false)}>Event</Link>
                     <Link href="/product-hunt?showAddProduct=true" className="menu__item" onClick={() => setCreateOpen(false)}>Project</Link>
                   </div>

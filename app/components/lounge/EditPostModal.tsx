@@ -7,6 +7,7 @@ import { X, Link as LinkIcon, Image as ImageIcon, Info, Trash2 } from 'lucide-re
 import Image from 'next/image';
 import { toast } from 'sonner';
 import { PostCategory, categoryDisplayMap, categoryIcons } from '@/types/posts';
+import { MarkdownEditor } from '@/app/components/ui/MarkdownEditor';
 
 interface EditPostModalProps {
   post: {
@@ -24,6 +25,7 @@ interface EditPostModalProps {
 export default function EditPostModal({ post, onClose }: EditPostModalProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [descMode, setDescMode] = useState<'write' | 'preview'>('write');
   const [formData, setFormData] = useState({
     title: post.title,
     content: post.content,
@@ -37,6 +39,10 @@ export default function EditPostModal({ post, onClose }: EditPostModalProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.content.trim()) {
+      toast.error('Content is required');
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -107,13 +113,13 @@ export default function EditPostModal({ post, onClose }: EditPostModalProps) {
               )}
             </div>
 
-            <textarea
-              placeholder="Post content"
+            <MarkdownEditor
               value={formData.content}
-              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-              className="input input--multi"
-              rows={8}
-              required
+              onChange={(v) => setFormData({ ...formData, content: v })}
+              mode={descMode}
+              onModeChange={setDescMode}
+              minHeight={260}
+              placeholder="Write your post… Markdown supported."
             />
 
             {hasImage && (

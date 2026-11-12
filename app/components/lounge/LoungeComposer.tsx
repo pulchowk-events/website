@@ -2,41 +2,49 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { X } from "lucide-react";
 import { toast } from "sonner";
-import { MarkdownEditor } from "./MarkdownEditor";
+import { MarkdownEditor } from "@/app/components/ui/MarkdownEditor";
+import { PostPreview } from "./PostPreview";
 import { readDraft, clearDraft, useDraftAutosave } from "./useDraft";
 import SignInModal from "@/app/components/signIn/SignInModal";
 import { PostCategory, categoryDisplayMap, categoryIcons } from "@/types/posts";
 
 interface Props {
   userId?: string;
+  postId?: string;
+  initialValues?: {
+    title: string;
+    content: string;
+    category: PostCategory;
+    redirect_url: string;
+    created_at: string;
+  };
+  onSaved?: () => void;
+  onCancel?: () => void;
+  fullPage?: boolean;
 }
 
-export function LoungeComposer({ userId }: Props) {
+export function LoungeComposer({ userId, postId, initialValues, onSaved, onCancel, fullPage }: Props) {
   const { data: session } = useSession();
   const router = useRouter();
   const pathname = usePathname();
-  const sp = useSearchParams();
 
-  const [expanded, setExpanded] = useState(false);
+  const isEdit = !!postId;
+  const [expanded, setExpanded] = useState(isEdit || !!fullPage);
   const [signInOpen, setSignInOpen] = useState(false);
-
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [category, setCategory] = useState<PostCategory>("discussions");
-  const [redirectUrl, setRedirectUrl] = useState("");
   const [mode, setMode] = useState<"write" | "preview">("write");
   const [submitting, setSubmitting] = useState(false);
   const [draftRestored, setDraftRestored] = useState(false);
 
-  useEffect(() => {
-    if (sp.get("showAddPost") === "true") setExpanded(true);
-  }, [sp]);
+  const [title, setTitle] = useState(initialValues?.title || "");
+  const [content, setContent] = useState(initialValues?.content || "");
+  const [category, setCategory] = useState<PostCategory>(initialValues?.category || "discussions");
+  const [redirectUrl, setRedirectUrl] = useState(initialValues?.redirect_url || "");
 
   useEffect(() => {
-    if (!expanded || !userId) return;
+    if (!isEdit || !expanded || !userId) return;
     const d = readDraft(userId);
     if (d && (d.title || d.content)) {
       setTitle(d.title);
@@ -45,47 +53,55 @@ export function LoungeComposer({ userId }: Props) {
       setRedirectUrl(d.redirect_url);
       setDraftRestored(true);
     }
-  }, [expanded, userId]);
+  }, [expanded, userId, isEdit]);
 
   useDraftAutosave(
     userId,
     { title, category, content, redirect_url: redirectUrl },
-    expanded && (title.length > 0 || content.length > 0),
+    !isEdit && expanded && (title.length > 0 || content.length > 0),
   );
 
+  const resetForm = () => {
+    setTitle("");
+    setContent("");
+    setCategory("discussions");
+    setRedirectUrl("");
+    setMode("write");
+    setDraftRestored(false);
+  };
+
   const collapse = () => {
+    if (onCancel) { onCancel(); return; }
     setExpanded(false);
     setMode("write");
-    if (sp.get("showAddPost") === "true") {
-      const next = new URLSearchParams(sp.toString());
-      next.delete("showAddPost");
-      router.replace(pathname + (next.toString() ? "?" + next.toString() : ""));
+    if (fullPage) { router.push("/lounge"); return; }
+    if (pathname === "/lounge") {
+      const sp = new URLSearchParams(window.location.search);
+      if (sp.get("showAddPost") === "true") {
+        sp.delete("showAddPost");
+        router.replace("/lounge" + (sp.toString() ? "?" + sp.toString() : ""));
+      }
     }
   };
 
   const expand = () => {
-    if (!session?.user?.id) {
-      setSignInOpen(true);
-      return;
-    }
+    if (!session?.user?.id) { setSignInOpen(true); return; }
     setExpanded(true);
   };
 
   const submit = async () => {
     if (!userId) return;
-    if (!title.trim()) {
-      toast.error("Title is required");
-      return;
-    }
-    if (!content.trim()) {
-      toast.error("Post body is required");
-      return;
-    }
+    if (!title.trim()) { toast.error("Title is required"); return; }
+    if (!content.trim()) { toast.error("Post body is required"); return; }
 
     setSubmitting(true);
     try {
-      const res = await fetch("/api/lounge/posts/submit", {
-        method: "POST",
+      const url = isEdit
+        ? "/api/lounge/posts/" + postId
+        : "/api/lounge/posts/submit";
+      const method = isEdit ? "PUT" : "POST";
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: title.trim(),
@@ -98,21 +114,23 @@ export function LoungeComposer({ userId }: Props) {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to post");
+        throw new Error(data.error || "Failed to save post");
       }
 
-      toast.success("Post created");
-      clearDraft(userId);
-      setTitle("");
-      setContent("");
-      setCategory("discussions");
-      setRedirectUrl("");
-      setExpanded(false);
-      setMode("write");
-      setDraftRestored(false);
-      router.refresh();
+      if (isEdit) {
+        toast.success("Post updated");
+      } else {
+        toast.success("Post created");
+        if (userId) clearDraft(userId);
+        resetForm();
+      }
+
+      if (onSaved) onSaved();
+      else if (isEdit) router.refresh();
+      else if (fullPage) router.push("/lounge");
+      else { setExpanded(false); setMode("write"); router.refresh(); }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to post");
+      toast.error(err instanceof Error ? err.message : "Failed to save post");
     } finally {
       setSubmitting(false);
     }
@@ -145,15 +163,14 @@ export function LoungeComposer({ userId }: Props) {
     );
   }
 
+  const canSubmit = title.trim() && content.trim() && !submitting;
+
   return (
     <>
       <form
         className="composer"
         onKeyDown={onKey}
-        onSubmit={(e) => {
-          e.preventDefault();
-          submit();
-        }}
+        onSubmit={(e) => { e.preventDefault(); submit(); }}
       >
         {draftRestored && (
           <div className="composer__draft">
@@ -163,57 +180,90 @@ export function LoungeComposer({ userId }: Props) {
         )}
 
         <div className="composer__head">
-          <input
-            type="text"
-            className="composer__title-input"
-            placeholder="Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value.slice(0, 120))}
-            maxLength={120}
-            autoFocus
-          />
+          <div className="seg">
+            <button
+              type="button"
+              className={"seg__item" + (mode === "write" ? " seg__item--on" : "")}
+              onClick={() => setMode("write")}
+            >
+              Write
+            </button>
+            <button
+              type="button"
+              className={"seg__item" + (mode === "preview" ? " seg__item--on" : "")}
+              onClick={() => setMode("preview")}
+            >
+              Preview
+            </button>
+          </div>
           <button
             type="button"
             className="row-icon-btn"
             onClick={collapse}
-            aria-label="Close composer"
+            aria-label={isEdit ? "Cancel edit" : "Close composer"}
             disabled={submitting}
+            style={{ marginLeft: "auto" }}
           >
             <X size={16} />
           </button>
         </div>
 
-        <div className="composer__cats">
-          {(Object.entries(categoryDisplayMap) as [PostCategory, string][]).map(([value, label]) => (
-            <button
-              key={value}
-              type="button"
-              className={"chip" + (category === value ? " chip--on" : "")}
-              onClick={() => setCategory(value)}
-            >
-              {categoryIcons[value]} {label}
-            </button>
-          ))}
-        </div>
+        {mode === "write" ? (
+          <>
+            <input
+              type="text"
+              className="composer__title-input"
+              placeholder="Title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value.slice(0, 120))}
+              maxLength={120}
+              autoFocus={!isEdit}
+            />
 
-        <MarkdownEditor
-          value={content}
-          onChange={setContent}
-          mode={mode}
-          onModeChange={setMode}
-          maxLength={10000}
-        />
+            <div className="composer__cats">
+              {(Object.entries(categoryDisplayMap) as [PostCategory, string][]).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={"chip" + (category === value ? " chip--on" : "")}
+                  onClick={() => setCategory(value)}
+                >
+                  {categoryIcons[value]} {label}
+                </button>
+              ))}
+            </div>
 
-        <input
-          type="url"
-          className="composer__url"
-          placeholder="Reference link (optional)"
-          value={redirectUrl}
-          onChange={(e) => setRedirectUrl(e.target.value)}
-        />
+            <MarkdownEditor
+              value={content}
+              onChange={setContent}
+              mode="write"
+              onModeChange={() => {}}
+              hideTabs
+              maxLength={10000}
+              minHeight={180}
+              placeholder="Write your post… Markdown supported."
+            />
+
+            <input
+              type="url"
+              className="composer__url"
+              placeholder="Reference link (optional)"
+              value={redirectUrl}
+              onChange={(e) => setRedirectUrl(e.target.value)}
+            />
+          </>
+        ) : (
+          <PostPreview
+            title={title}
+            content={content}
+            category={category}
+            redirectUrl={redirectUrl}
+            createdAt={initialValues?.created_at}
+          />
+        )}
 
         <div className="composer__foot">
-          <span className="composer__hint">⌘ Enter to post · Esc to close</span>
+          <span className="composer__hint">⌘ Enter to save · Esc to cancel</span>
           <div className="composer__foot-actions">
             <button type="button" className="btn btn--secondary btn--sm" onClick={collapse} disabled={submitting}>
               Cancel
@@ -221,9 +271,13 @@ export function LoungeComposer({ userId }: Props) {
             <button
               type="submit"
               className="btn btn--primary btn--sm"
-              disabled={submitting || !title.trim() || !content.trim()}
+              disabled={!canSubmit}
             >
-              {submitting ? "Posting…" : "Post"}
+              {submitting
+                ? "Saving…"
+                : isEdit
+                  ? "Save changes"
+                  : "Post"}
             </button>
           </div>
         </div>

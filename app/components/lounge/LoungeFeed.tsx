@@ -58,16 +58,9 @@ export function LoungeFeed({
               : "No posts yet."}
           </p>
           {userId && (
-            <button
-              type="button"
-              className="btn btn--primary btn--sm"
-              onClick={() => {
-                const el = document.getElementById("lounge-composer") as HTMLTextAreaElement | null;
-                el?.focus();
-              }}
-            >
+            <a href="/lounge/new" className="btn btn--primary btn--sm">
               Write the first post
-            </button>
+            </a>
           )}
         </div>
       ) : (

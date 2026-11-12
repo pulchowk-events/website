@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Dialog } from '@headlessui/react';
 import { X } from 'lucide-react';
+import { MarkdownEditor } from '@/app/components/ui/MarkdownEditor';
 
 type EventCategory = 'software' | 'gaming' | 'hardware' | 'music' | 'sports' | 'extra';
 
@@ -34,6 +35,7 @@ export default function AddEventModal({ onClose }: AddEventModalProps) {
     category: 'software' as EventCategory,
   });
   const [image, setImage] = useState<File | null>(null);
+  const [descMode, setDescMode] = useState<'write' | 'preview'>('write');
 
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -47,6 +49,10 @@ export default function AddEventModal({ onClose }: AddEventModalProps) {
     e.preventDefault();
     if (!session?.user?.id) {
       toast.error('Sign in to submit an event');
+      return;
+    }
+    if (!formData.description.trim()) {
+      toast.error('Description is required');
       return;
     }
     setLoading(true);
@@ -183,17 +189,16 @@ export default function AddEventModal({ onClose }: AddEventModalProps) {
               </div>
 
               <div className="field event-form__desc">
-                <label htmlFor="ev-desc" className="field__label">
+                <span className="field__label">
                   Description <span className="field__label-req">*</span>
-                </label>
-                <textarea
-                  id="ev-desc"
+                </span>
+                <MarkdownEditor
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="input input--multi"
-                  style={{ minHeight: 320 }}
-                  required
-                  disabled={loading}
+                  onChange={(v) => setFormData({ ...formData, description: v })}
+                  mode={descMode}
+                  onModeChange={setDescMode}
+                  minHeight={280}
+                  placeholder="Write your event description… Markdown supported."
                 />
               </div>
             </div>

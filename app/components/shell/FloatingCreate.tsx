@@ -31,7 +31,7 @@ export function FloatingCreate() {
         <button type="button" className="fab__btn" onClick={trigger} aria-label="Create"><Plus size={22} /></button>
         {open && (
           <div className="menu fab__menu">
-            <Link href="/lounge?showAddPost=true" className="menu__item" onClick={() => setOpen(false)}>Post</Link>
+            <Link href="/lounge/new" className="menu__item" onClick={() => setOpen(false)}>Post</Link>
             <Link href="/events?showAddEvent=true" className="menu__item" onClick={() => setOpen(false)}>Event</Link>
             <Link href="/product-hunt?showAddProduct=true" className="menu__item" onClick={() => setOpen(false)}>Project</Link>
           </div>

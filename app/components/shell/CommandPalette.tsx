@@ -61,7 +61,7 @@ export function CommandPalette({ open, onClose, onToggleSidebar }: Props) {
   }, [q, open]);
 
   const actions = [
-    { label: "Create post", action: () => { onClose(); router.push(session ? "/lounge?showAddPost=true" : "/lounge"); }, icon: Plus },
+    { label: "Create post", action: () => { onClose(); router.push(session ? "/lounge/new" : "/lounge"); }, icon: Plus },
     { label: "Create event", action: () => { onClose(); router.push("/events"); }, icon: Plus },
     { label: "Submit project", action: () => { onClose(); router.push(session ? "/product-hunt?showAddProduct=true" : "/product-hunt"); }, icon: Plus },
     { label: "Toggle sidebar", action: () => { onClose(); onToggleSidebar(); }, icon: PanelLeft },

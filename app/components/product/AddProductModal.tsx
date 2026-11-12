@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 import { toast } from 'sonner';
 import { X } from 'lucide-react';
+import { MarkdownEditor } from '@/app/components/ui/MarkdownEditor';
 
 interface AddProductModalProps {
   onClose: () => void;
@@ -19,6 +20,7 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
   const [loading, setLoading] = useState(false);
   const [urlError, setUrlError] = useState('');
   const [redirectUrl, setRedirectUrl] = useState('');
+  const [descMode, setDescMode] = useState<'write' | 'preview'>('write');
 
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -58,6 +60,11 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
     if (!session?.user?.id) {
       toast.error('Sign in to submit a project.');
       signIn();
+      return;
+    }
+
+    if (!description.trim()) {
+      toast.error('Description is required');
       return;
     }
 
@@ -141,18 +148,17 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
             </div>
 
             <div className="field">
-              <label htmlFor="description" className="field__label">
+              <span className="field__label">
                 Description <span className="field__label-req">*</span>
-              </label>
-              <textarea
-                id="description"
+              </span>
+              <MarkdownEditor
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={setDescription}
+                mode={descMode}
+                onModeChange={setDescMode}
+                maxLength={2000}
+                minHeight={100}
                 placeholder="What does it do, and who is it for?"
-                className="input input--multi"
-                rows={3}
-                required
-                disabled={loading}
               />
             </div>
 

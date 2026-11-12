@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { X } from 'lucide-react';
+import { MarkdownEditor } from '@/app/components/ui/MarkdownEditor';
 
 interface EditProductModalProps {
   product: {
@@ -26,6 +27,7 @@ export default function EditProductModal({ product, onClose }: EditProductModalP
   const [loading, setLoading] = useState(false);
   const [urlError, setUrlError] = useState('');
   const [redirectUrl, setRedirectUrl] = useState(product.redirect_url || '');
+  const [descMode, setDescMode] = useState<'write' | 'preview'>('write');
 
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -61,6 +63,11 @@ export default function EditProductModal({ product, onClose }: EditProductModalP
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!description.trim()) {
+      toast.error('Description is required');
+      return;
+    }
 
     const errorMsg = validateUrl(url);
     if (errorMsg) {
@@ -145,17 +152,17 @@ export default function EditProductModal({ product, onClose }: EditProductModalP
             </div>
 
             <div className="field">
-              <label htmlFor="edit-description" className="field__label">
+              <span className="field__label">
                 Description <span className="field__label-req">*</span>
-              </label>
-              <textarea
-                id="edit-description"
+              </span>
+              <MarkdownEditor
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="input input--multi"
-                rows={3}
-                required
-                disabled={loading}
+                onChange={setDescription}
+                mode={descMode}
+                onModeChange={setDescMode}
+                maxLength={2000}
+                minHeight={100}
+                placeholder="What does it do, and who is it for?"
               />
             </div>
 

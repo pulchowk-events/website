@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Dialog } from '@headlessui/react';
 import { X } from 'lucide-react';
+import { MarkdownEditor } from '@/app/components/ui/MarkdownEditor';
 
 type EventCategory = 'software' | 'gaming' | 'hardware' | 'music' | 'sports' | 'extra';
 
@@ -57,6 +58,7 @@ export default function EditEventModal({ event, onClose }: EditEventModalProps) 
   });
   const [image, setImage] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [descMode, setDescMode] = useState<'write' | 'preview'>('write');
 
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -68,6 +70,10 @@ export default function EditEventModal({ event, onClose }: EditEventModalProps) 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.description.trim()) {
+      toast.error('Description is required');
+      return;
+    }
     setLoading(true);
     try {
       const formDataToSend = new FormData();
@@ -206,17 +212,16 @@ export default function EditEventModal({ event, onClose }: EditEventModalProps) 
               </div>
 
               <div className="field event-form__desc">
-                <label htmlFor="edit-ev-desc" className="field__label">
+                <span className="field__label">
                   Description <span className="field__label-req">*</span>
-                </label>
-                <textarea
-                  id="edit-ev-desc"
+                </span>
+                <MarkdownEditor
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="input input--multi"
-                  style={{ minHeight: 320 }}
-                  required
-                  disabled={loading}
+                  onChange={(v) => setFormData({ ...formData, description: v })}
+                  mode={descMode}
+                  onModeChange={setDescMode}
+                  minHeight={280}
+                  placeholder="Write your event description… Markdown supported."
                 />
               </div>
             </div>

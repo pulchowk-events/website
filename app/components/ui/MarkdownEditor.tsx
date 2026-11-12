@@ -13,6 +13,9 @@ interface Props {
   mode: "write" | "preview";
   onModeChange: (m: "write" | "preview") => void;
   maxLength?: number;
+  minHeight?: number;
+  placeholder?: string;
+  hideTabs?: boolean;
 }
 
 const TOOLBAR = [
@@ -23,7 +26,9 @@ const TOOLBAR = [
 ];
 
 export function MarkdownEditor({
-  value, onChange, mode, onModeChange, maxLength = 10000,
+  value, onChange, mode, onModeChange,
+  maxLength = 10000, minHeight = 100, placeholder = "Write your post…",
+  hideTabs = false,
 }: Props) {
   const ref = useRef<HTMLTextAreaElement>(null);
 
@@ -121,29 +126,32 @@ export function MarkdownEditor({
           </button>
         </div>
 
-        <div className="md-edit__tabs">
-          <button type="button" className={"md-edit__tab" + (mode === "write" ? " md-edit__tab--on" : "")} onClick={() => onModeChange("write")}>
-            Write
-          </button>
-          <button type="button" className={"md-edit__tab" + (mode === "preview" ? " md-edit__tab--on" : "")} onClick={() => onModeChange("preview")}>
-            Preview
-          </button>
-        </div>
+        {!hideTabs && (
+          <div className="md-edit__tabs">
+            <button type="button" className={"md-edit__tab" + (mode === "write" ? " md-edit__tab--on" : "")} onClick={() => onModeChange("write")}>
+              Write
+            </button>
+            <button type="button" className={"md-edit__tab" + (mode === "preview" ? " md-edit__tab--on" : "")} onClick={() => onModeChange("preview")}>
+              Preview
+            </button>
+          </div>
+        )}
       </div>
 
       {mode === "write" ? (
         <textarea
           ref={ref}
           className="md-edit__area"
+          style={{ minHeight }}
           value={value}
           onChange={(e) => onChange(e.target.value.slice(0, maxLength))}
           onKeyDown={onKeyDown}
-          placeholder="Write your post…"
+          placeholder={placeholder}
           rows={6}
           maxLength={maxLength}
         />
       ) : (
-        <div className="md-edit__preview">
+        <div className="md-edit__preview" style={{ minHeight }}>
           {value.trim() ? (
             <Markdown content={value} />
           ) : (
