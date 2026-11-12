@@ -1222,3 +1222,102 @@ export async function getAdminOverview() {
     recentDonations: recentDonations || [],
   };
 }
+
+// ============================================================================
+// SCHOLARSHIP QUERIES
+// ============================================================================
+
+export type ScholarshipDeadlineStatus =
+  | "parsed"
+  | "estimated-year-only"
+  | "rolling"
+  | "unknown";
+
+export interface Scholarship {
+  id: string;
+  title: string;
+  description: string | null;
+  provider: string | null;
+  deadline_parsed: string | null;
+  deadline_status: ScholarshipDeadlineStatus;
+  deadline_display: string | null;
+  funding_type: string | null;
+  funding_amount: string | null;
+  degree_level: string | null;
+  field_of_study: string | null;
+  image_url: string | null;
+  tags: string[];
+  apply_url: string | null;
+  source_url: string | null;
+  source: string | null;
+  verified: boolean;
+  first_seen_at: string;
+  posted_at: string;
+}
+
+export interface ScholarshipFilters {
+  q: string;
+  degree: string;
+  country: string;
+  status: string;
+  sort: "new" | "closing";
+  page: number;
+  pageSize: number;
+}
+
+export const getScholarshipsPage = unstable_cache(
+  async (f: ScholarshipFilters) => {
+    const offset = (f.page - 1) * f.pageSize;
+    let q = supabase
+      .from("scholarships")
+      .select("*", { count: "exact" })
+      .eq("verified", true);
+
+    if (f.q) {
+      const safe = f.q.replace(/[%_\\]/g, "\\$&");
+      q = q.ilike("title", "%" + safe + "%");
+    }
+    if (f.degree !== "any") {
+      q = q.ilike("degree_level", "%" + f.degree + "%");
+    }
+    if (f.country !== "any") {
+      q = q.contains("tags", [f.country]);
+    }
+    if (f.status !== "any" && f.sort !== "closing") {
+      q = q.eq("deadline_status", f.status);
+    }
+
+    if (f.sort === "closing") {
+      q = q
+        .eq("deadline_status", "parsed")
+        .gte("deadline_parsed", new Date().toISOString().slice(0, 10))
+        .order("deadline_parsed", { ascending: true, nullsFirst: false });
+    } else {
+      q = q.order("posted_at", { ascending: false });
+    }
+
+    q = q.range(offset, offset + f.pageSize - 1);
+
+    const { data, count } = await q;
+    return {
+      scholarships: (data || []) as Scholarship[],
+      totalCount: count || 0,
+    };
+  },
+  ["scholarships-page-v1"],
+  { revalidate: 60, tags: ["scholarships"] },
+);
+
+export const getScholarshipById = unstable_cache(
+  async (id: string) => {
+    const { data } = await supabase
+      .from("scholarships")
+      .select("*")
+      .eq("id", id)
+      .eq("verified", true)
+      .single();
+    return (data as Scholarship) || null;
+  },
+  ["scholarship-by-id"],
+  { revalidate: 60, tags: ["scholarships"] },
+);

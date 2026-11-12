@@ -38,6 +38,7 @@ export async function POST(req: Request) {
     "donations",
     "sidebar",
     "admin-status",
+    "scholarships",
   ]);
 
   const requestedTags =
