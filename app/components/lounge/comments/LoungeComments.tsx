@@ -83,20 +83,31 @@ export function LoungeComments({ postId }: LoungeCommentsProps) {
   }
 
   async function handleDelete(commentId: string) {
-    try {
-      const response = await fetch('/api/lounge/comments/' + commentId, {
-        method: 'DELETE',
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete comment');
-      }
-      setComments((prev) => prev.filter((c) => c.id !== commentId));
-      toast.success('Comment deleted');
-    } catch (error) {
-      console.error('Error deleting comment:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to delete comment');
+    const response = await fetch('/api/lounge/comments/' + commentId, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to delete comment');
     }
+    setComments((prev) => prev.filter((c) => c.id !== commentId));
+    toast.success('Comment deleted');
+  }
+
+  async function handleUpdate(commentId: string, nextText: string) {
+    const response = await fetch('/api/lounge/comments/' + commentId, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ comment: nextText }),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to update comment');
+    }
+    setComments((prev) =>
+      prev.map((c) => (c.id === commentId ? { ...c, comment: nextText } : c))
+    );
+    toast.success('Comment updated successfully');
   }
 
   return (
@@ -142,8 +153,10 @@ export function LoungeComments({ postId }: LoungeCommentsProps) {
             <li key={comment.id}>
               <LoungeCommentCard
                 comment={comment}
+                profiles={comment.profiles}
                 isOwner={session?.user?.id === comment.user_id}
                 onDelete={handleDelete}
+                onUpdate={handleUpdate}
               />
             </li>
           ))}
