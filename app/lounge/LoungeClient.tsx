@@ -136,13 +136,14 @@ const closeAddPostModal = () => {
       }
 
       <div className="relative">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Lounge</h1>
+        <div className="lounge-toolbar">
           <button
+            type="button"
             onClick={openAddPostModal}
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+            className="btn btn--primary"
           >
-            Add Post
+            <span className="btn__label">Add post</span>
+            <span className="btn__label btn__label--dup" aria-hidden="true">Add post</span>
           </button>
         </div>
 

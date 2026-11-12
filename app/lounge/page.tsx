@@ -2,12 +2,12 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/auth';
 import Layout from '@/app/components/layout/Layout';
 import LoungeClient from './LoungeClient';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { getLoungePosts } from '@/app/lib/queries';
+import { SITE_URL } from '@/app/lib/seo';
+import type { Metadata } from 'next';
 
 export const revalidate = 60;
-
-import type { Metadata } from 'next';
-import { SITE_URL } from '@/app/lib/seo';
 
 export const metadata: Metadata = {
   title: 'Lounge — Community',
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     title: 'Lounge — Community',
     description: 'Community discussions from students across Nepal.',
     type: 'website',
-    url: `${SITE_URL}/lounge`,
+    url: SITE_URL + '/lounge',
   },
   twitter: {
     card: 'summary_large_image',
@@ -28,19 +28,24 @@ export const metadata: Metadata = {
 };
 
 export default async function LoungePage() {
-  const session = await getServerSession(authOptions);
-  const posts = await getLoungePosts(6);
+  const [session, posts] = await Promise.all([
+    getServerSession(authOptions),
+    getLoungePosts(6),
+  ]);
 
   return (
     <Layout>
-      <div id="portal-root"></div>
-      <div className="max-w-7xl mx-auto">
-        <div className="px-8 py-8 min-h-200">
-          <LoungeClient
-            initialPosts={posts}
-            userId={session?.user?.id}
-          />
-        </div>
+      <div id="portal-root" />
+      <div className="w">
+        <PageHeader
+          eyebrow="Lounge"
+          title="The community feed."
+          description="Discussions, opportunities, and showcases from students across Nepal."
+        />
+        <LoungeClient
+          initialPosts={posts}
+          userId={session?.user?.id}
+        />
       </div>
     </Layout>
   );
