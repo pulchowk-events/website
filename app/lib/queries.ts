@@ -305,39 +305,125 @@ export const getSidebarData = unstable_cache(
 // JOB QUERIES
 // ============================================================================
 
+export interface JobFilters {
+  q: string;
+  types: string[];
+  locations: string[];
+  posted: string;
+  sources: string[];
+  salaryDisclosed: boolean;
+  closingSoon: boolean;
+  sort: "new" | "closing";
+  page: number;
+  pageSize: number;
+}
+
+export interface JobFacets {
+  types: Record<string, number>;
+  locations: Record<string, number>;
+  sources: Record<string, number>;
+}
+
+const ALL_TYPES = ["full-time", "part-time", "internship", "contract", "freelance"];
+const KNOWN_LOCATIONS = ["kathmandu", "lalitpur", "bhaktapur", "pokhara", "remote"];
+const KNOWN_SOURCES = ["merojob", "kumarijob", "sathijob", "internsathi"];
+
+export const getJobFacets = unstable_cache(
+  async (): Promise<JobFacets> => {
+    const { data } = await supabase
+      .from("jobs")
+      .select("employment_type, location, origin")
+      .eq("verified", true);
+    const types: Record<string, number> = {};
+    const locations: Record<string, number> = {};
+    const sources: Record<string, number> = {};
+    for (const row of data || []) {
+      const t = (row.employment_type || "").toLowerCase();
+      for (const known of ALL_TYPES) {
+        if (t.includes(known.replace("-", " ")) || t.includes(known)) {
+          types[known] = (types[known] || 0) + 1;
+          break;
+        }
+      }
+      const loc = (row.location || "").toLowerCase();
+      for (const known of KNOWN_LOCATIONS) {
+        if (loc.includes(known)) {
+          locations[known] = (locations[known] || 0) + 1;
+          break;
+        }
+      }
+      if (row.origin?.startsWith("scraper:")) {
+        const key = row.origin.slice(8);
+        const norm = KNOWN_SOURCES.find((k) => key.includes(k)) || key;
+        sources[norm] = (sources[norm] || 0) + 1;
+      }
+    }
+    return { types, locations, sources };
+  },
+  ["job-facets"],
+  { revalidate: 60, tags: ["jobs"] },
+);
+
 export const getJobsPage = unstable_cache(
-  async (
-    employmentType: string,
-    location: string,
-    page: number,
-    pageSize: number,
-  ) => {
-    const offset = (page - 1) * pageSize;
+  async (f: JobFilters) => {
+    const offset = (f.page - 1) * f.pageSize;
+    const nowISO = new Date().toISOString();
 
     let q = supabase
       .from("jobs")
       .select("*", { count: "exact" })
-      .eq("verified", true);
+      .eq("verified", true)
+      .or("application_ends_at.is.null,application_ends_at.gte." + nowISO);
 
-    if (employmentType !== "all") {
-      q = q.ilike("employment_type", `%${employmentType}%`);
+    if (f.q) {
+      const safe = f.q.replace(/[%_\\\\]/g, "\\\\$&");
+      q = q.or("title.ilike.%" + safe + "%,company.ilike.%" + safe + "%");
     }
-    if (location !== "all") {
-      q = q.ilike("location", `%${location}%`);
+
+    if (f.types.length > 0) {
+      const orParts = f.types.map((t) => "employment_type.ilike.%" + t.replace("-", " ") + "%");
+      q = q.or(orParts.join(","));
     }
 
-    // Exclude jobs whose deadline has passed — but keep jobs with no deadline set
-    const nowISO = new Date().toISOString();
-    q = q.or(`application_ends_at.is.null,application_ends_at.gte.${nowISO}`);
+    if (f.locations.length > 0) {
+      const orParts = f.locations.map((l) => "location.ilike.%" + l + "%");
+      q = q.or(orParts.join(","));
+    }
 
-    q = q
-      .order("posted_at", { ascending: false })
-      .range(offset, offset + pageSize - 1);
+    if (f.posted === "24h") {
+      q = q.gte("posted_at", new Date(Date.now() - 864e5).toISOString());
+    } else if (f.posted === "7d") {
+      q = q.gte("posted_at", new Date(Date.now() - 7 * 864e5).toISOString());
+    } else if (f.posted === "30d") {
+      q = q.gte("posted_at", new Date(Date.now() - 30 * 864e5).toISOString());
+    }
+
+    if (f.sources.length > 0) {
+      const orParts = f.sources.map((s) => "origin.ilike.%scraper:" + s + "%");
+      q = q.or(orParts.join(","));
+    }
+
+    if (f.salaryDisclosed) q = q.eq("salary_disclosed", true);
+
+    if (f.closingSoon) {
+      q = q.lte(
+        "application_ends_at",
+        new Date(Date.now() + 7 * 864e5).toISOString(),
+      );
+    }
+
+    if (f.sort === "closing") {
+      q = q.order("application_ends_at", { ascending: true, nullsFirst: false });
+    } else {
+      q = q.order("posted_at", { ascending: false });
+    }
+
+    q = q.range(offset, offset + f.pageSize - 1);
 
     const { data, count } = await q;
     return { jobs: data || [], totalCount: count || 0 };
   },
-  ["jobs-page"],
+  ["jobs-page-v2"],
   { revalidate: 60, tags: ["jobs"] },
 );
 
