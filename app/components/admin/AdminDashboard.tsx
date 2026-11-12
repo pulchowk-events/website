@@ -1,25 +1,31 @@
 'use client';
 
-import { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import {
-  Users,
-  Heart,
-  Package,
-  CheckCircle,
-  Clock,
   LayoutDashboard,
+  Calendar,
+  Heart,
+  Clock,
   Gift,
   CalendarDays,
   UserPlus,
   Bell,
   Flag,
   Menu,
-  Calendar,
-  X
+  X,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+
+import AdminStats from './AdminStats';
+import AdminEditDonations from './AdminEditDonations';
+import PendingProducts from './PendingProducts';
+import AdminProductForm from './AdminProductForm';
+import AdminEventForm from './AdminEventForm';
+import AdminUserForm from './AdminUserForm';
+import AdminNotificationAdder from './AdminNotificationAdder';
+import AdminReports from './AdminReports';
+import AdminPendingEvents from './AdminPendingEvents';
+import { ThemeToggle } from '@/app/components/layout/ThemeToggle';
 
 interface DashboardStats {
   totalProducts: number;
@@ -30,286 +36,284 @@ interface DashboardStats {
   totalDonations: number;
 }
 
-interface AdminStatsProps {
-  stats: DashboardStats;
-}
-
 interface AdminDashboardProps {
   session: any;
   dashboardStats: DashboardStats;
 }
 
-import AdminStats from './AdminStats';
-import AdminEditDonations from './AdminEditDonations';
-import PendingProducts from './PendingProducts';
-import AdminProductForm from './AdminProductForm';
-import AdminEventForm from './AdminEventForm';
-import AdminUserForm from './AdminUserForm';
-import AdminNotificationAdder from './AdminNotificationAdder';
-import AdminReports from './AdminReports';
-import AdminPendingEvents from './AdminPendingEvents'
-import { ThemeToggle } from '@/app/components/layout/ThemeToggle';
+const NAV_ITEMS = [
+  { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
+  { id: 'pending-events', label: 'Pending events', icon: Calendar },
+  { id: 'donations', label: 'Donations', icon: Heart },
+  { id: 'pending', label: 'Pending products', icon: Clock },
+  { id: 'add-product', label: 'Add product', icon: Gift },
+  { id: 'add-event', label: 'Add event', icon: CalendarDays },
+  { id: 'manage-admins', label: 'Manage admins', icon: UserPlus },
+  { id: 'notifications', label: 'Broadcast', icon: Bell },
+  { id: 'reports', label: 'Reports', icon: Flag },
+] as const;
 
-const navItems = [
-  { id: "dashboard", label: "General", icon: <LayoutDashboard size={18} /> },
-  { id: "pending-events", label: "Pending Events", icon: <Calendar size={18} /> },
-  { id: "donations", label: "Donations", icon: <Heart size={18} /> },
-  { id: "pending", label: "Pending Products", icon: <Clock size={18} /> },
-  { id: "add-product", label: "Add Product", icon: <Gift size={18} /> },
-  { id: "add-event", label: "Add Event", icon: <CalendarDays size={18} /> },
-  { id: "manage-admins", label: "Manage Admins", icon: <UserPlus size={18} /> },
-  { id: "notifications", label: "Broadcast", icon: <Bell size={18} /> },
-  { id: "reports", label: "Reports", icon: <Flag size={18} /> }
-];
+type NavId = typeof NAV_ITEMS[number]['id'];
 
 export default function AdminDashboard({ session, dashboardStats }: AdminDashboardProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [activeTab, setActiveTab] = useState<NavId>('dashboard');
+
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSidebarOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [sidebarOpen]);
+
+  const activeLabel = NAV_ITEMS.find((i) => i.id === activeTab)?.label ?? 'Overview';
 
   return (
-    <div className="flex bg-background text-foreground">
-      {/* Mobile sidebar toggle */}
-      <div className="lg:hidden fixed top-4 right-4 z-101">
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-2 rounded-md bg-card text-foreground hover:bg-accent transition-colors border border-border"
-        >
-          {sidebarOpen ? <X size={20} /> : <Menu size={24} />}
-        </button>
-      </div>
+    <div className="admin-shell">
+      {sidebarOpen && (
+        <div className="admin-scrim" onClick={() => setSidebarOpen(false)} aria-hidden="true" />
+      )}
 
-      {/* Sidebar */}
-      <div
-        className={`fixed lg:static inset-y-0 left-0 z-100 w-64 transform transition-transform duration-300 bg-background border-r border-border dotted-border-vertical
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+      <aside
+        className={'admin-sidebar' + (sidebarOpen ? ' admin-sidebar--open' : '')}
+        aria-label="Admin navigation"
       >
-        <div className="flex flex-col h-full ">
-          <div className="p-4 border-b h-16 border-border dotted-border-horizontal">
-            <h1 className="text-xl text-foreground flex items-center">
-              <a href="/">
-                Pulchowk Events
-              </a>
-            </h1>
-          </div>
+        <header className="admin-sidebar__head">
+          <a href="/" className="admin-sidebar__logo">
+            Pulchowk Events
+          </a>
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(false)}
+            className="admin-sidebar__close"
+            aria-label="Close navigation"
+          >
+            <X size={18} />
+          </button>
+        </header>
 
-          <nav className="flex-1 py-4 overflow-y-auto">
-            <ul className="space-y-1 px-2">
-              {navItems.map((item) => (
-                <li key={item.id}>
-                  <button
-                    onClick={() => {
-                      setActiveTab(item.id);
-                      setSidebarOpen(false);
-                    }}
-                    className={`w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
-                    ${activeTab === item.id
-                      ? 'bg-green-500/20 text-green-700 dark:text-green-400 border border-green-500/20'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-accent'}`}
-                  >
-                    <span className="mr-3">{item.icon}</span>
-                    {item.label}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        </div>
-      </div>
+        <nav className="admin-sidebar__nav">
+          {NAV_ITEMS.map((item) => {
+            const Icon = item.icon;
+            const active = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => {
+                  setActiveTab(item.id);
+                  setSidebarOpen(false);
+                }}
+                className="admin-nav-btn"
+                aria-current={active ? 'page' : undefined}
+              >
+                <Icon size={16} />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      </aside>
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden bg-background">
-        {/* Header */}
-        <header className="border-b h-16 dotted-border-horizontal border-border bg-background/60 backdrop-blur-lg">
-          <div className="h-full flex items-center justify-between px-6">
-            <h2 className="text-xl font-medium text-foreground">
-              {navItems.find(item => item.id === activeTab)?.label || "Dashboard"}
-            </h2>
-            <div className="flex items-center space-x-4">
-              <ThemeToggle />
-              <div className="p-4 border-l border-border dotted-border-vertical">
-                <div className="flex items-center">
-                  <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center">
-                    <img
-                      src={session?.user?.image}
-                      alt="A"
-                      className="w-full h-full object-cover rounded-full"
-                    />
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm font-medium text-foreground">{session?.user?.name || 'Admin User'}</p>
-                    <p className="text-xs text-muted-foreground">{session?.user?.email || 'admin@example.com'}</p>
-                  </div>
-                </div>
+      <div className="admin-body">
+        <header className="admin-header">
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(true)}
+            className="admin-header__hamburger"
+            aria-label="Open navigation"
+          >
+            <Menu size={18} />
+          </button>
+          <h1 className="admin-header__title">{activeLabel}</h1>
+
+          <div className="admin-header__actions">
+            <ThemeToggle />
+            <div className="admin-user">
+              <span className="admin-user__avatar">
+                {session?.user?.image ? (
+                  <Image
+                    src={session.user.image}
+                    alt={session?.user?.name || 'Admin'}
+                    width={28}
+                    height={28}
+                    className="admin-user__avatar-img"
+                  />
+                ) : (
+                  <span className="admin-user__initial">
+                    {session?.user?.name?.charAt(0)?.toUpperCase() || 'A'}
+                  </span>
+                )}
+              </span>
+              <div className="admin-user__meta">
+                <span className="admin-user__name">{session?.user?.name || 'Admin'}</span>
+                <span className="admin-user__email">{session?.user?.email || ''}</span>
               </div>
             </div>
           </div>
         </header>
 
-        {/* Content area */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
-          <div className="max-w-7xl mx-auto">
-            {activeTab === "dashboard" && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-                className="space-y-6"
-              >
-                <h3 className="text-xl font-medium text-foreground">Dashboard Overview</h3>
+        <main className="admin-main">
+          <div className="admin-content">
+            {activeTab === 'dashboard' && (
+              <div className="admin-panel-stack">
                 <AdminStats stats={dashboardStats} />
 
-                <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Card className="bg-card/50 border-border dotted-border-horizontal">
-                    <CardHeader>
-                      <CardTitle className="text-foreground">Recent Activity</CardTitle>
-                      <CardDescription className="text-muted-foreground">Latest activities on the platform</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {[1, 2, 3].map((_, i) => (
-                          <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 border border-border">
-                            <div className={`w-2 h-2 rounded-full ${i === 0 ? 'bg-green-500' : i === 1 ? 'bg-green-500' : 'bg-amber-500'}`}></div>
+                <div className="admin-two-col">
+                  <section className="admin-panel">
+                    <header className="admin-panel__head">
+                      <h2 className="admin-panel__title">Recent activity</h2>
+                      <p className="admin-panel__desc">Latest activity across the platform.</p>
+                    </header>
+                    <div className="admin-panel__body">
+                      <ul className="admin-activity">
+                        {[
+                          { tone: 'g', label: 'New product approved', time: '2 hours ago' },
+                          { tone: 'g', label: 'Donation received', time: '5 hours ago' },
+                          { tone: 'a', label: 'New event added', time: 'Yesterday' },
+                        ].map((row, i) => (
+                          <li key={i} className="admin-activity__row">
+                            <span
+                              className="admin-activity__dot"
+                              style={{ background: 'var(--' + row.tone + ')' }}
+                              aria-hidden="true"
+                            />
                             <div>
-                              <p className="text-sm text-foreground">
-                                {i === 0 ? 'New product approved' : i === 1 ? 'Donation received' : 'New event added'}
-                              </p>
-                              <p className="text-xs text-muted-foreground">{i === 0 ? '2 hours ago' : i === 1 ? '5 hours ago' : 'Yesterday'}</p>
+                              <p className="admin-activity__label">{row.label}</p>
+                              <p className="admin-activity__time">{row.time}</p>
                             </div>
-                          </div>
+                          </li>
                         ))}
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </ul>
+                    </div>
+                  </section>
 
-                  <Card className="bg-card/50 border-border dotted-border-horizontal">
-                    <CardHeader>
-                      <CardTitle className="text-foreground">Quick Actions</CardTitle>
-                      <CardDescription className="text-muted-foreground">Common administrative tasks</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 gap-3">
-                        {['Approve Products', 'Add Product', 'New Event', 'Send Broadcast'].map((action, i) => (
+                  <section className="admin-panel">
+                    <header className="admin-panel__head">
+                      <h2 className="admin-panel__title">Quick actions</h2>
+                      <p className="admin-panel__desc">Common administrative tasks.</p>
+                    </header>
+                    <div className="admin-panel__body">
+                      <div className="admin-quick">
+                        {[
+                          { label: 'Approve products', target: 'pending' },
+                          { label: 'Add product', target: 'add-product' },
+                          { label: 'New event', target: 'add-event' },
+                          { label: 'Send broadcast', target: 'notifications' },
+                        ].map((action) => (
                           <button
-                            key={i}
-                            className="p-3 rounded-lg bg-muted/30 border border-border text-sm text-foreground hover:bg-accent transition-colors text-left flex flex-col"
-                            onClick={() => {
-                              if (i === 0) setActiveTab("pending");
-                              if (i === 1) setActiveTab("add-product");
-                              if (i === 2) setActiveTab("add-event");
-                              if (i === 3) setActiveTab("notifications");
-                            }}
+                            key={action.target}
+                            type="button"
+                            onClick={() => setActiveTab(action.target as NavId)}
+                            className="admin-quick__btn"
                           >
-                            <span className="font-medium">{action}</span>
-                            <span className="text-xs text-muted-foreground mt-1">Quick access</span>
+                            <span className="admin-quick__title">{action.label}</span>
+                            <span className="admin-quick__sub">Quick access</span>
                           </button>
                         ))}
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </section>
                 </div>
-              </motion.div>
+              </div>
             )}
 
-            {activeTab === "pending-events" && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-                <Card className="bg-card/50 border-border dotted-border-horizontal">
-                  <CardHeader>
-                    <CardTitle className="text-foreground">Pending Events</CardTitle>
-                    <CardDescription className="text-muted-foreground">
-                      Review and manage submitted events
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent><AdminPendingEvents /></CardContent>
-                </Card>
-              </motion.div>
+            {activeTab === 'pending-events' && (
+              <AdminPanel
+                title="Pending events"
+                description="Review and manage submitted events."
+              >
+                <AdminPendingEvents />
+              </AdminPanel>
             )}
 
-            {activeTab === "donations" && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-                <Card className="bg-card/50 border-border dotted-border-horizontal">
-                  <CardHeader>
-                    <CardTitle className="text-foreground">Manage Donations</CardTitle>
-                    <CardDescription className="text-muted-foreground">View and manage all donation records</CardDescription>
-                  </CardHeader>
-                  <CardContent><AdminEditDonations /></CardContent>
-                </Card>
-              </motion.div>
+            {activeTab === 'donations' && (
+              <AdminPanel
+                title="Donations"
+                description="View and manage all donation records."
+              >
+                <AdminEditDonations />
+              </AdminPanel>
             )}
 
-            {activeTab === "pending" && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-                <Card className="bg-card/50 border-border dotted-border-horizontal">
-                  <CardHeader>
-                    <CardTitle className="text-foreground">Pending Product Approvals</CardTitle>
-                    <CardDescription className="text-muted-foreground">Review and approve or reject submitted products</CardDescription>
-                  </CardHeader>
-                  <CardContent><PendingProducts /></CardContent>
-                </Card>
-              </motion.div>
+            {activeTab === 'pending' && (
+              <AdminPanel
+                title="Pending products"
+                description="Review and approve or reject submitted products."
+              >
+                <PendingProducts />
+              </AdminPanel>
             )}
 
-            {activeTab === "add-product" && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-                <Card className="bg-card/50 border-border dotted-border-horizontal">
-                  <CardHeader>
-                    <CardTitle className="text-foreground">Add New Product</CardTitle>
-                    <CardDescription className="text-muted-foreground">Directly add an approved product to the marketplace</CardDescription>
-                  </CardHeader>
-                  <CardContent><AdminProductForm /></CardContent>
-                </Card>
-              </motion.div>
+            {activeTab === 'add-product' && (
+              <AdminPanel
+                title="Add product"
+                description="Directly add an approved product to the marketplace."
+              >
+                <AdminProductForm />
+              </AdminPanel>
             )}
 
-            {activeTab === "add-event" && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-                <Card className="bg-card/50 border-border dotted-border-horizontal">
-                  <CardHeader>
-                    <CardTitle className="text-foreground">Add New Event</CardTitle>
-                    <CardDescription className="text-muted-foreground">Schedule and publish new events to the platform</CardDescription>
-                  </CardHeader>
-                  <CardContent><AdminEventForm /></CardContent>
-                </Card>
-              </motion.div>
+            {activeTab === 'add-event' && (
+              <AdminPanel
+                title="Add event"
+                description="Schedule and publish a new event."
+              >
+                <AdminEventForm />
+              </AdminPanel>
             )}
 
-            {activeTab === "manage-admins" && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-                <Card className="bg-card/50 border-border dotted-border-horizontal">
-                  <CardHeader>
-                    <CardTitle className="text-foreground">Admin User Management</CardTitle>
-                    <CardDescription className="text-muted-foreground">Add or remove administrator privileges</CardDescription>
-                  </CardHeader>
-                  <CardContent><AdminUserForm /></CardContent>
-                </Card>
-              </motion.div>
+            {activeTab === 'manage-admins' && (
+              <AdminPanel
+                title="Manage admins"
+                description="Add or remove administrator privileges."
+              >
+                <AdminUserForm />
+              </AdminPanel>
             )}
 
-            {activeTab === "notifications" && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-                <Card className="bg-card/50 border-border dotted-border-horizontal">
-                  <CardHeader>
-                    <CardTitle className="text-foreground">Broadcast Notifications</CardTitle>
-                    <CardDescription className="text-muted-foreground">Send notifications to all users</CardDescription>
-                  </CardHeader>
-                  <CardContent><AdminNotificationAdder /></CardContent>
-                </Card>
-              </motion.div>
+            {activeTab === 'notifications' && (
+              <AdminPanel
+                title="Broadcast notification"
+                description="Send notifications to all users."
+              >
+                <AdminNotificationAdder />
+              </AdminPanel>
             )}
 
-            {activeTab === "reports" && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-                <Card className="bg-card/50 border-border dotted-border-horizontal">
-                  <CardHeader>
-                    <CardTitle className="text-foreground">Reported Posts</CardTitle>
-                    <CardDescription className="text-muted-foreground">Review and manage reported content</CardDescription>
-                  </CardHeader>
-                  <CardContent><AdminReports /></CardContent>
-                </Card>
-              </motion.div>
+            {activeTab === 'reports' && (
+              <AdminPanel
+                title="Reports"
+                description="Review and manage reported content."
+              >
+                <AdminReports />
+              </AdminPanel>
             )}
           </div>
         </main>
       </div>
     </div>
+  );
+}
+
+function AdminPanel({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="admin-panel">
+      <header className="admin-panel__head">
+        <h2 className="admin-panel__title">{title}</h2>
+        <p className="admin-panel__desc">{description}</p>
+      </header>
+      <div className="admin-panel__body">{children}</div>
+    </section>
   );
 }
