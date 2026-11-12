@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Dialog } from '@headlessui/react';
 import { X, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
@@ -13,47 +12,39 @@ interface ReportModalProps {
 }
 
 const reportTypes = [
-  { value: 'spam', label: 'Spam or Misleading' },
-  { value: 'inappropriate', label: 'Inappropriate Content' },
-  { value: 'harassment', label: 'Harassment or Hate Speech' },
+  { value: 'spam', label: 'Spam or misleading' },
+  { value: 'inappropriate', label: 'Inappropriate content' },
+  { value: 'harassment', label: 'Harassment or hate speech' },
   { value: 'misinformation', label: 'Misinformation' },
-  { value: 'other', label: 'Other' }
+  { value: 'other', label: 'Other' },
 ] as const;
 
 type ReportType = typeof reportTypes[number]['value'];
 
 export default function ReportModal({ postId, postTitle, onClose }: ReportModalProps) {
-  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     type: '' as ReportType,
-    reason: ''
+    reason: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
     try {
       const response = await fetch('/api/lounge/posts/report', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           postId,
           type: formData.type,
           reason: formData.reason,
         }),
       });
-
       const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to submit report');
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to submit report');
-      }
-
-      toast.success('Report submitted successfully');
+      toast.success('Report submitted');
       onClose();
     } catch (error) {
       console.error('Error submitting report:', error);
@@ -64,97 +55,111 @@ export default function ReportModal({ postId, postTitle, onClose }: ReportModalP
   };
 
   return (
-    <Dialog
-      open={true}
-      onClose={onClose}
-      className="fixed inset-0 z-50 overflow-y-auto"
-    >
-      <div className="flex min-h-screen items-center justify-center p-4">
-        {/* Backdrop */}
-        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm" aria-hidden="true" />
+    <Dialog open={true} onClose={onClose} className="modal-backdrop">
+      <Dialog.Panel
+        className="modal"
+        style={{ maxWidth: 480 }}
+        onClick={(e: React.MouseEvent) => e.stopPropagation()}
+      >
+        <header className="modal__head">
+          <Dialog.Title
+            className="modal__title"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+          >
+            <AlertTriangle size={16} style={{ color: 'var(--a)' }} />
+            Report post
+          </Dialog.Title>
+          <button
+            type="button"
+            onClick={onClose}
+            className="modal__close"
+            aria-label="Close"
+          >
+            <X size={18} />
+          </button>
+        </header>
 
-        <div className="relative bg-popover border border-border rounded-xl w-full max-w-md shadow-2xl">
-          <div className="border-b border-border px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-green-600 dark:text-green-500" />
-                <Dialog.Title className="text-xl font-semibold text-foreground">
-                  Report Post
-                </Dialog.Title>
-              </div>
-              <button
-                onClick={onClose}
-                className="text-muted-foreground hover:text-foreground transition-colors"
+        <form onSubmit={handleSubmit}>
+          <div className="modal__body">
+            <div>
+              <p className="page-header__eyebrow" style={{ marginBottom: 8 }}>
+                Post being reported
+              </p>
+              <div
+                style={{
+                  padding: '10px 14px',
+                  background: 'var(--surface-2)',
+                  borderRadius: 8,
+                  fontSize: 14,
+                  color: 'var(--t)',
+                  boxShadow: '0 0 0 1px var(--l2)',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
               >
-                <X size={24} />
-              </button>
+                {postTitle}
+              </div>
+            </div>
+
+            <div>
+              <p className="page-header__eyebrow" style={{ marginBottom: 8 }}>
+                Reason
+              </p>
+              <div className="tabs" role="tablist" aria-label="Report reason">
+                {reportTypes.map((t) => (
+                  <button
+                    type="button"
+                    key={t.value}
+                    role="tab"
+                    aria-selected={formData.type === t.value}
+                    className={'tab' + (formData.type === t.value ? ' tab--on' : '')}
+                    onClick={() => setFormData({ ...formData, type: t.value })}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <p className="page-header__eyebrow" style={{ marginBottom: 8 }}>
+                Details
+              </p>
+              <textarea
+                value={formData.reason}
+                onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+                className="input input--multi"
+                placeholder="What's wrong with this post?"
+                rows={4}
+                required
+              />
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-6">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Post Being Reported
-                </label>
-                <div className="p-3 bg-muted rounded-lg text-foreground text-sm">
-                  {postTitle}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Report Type
-                </label>
-                <select
-                  value={formData.type}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value as ReportType })}
-                  className="w-full bg-background border border-border rounded-lg px-4 py-2 text-foreground"
-                  required
-                >
-                  <option value="">Select a reason</option>
-                  {reportTypes.map(type => (
-                    <option key={type.value} value={type.value}>
-                      {type.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Additional Details
-                </label>
-                <textarea
-                  value={formData.reason}
-                  onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                  className="w-full min-h-[100px] bg-background border border-border rounded-lg px-4 py-2 text-foreground placeholder:text-muted-foreground"
-                  placeholder="Please provide more details about your report..."
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="mt-6 flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 text-sm bg-secondary hover:bg-accent text-secondary-foreground rounded-lg"
-                disabled={isSubmitting}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="px-4 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg disabled:opacity-50"
-              >
-                {isSubmitting ? 'Submitting...' : 'Submit Report'}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
+          <div className="modal__foot">
+            <button
+              type="button"
+              onClick={onClose}
+              className="btn btn--secondary"
+              disabled={isSubmitting}
+            >
+              <span className="btn__label">Cancel</span>
+              <span className="btn__label btn__label--dup" aria-hidden="true">Cancel</span>
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting || !formData.type}
+              className="btn btn--primary"
+            >
+              <span className="btn__label">{isSubmitting ? 'Submitting…' : 'Submit report'}</span>
+              <span className="btn__label btn__label--dup" aria-hidden="true">
+                {isSubmitting ? 'Submitting…' : 'Submit report'}
+              </span>
+            </button>
+          </div>
+        </form>
+      </Dialog.Panel>
     </Dialog>
   );
 }

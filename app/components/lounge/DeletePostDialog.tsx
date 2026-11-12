@@ -15,29 +15,23 @@ interface DeletePostDialogProps {
 export default function DeletePostDialog({
   postId,
   postTitle,
-  onClose
+  onClose,
 }: DeletePostDialogProps) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
     setIsDeleting(true);
-
     try {
-      const response = await fetch(`/api/lounge/posts/${postId}`, {
+      const response = await fetch('/api/lounge/posts/' + postId, {
         method: 'DELETE',
       });
-
       const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to delete post');
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to delete post');
-      }
-
-      toast.success('Post deleted successfully');
-      router.refresh();
-      router.push('/lounge');
+      toast.success('Post deleted');
       onClose();
+      router.push('/lounge');
     } catch (error) {
       console.error('Error deleting post:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to delete post');
@@ -47,57 +41,59 @@ export default function DeletePostDialog({
   };
 
   return (
-    <Dialog
-      open={true}
-      onClose={onClose}
-      className="fixed inset-0 z-50 overflow-y-auto"
-    >
-      <div className="flex min-h-screen items-center justify-center p-4">
-        {/* Backdrop */}
-        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm" aria-hidden="true" />
+    <Dialog open={true} onClose={onClose} className="modal-backdrop">
+      <Dialog.Panel
+        className="modal"
+        style={{ maxWidth: 440 }}
+        onClick={(e: React.MouseEvent) => e.stopPropagation()}
+      >
+        <header className="modal__head">
+          <Dialog.Title className="modal__title">Delete post</Dialog.Title>
+          <button
+            type="button"
+            onClick={onClose}
+            className="modal__close"
+            aria-label="Close"
+          >
+            <X size={18} />
+          </button>
+        </header>
 
-        <div className="relative bg-popover border border-border rounded-xl w-full max-w-md shadow-2xl">
-          <div className="border-b border-border px-6 py-4">
-            <div className="flex items-center justify-between">
-              <Dialog.Title className="text-xl font-semibold text-foreground">
-                Delete Post
-              </Dialog.Title>
-              <button
-                onClick={onClose}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <X size={24} />
-              </button>
-            </div>
-          </div>
-
-          <div className="p-6">
-            <p className="text-muted-foreground mb-6">
-              Are you sure you want to delete &quot;{postTitle}&quot;? This action cannot be undone
-              and will delete all comments associated with this post.
-            </p>
-
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 text-sm bg-secondary hover:bg-accent text-secondary-foreground rounded-lg"
-                disabled={isDeleting}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="px-4 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg disabled:opacity-50"
-              >
-                {isDeleting ? 'Deleting...' : 'Delete Post'}
-              </button>
-            </div>
-          </div>
+        <div className="modal__body">
+          <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--m)' }}>
+            Delete &ldquo;{postTitle}&rdquo;? This action cannot be undone and will delete all
+            comments associated with this post.
+          </p>
         </div>
-      </div>
+
+        <div className="modal__foot">
+          <button
+            type="button"
+            onClick={onClose}
+            className="btn btn--secondary"
+            disabled={isDeleting}
+          >
+            <span className="btn__label">Cancel</span>
+            <span className="btn__label btn__label--dup" aria-hidden="true">Cancel</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="btn btn--primary"
+            style={{ background: 'var(--danger)', color: 'var(--t)' }}
+          >
+            <span className="btn__label">{isDeleting ? 'Deleting…' : 'Delete post'}</span>
+            <span
+              className="btn__label btn__label--dup"
+              aria-hidden="true"
+              style={{ background: 'var(--danger)', color: 'var(--t)' }}
+            >
+              {isDeleting ? 'Deleting…' : 'Delete post'}
+            </span>
+          </button>
+        </div>
+      </Dialog.Panel>
     </Dialog>
   );
 }
