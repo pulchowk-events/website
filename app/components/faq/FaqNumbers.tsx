@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-export interface AboutNumber {
+export interface FaqNumber {
   value: number;
   suffix?: string;
   label: string;
@@ -43,19 +43,19 @@ function Count({ value, suffix }: { value: number; suffix?: string }) {
   );
 }
 
-export function AboutNumbers({ numbers }: { numbers: AboutNumber[] }) {
+export function FaqNumbers({ numbers }: { numbers: FaqNumber[] }) {
   return (
-    <dl className="about-numbers">
+    <dl className="faq-numbers">
       {numbers.map((n, i) => (
         <div
           key={n.label}
-          className="about-number"
+          className="faq-number"
           style={{ '--d': i * 80 + 'ms' } as React.CSSProperties}
         >
-          <dd className="about-number__value">
+          <dd className="faq-number__value">
             <Count value={n.value} suffix={n.suffix} />
           </dd>
-          <dt className="about-number__label">{n.label}</dt>
+          <dt className="faq-number__label">{n.label}</dt>
         </div>
       ))}
     </dl>

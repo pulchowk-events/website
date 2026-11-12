@@ -1,12 +1,21 @@
 import { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  reactStrictMode: true, // Helps with React warnings
+  reactStrictMode: true,
   images: {
-    domains: ['anzrkakfmuohsyootolj.supabase.co', 'cdn.discordapp.com', 'lh3.googleusercontent.com'], // Add your image domains here
+    domains: [
+      'anzrkakfmuohsyootolj.supabase.co',
+      'cdn.discordapp.com',
+      'lh3.googleusercontent.com',
+    ],
   },
   typescript: {
-    ignoreBuildErrors: true, // This will suppress TypeScript errors during build
+    ignoreBuildErrors: true,
+  },
+  async redirects() {
+    return [
+      { source: '/about', destination: '/faq', permanent: true },
+    ];
   },
 };
 

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Calendar, Briefcase, LucideBox, MessageCircle,
-  Info, Heart, LayoutGrid, Home,
+  Info, Heart, LayoutGrid, Home, HelpCircle,
 } from 'lucide-react';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 
@@ -23,7 +23,7 @@ const GROUPS = [
     label: 'Community',
     items: [
       { href: '/donate', label: 'Donate', icon: Heart },
-      { href: '/about', label: 'About', icon: Info },
+      { href: '/faq', label: 'FAQ', icon: HelpCircle },
     ],
   },
 ];

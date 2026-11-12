@@ -2,18 +2,9 @@
 
 import { useEffect } from 'react';
 
-/**
- * Site-wide bootstrapping for the About page:
- *   1. Adds `.about-reveal-active` to <html> so the initial invisible state
- *      only applies once JS has run (no-JS users see everything).
- *   2. Observes [data-reveal] elements, flips them to data-reveal="in"
- *      when they enter the viewport — CSS owns the transition.
- *   3. Tracks mouse position over the current .about-section and writes
- *      --mx/--my so the section's radial glow follows the cursor.
- */
-export function AboutInteractions() {
+export function FaqInteractions() {
   useEffect(() => {
-    document.documentElement.classList.add('about-reveal-active');
+    document.documentElement.classList.add('faq-reveal-active');
 
     const els = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'));
     const io = new IntersectionObserver(
@@ -49,7 +40,7 @@ export function AboutInteractions() {
       my = e.clientY;
       if (e.target !== lastTarget) {
         lastTarget = e.target;
-        const next = (e.target as HTMLElement).closest?.('.about-section') as HTMLElement | null;
+        const next = (e.target as HTMLElement).closest?.('.faq-section') as HTMLElement | null;
         if (next !== currentSection) {
           currentSection = next;
           currentRect = null;
@@ -72,7 +63,7 @@ export function AboutInteractions() {
       document.removeEventListener('mousemove', onMove);
       window.removeEventListener('scroll', invalidate);
       window.removeEventListener('resize', invalidate);
-      document.documentElement.classList.remove('about-reveal-active');
+      document.documentElement.classList.remove('faq-reveal-active');
     };
   }, []);
 

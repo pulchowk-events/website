@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   Menu, X, Search, Home, Calendar, Briefcase,
-  MessageCircle, Info, Heart, LayoutGrid, LucideBox, User,
+  MessageCircle, Info, Heart, LayoutGrid, LucideBox, User, HelpCircle,
 } from 'lucide-react';
 import NotificationDropdown from './NotificationDropdown';
 import SignInModal from '@/app/components/signIn/SignInModal';
@@ -19,7 +19,7 @@ const NAV_LINKS = [
   { href: '/jobs', label: 'Jobs', icon: Briefcase },
   { href: '/product-hunt', label: 'Projects', icon: LucideBox },
   { href: '/lounge', label: 'Lounge', icon: MessageCircle },
-  { href: '/about', label: 'About', icon: Info },
+  { href: '/faq', label: 'FAQ', icon: HelpCircle },
   { href: '/donate', label: 'Donate', icon: Heart },
 ];
 
