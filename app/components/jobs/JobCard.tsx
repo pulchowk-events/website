@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import JobImage from './JobImage';
 import { MapPin, Briefcase, DollarSign, Calendar } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
 
 interface Job {
   id: string;
@@ -34,63 +33,45 @@ export default function JobCard({ job }: { job: Job }) {
   const sourceLabel = formatSourceLabel(job.origin);
 
   return (
-    <Link href={`/jobs/${job.id}`}>
-      <article className="bg-card border border-border rounded-xl p-5 hover:border-green-500/50 hover:shadow-lg transition-all mb-4 group">
-        <div className="flex items-start gap-4">
-          {/* Company logo */}
-            <div className="w-14 h-14 rounded-lg bg-muted flex-shrink-0 overflow-hidden">
-            <div className="w-14 h-14 rounded-lg bg-muted flex-shrink-0 overflow-hidden">
-            <JobImage
-                src={job.image_url}
-                alt={job.company}
-                jobId={job.id}
-            />
-            </div>
-            </div>
+    <Link href={'/jobs/' + job.id} className="job-card">
+      <div className="job-card__logo">
+        <JobImage src={job.image_url} alt={job.company} jobId={job.id} />
+      </div>
 
-          {/* Main content */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-3 mb-1">
-              <h3 className="text-lg font-semibold text-foreground group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors line-clamp-1">
-                {job.title}
-              </h3>
-              {sourceLabel && (
-                <span className="text-xs text-muted-foreground flex-shrink-0">
-                  via {sourceLabel}
-                </span>
-              )}
-            </div>
-            <p className="text-sm font-medium text-foreground mb-3">{job.company}</p>
-
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
-              {job.location && (
-                <div className="flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate">{job.location}</span>
-                </div>
-              )}
-              {job.employment_type && (
-                <div className="flex items-center gap-1.5">
-                  <Briefcase className="w-4 h-4 flex-shrink-0" />
-                  <span>{job.employment_type}</span>
-                </div>
-              )}
-              {job.salary && (
-                <div className="flex items-center gap-1.5">
-                  <DollarSign className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate">{job.salary}</span>
-                </div>
-              )}
-              {job.application_ends_raw && (
-                <div className="flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate">Apply by {job.application_ends_raw}</span>
-                </div>
-              )}
-            </div>
-          </div>
+      <div className="job-card__body">
+        <div className="job-card__head">
+          <h3 className="job-card__title">{job.title}</h3>
+          {sourceLabel && <span className="job-card__source">via {sourceLabel}</span>}
         </div>
-      </article>
+        <p className="job-card__company">{job.company}</p>
+
+        <div className="job-card__meta">
+          {job.location && (
+            <span className="job-card__meta-item">
+              <MapPin size={14} />
+              <span className="job-card__truncate">{job.location}</span>
+            </span>
+          )}
+          {job.employment_type && (
+            <span className="job-card__meta-item">
+              <Briefcase size={14} />
+              <span>{job.employment_type}</span>
+            </span>
+          )}
+          {job.salary && (
+            <span className="job-card__meta-item">
+              <DollarSign size={14} />
+              <span className="job-card__truncate">{job.salary}</span>
+            </span>
+          )}
+          {job.application_ends_raw && (
+            <span className="job-card__meta-item">
+              <Calendar size={14} />
+              <span className="job-card__truncate">Apply by {job.application_ends_raw}</span>
+            </span>
+          )}
+        </div>
+      </div>
     </Link>
   );
 }
