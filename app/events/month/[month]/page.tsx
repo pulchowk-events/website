@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Layout from '@/app/components/layout/Layout';
-import EventCard from '@/app/components/events/EventCard';
+import { EventGridCard } from "@/app/components/events/EventGridCard";
 import { PageHeader } from '@/components/ui/PageHeader';
 import { getEventsByMonth } from '@/app/lib/queries';
 import { SITE_URL, breadcrumbSchema, formatMonthSlug } from '@/app/lib/seo';
@@ -84,12 +84,7 @@ export default async function MonthPage({
 
         <div className="events-grid">
           {events.map((event) => (
-            <EventCard
-              key={event.id}
-              event={event as any}
-              isPast={new Date(event.event_date) < now}
-              isAdmin={false}
-            />
+            <EventGridCard key={event.id} event={event as any} />
           ))}
         </div>
 

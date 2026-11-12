@@ -1,100 +1,141 @@
-import Layout from './components/layout/Layout';
-import Link from 'next/link';
-import { Award } from 'lucide-react';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/auth';
-import LoungeClient from './lounge/LoungeClient';
-import TopDonators from '@/app/components/donate/TopDonators';
-import { PageHeader } from '@/components/ui/PageHeader';
-import { getLoungePosts, getSidebarData } from '@/app/lib/queries';
-import { formatDateShort } from '@/app/lib/formatDate';
-import LandingRoot from '@/app/components/landing/LandingRoot';
-import '@/app/landing/landing.css';
+import Link from "next/link";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/auth";
+import Layout from "@/app/components/layout/Layout";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { PostRow } from "@/app/components/shell/rows/PostRow";
+import { ProjectRow } from "@/app/components/shell/rows/ProjectRow";
+import { EventRow } from "@/app/components/shell/rows/EventRow";
+import { JobRow } from "@/app/components/shell/rows/JobRow";
+import {
+  getHomeStats,
+  getLoungePosts,
+  getRecentProducts,
+  getUpcomingEvents,
+  getRecentJobs,
+} from "@/app/lib/queries";
 
 export const revalidate = 60;
 
+function greeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 18) return "Good afternoon";
+  return "Good evening";
+}
+
 export default async function Home() {
   const session = await getServerSession(authOptions);
-  if (!session) return <LandingRoot />;
+  const userId = session?.user?.id;
 
-  const [posts, { donors, products, upcomingEvents }] = await Promise.all([
-    getLoungePosts(6),
-    getSidebarData(),
+  const [stats, posts, projects, events, jobs] = await Promise.all([
+    getHomeStats(userId),
+    getLoungePosts(5),
+    getRecentProducts(3),
+    getUpcomingEvents(4),
+    getRecentJobs(4),
   ]);
 
-  const firstName = session.user?.name?.split(' ')[0] || 'there';
+  const firstName = session?.user?.name?.split(" ")[0];
 
   return (
-    <Layout>
-      <div className="w">
-        <PageHeader
-          eyebrow="Home"
-          title={'Welcome back, ' + firstName + '.'}
-          description="What moved while you were away."
-        />
+    <Layout railContext="home">
+      <PageHeader
+        title={session ? greeting() + ", " + (firstName || "there") : "Events, jobs and projects from across Nepal"}
+        description={
+          new Date().toLocaleDateString("en-US", {
+            weekday: "long",
+            month: "long",
+            day: "numeric",
+            timeZone: "Asia/Kathmandu",
+          })
+        }
+        actions={
+          !session ? (
+            <>
+              <Link href="/auth/signin" className="btn btn--secondary btn--sm">Sign in</Link>
+              <a href="https://discord.gg/cQ5gxusATk" target="_blank" rel="noopener noreferrer" className="btn btn--primary btn--sm">Join Discord</a>
+            </>
+          ) : undefined
+        }
+      />
 
-        <div className="home-feed">
-          <LoungeClient
-            initialPosts={posts || []}
-            userId={session?.user?.id}
-          />
+      <div className="stat-tiles">
+        <Link href="/events?tab=upcoming" className="stat-tile">
+          <span className="stat-tile__label">Events this week</span>
+          <span className="stat-tile__value">{stats.events_this_week}</span>
+        </Link>
+        <Link href="/jobs" className="stat-tile">
+          <span className="stat-tile__label">New jobs today</span>
+          <span className="stat-tile__value">{stats.jobs_24h}</span>
+        </Link>
+        <Link href={session ? "/saved" : "/product-hunt"} className="stat-tile">
+          <span className="stat-tile__label">{session ? "Your saved" : "Projects launched"}</span>
+          <span className="stat-tile__value">{session ? stats.saved_count : stats.projects_total}</span>
+        </Link>
+        <Link href="/lounge" className="stat-tile">
+          <span className="stat-tile__label">Posts today</span>
+          <span className="stat-tile__value">{stats.posts_today}</span>
+        </Link>
+      </div>
+
+      <div className="home-grid">
+        <div className="home-col home-col--wide">
+          <section className="home-section">
+            <header className="home-section__head">
+              <h2 className="home-section__title">Latest in Lounge</h2>
+              <Link href="/lounge" className="home-section__see">See all</Link>
+            </header>
+            {posts.length === 0 ? (
+              <p className="row-empty">No posts yet. <Link href="/lounge">Write the first one</Link></p>
+            ) : (
+              <div className="row-list">
+                {posts.map((p: any) => <PostRow key={p.id} post={p} />)}
+              </div>
+            )}
+          </section>
+
+          <section className="home-section">
+            <header className="home-section__head">
+              <h2 className="home-section__title">Top projects</h2>
+              <Link href="/product-hunt" className="home-section__see">See all</Link>
+            </header>
+            {projects.length === 0 ? (
+              <p className="row-empty">No projects yet. <Link href="/product-hunt">Submit yours</Link></p>
+            ) : (
+              <div className="row-list">
+                {projects.map((p: any, i: number) => <ProjectRow key={p.id} project={p} rank={i + 1} />)}
+              </div>
+            )}
+          </section>
         </div>
 
-        <div className="home-grid">
-          <section className="home-card">
-            <header className="home-card__head">
-              <h2 className="home-card__title">Upcoming events</h2>
-              <Link href="/events" className="home-card__see">See all</Link>
+        <div className="home-col">
+          <section className="home-section">
+            <header className="home-section__head">
+              <h2 className="home-section__title">Happening soon</h2>
+              <Link href="/events" className="home-section__see">See all</Link>
             </header>
-            {upcomingEvents && upcomingEvents.length > 0 ? (
-              <ul className="home-list">
-                {upcomingEvents.map((event) => (
-                  <li key={event.id}>
-                    <Link href={'/events/' + event.id} className="home-row">
-                      <span className="home-row__main">{event.title}</span>
-                      <span className="home-row__meta">{formatDateShort(event.event_date)}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+            {events.length === 0 ? (
+              <p className="row-empty">No events this week.</p>
             ) : (
-              <p className="home-empty">No upcoming events.</p>
+              <div className="row-list">
+                {events.map((e: any) => <EventRow key={e.id} event={e} compact />)}
+              </div>
             )}
           </section>
 
-          <section className="home-card">
-            <header className="home-card__head">
-              <h2 className="home-card__title">
-                <Award size={16} style={{ marginRight: 8, verticalAlign: -2 }} />
-                Top donors
-              </h2>
-              <Link href="/donate" className="home-card__see">Donate</Link>
+          <section className="home-section">
+            <header className="home-section__head">
+              <h2 className="home-section__title">New jobs</h2>
+              <Link href="/jobs" className="home-section__see">See all</Link>
             </header>
-            {donors && donors.length > 0 ? (
-              <TopDonators donators={donors} />
+            {jobs.length === 0 ? (
+              <p className="row-empty">No new jobs today.</p>
             ) : (
-              <p className="home-empty">No donors yet.</p>
-            )}
-          </section>
-
-          <section className="home-card">
-            <header className="home-card__head">
-              <h2 className="home-card__title">Recent projects</h2>
-              <Link href="/product-hunt" className="home-card__see">See all</Link>
-            </header>
-            {products && products.length > 0 ? (
-              <ul className="home-list">
-                {products.map((product) => (
-                  <li key={product.id}>
-                    <Link href={'/product-hunt/' + product.url} className="home-row">
-                      <span className="home-row__main">{product.name}</span>
-                      <span className="home-row__meta">{formatDateShort(product.created_at)}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="home-empty">No projects yet.</p>
+              <div className="row-list">
+                {jobs.map((j: any) => <JobRow key={j.id} job={j} compact />)}
+              </div>
             )}
           </section>
         </div>

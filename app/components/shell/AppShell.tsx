@@ -9,6 +9,8 @@ import { FloatingCreate } from "./FloatingCreate";
 import { CommandPalette } from "./CommandPalette";
 import { writeLayoutPrefsClient } from "@/app/lib/preferences";
 import Footer from "@/app/components/layout/Footer";
+import { RightRail } from "./RightRail";
+import type { RailBundle } from "@/app/lib/queries";
 
 interface Props {
   children: ReactNode;
@@ -17,9 +19,10 @@ interface Props {
   isSignedIn: boolean;
   initialCollapsed: boolean;
   density: "comfortable" | "compact";
+  rail: RailBundle;
 }
 
-export function AppShell({ children, counts, isAdmin, isSignedIn, initialCollapsed, density }: Props) {
+export function AppShell({ children, counts, isAdmin, isSignedIn, initialCollapsed, density, rail }: Props) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(initialCollapsed);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -64,6 +67,7 @@ export function AppShell({ children, counts, isAdmin, isSignedIn, initialCollaps
           onCollapseToggle={toggleCollapsed}
         />
         <main className="app__main">{children}<Footer /></main>
+        <RightRail bundle={rail} />
       </div>
       <BottomTabBar />
       <FloatingCreate />

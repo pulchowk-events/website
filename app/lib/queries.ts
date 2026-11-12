@@ -6,13 +6,19 @@ import { normalizeRelation } from "@/app/lib/supabase-helpers";
 // EVENT QUERIES
 // ============================================================================
 
+export interface EventFilters {
+  tab: "upcoming" | "past";
+  category: string;
+  when: string;
+  city: string;
+  price: string;
+  page: number;
+  pageSize: number;
+}
+
 export const getEventsPage = unstable_cache(
-  async (
-    tab: "upcoming" | "past",
-    category: string,
-    page: number,
-    pageSize: number,
-  ) => {
+  async (f: EventFilters) => {
+    const { tab, category, when, city, price, page, pageSize } = f;
     const offset = (page - 1) * pageSize;
     const nowISO = new Date().toISOString();
 
@@ -28,13 +34,32 @@ export const getEventsPage = unstable_cache(
     }
 
     if (category !== "all") q = q.eq("category", category);
+    if (city !== "all") q = q.eq("city", city);
+    if (price === "free") q = q.eq("is_free", true);
+    if (price === "paid") q = q.eq("is_free", false);
+
+    if (when !== "all" && tab === "upcoming") {
+      const now = new Date();
+      let cutoff: Date | null = null;
+      if (when === "today") {
+        cutoff = new Date(now);
+        cutoff.setHours(23, 59, 59, 999);
+      } else if (when === "week") {
+        cutoff = new Date(now.getTime() + 7 * 864e5);
+      } else if (when === "weekend") {
+        const day = now.getDay();
+        const daysToSat = (6 - day + 7) % 7;
+        cutoff = new Date(now.getTime() + (daysToSat + 2) * 864e5);
+      } else if (when === "month") {
+        cutoff = new Date(now.getTime() + 30 * 864e5);
+      }
+      if (cutoff) q = q.lte("event_date", cutoff.toISOString());
+    }
 
     q = q.range(offset, offset + pageSize - 1);
 
     const { data, count } = await q;
 
-    // Normalize: Supabase types `author` as `T[]`, runtime is usually object.
-    // Safe either way.
     const events = (data || []).map((e: any) => ({
       ...e,
       author: normalizeRelation(e.author),
@@ -42,7 +67,7 @@ export const getEventsPage = unstable_cache(
 
     return { events, totalCount: count || 0 };
   },
-  ["events-page"],
+  ["events-page-v2"],
   { revalidate: 60, tags: ["events"] },
 );
 
@@ -701,50 +726,175 @@ export type RailContext =
   | "donate"
   | "utility";
 
-export async function getRailData(context: RailContext, userId?: string) {
+export type RailBundle =
+  | {
+      context: "home";
+      community: { discordUrl: string };
+      prizePool: Awaited<ReturnType<typeof getPrizePool>>;
+      topDonors: Awaited<ReturnType<typeof getTopDonators>>;
+    }
+  | {
+      context: "lounge";
+      trending: Awaited<ReturnType<typeof getTrendingPosts>>;
+      upcomingEvents: Awaited<ReturnType<typeof getUpcomingEvents>>;
+      prizePool: Awaited<ReturnType<typeof getPrizePool>>;
+    }
+  | {
+      context: "events";
+      calendarEvents: Awaited<ReturnType<typeof getCurrentMonthEvents>>;
+      jobs: Awaited<ReturnType<typeof getRecentJobs>>;
+      prizePool: Awaited<ReturnType<typeof getPrizePool>>;
+    }
+  | {
+      context: "jobs";
+      savedJobs: Awaited<ReturnType<typeof getSavedJobs>> | null;
+      upcomingEvents: Awaited<ReturnType<typeof getUpcomingEvents>>;
+      prizePool: Awaited<ReturnType<typeof getPrizePool>>;
+    }
+  | {
+      context: "projects";
+      recentPosts: Awaited<ReturnType<typeof getLoungePosts>>;
+      upcomingEvents: Awaited<ReturnType<typeof getUpcomingEvents>>;
+      prizePool: Awaited<ReturnType<typeof getPrizePool>>;
+    }
+  | {
+      context: "donate";
+      topDonors: Awaited<ReturnType<typeof getTopDonators>>;
+      recentSupporters: Awaited<ReturnType<typeof getRecentSupporters>>;
+    }
+  | {
+      context: "utility";
+      community: { discordUrl: string };
+      prizePool: Awaited<ReturnType<typeof getPrizePool>>;
+    };
+
+export async function getRailData(
+  context: RailContext,
+  userId?: string,
+): Promise<RailBundle> {
   switch (context) {
     case "home":
       return {
+        context: "home",
         community: { discordUrl: DISCORD_URL },
         prizePool: await getPrizePool(),
         topDonors: await getTopDonators(5),
       };
     case "lounge":
       return {
+        context: "lounge",
         trending: await getTrendingPosts(5),
         upcomingEvents: await getUpcomingEvents(3),
         prizePool: await getPrizePool(),
       };
     case "events":
       return {
+        context: "events",
         calendarEvents: await getCurrentMonthEvents(),
         jobs: await getRecentJobs(3),
         prizePool: await getPrizePool(),
       };
     case "jobs":
       return {
+        context: "jobs",
         savedJobs: userId ? await getSavedJobs(userId, 5) : null,
         upcomingEvents: await getUpcomingEvents(3),
         prizePool: await getPrizePool(),
       };
     case "projects":
       return {
+        context: "projects",
         recentPosts: await getLoungePosts(3),
         upcomingEvents: await getUpcomingEvents(3),
         prizePool: await getPrizePool(),
       };
     case "donate":
       return {
+        context: "donate",
         topDonors: await getTopDonators(10),
         recentSupporters: await getRecentSupporters(5),
       };
     case "utility":
     default:
       return {
+        context: "utility",
         community: { discordUrl: DISCORD_URL },
         prizePool: await getPrizePool(),
       };
   }
 }
 
-export type RailData = Awaited<ReturnType<typeof getRailData>>;
+export const getHomeStats = unstable_cache(
+  async (userId?: string) => {
+    const { data, error } = await supabase.rpc("home_stats", {
+      p_user_id: userId ?? null,
+    });
+    if (error) {
+      console.error("home_stats rpc error:", error);
+      return {
+        events_this_week: 0,
+        jobs_24h: 0,
+        posts_today: 0,
+        projects_total: 0,
+        saved_count: 0,
+      };
+    }
+    return data as {
+      events_this_week: number;
+      jobs_24h: number;
+      posts_today: number;
+      projects_total: number;
+      saved_count: number;
+    };
+  },
+  ["home-stats"],
+  { revalidate: 60, tags: ["events", "jobs", "lounge", "products", "saves"] },
+);
+
+export async function getSavedIds(
+  userId: string | undefined,
+  itemType: "post" | "event" | "job" | "project",
+): Promise<Set<string>> {
+  if (!userId) return new Set();
+  const { data } = await supabase
+    .from("saves")
+    .select("item_id")
+    .eq("user_id", userId)
+    .eq("item_type", itemType);
+  return new Set((data || []).map((r) => r.item_id));
+}
+
+export const getSimilarEvents = unstable_cache(
+  async (eventId: string, category: string | null, limit = 4) => {
+    if (!category) return [];
+    const { data } = await supabase
+      .from("events")
+      .select("id, title, event_date, category, location, image_url")
+      .eq("verified", true)
+      .eq("category", category)
+      .neq("id", eventId)
+      .gte("event_date", new Date().toISOString())
+      .order("event_date", { ascending: true })
+      .limit(limit);
+    return data || [];
+  },
+  ["similar-events"],
+  { revalidate: 60, tags: ["events"] },
+);
+
+export const getEventsByOrganizer = unstable_cache(
+  async (organizer: string | null, eventId: string, limit = 3) => {
+    if (!organizer) return [];
+    const { data } = await supabase
+      .from("events")
+      .select("id, title, event_date, category, location, image_url")
+      .eq("verified", true)
+      .eq("organizer", organizer)
+      .neq("id", eventId)
+      .order("event_date", { ascending: false })
+      .limit(limit);
+    return data || [];
+  },
+  ["events-by-organizer"],
+  { revalidate: 60, tags: ["events"] },
+);
