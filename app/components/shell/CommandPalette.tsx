@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import { Home, Calendar, Briefcase, Box, MessageCircle, Bookmark, Heart, HelpCircle, Plus, PanelLeft, FileText, GraduationCap } from "lucide-react";
 
 interface Result {
-  type: "post" | "event" | "job" | "project";
+  type: "post" | "event" | "job" | "project" | "scholarship";
   id: string;
   title: string;
   meta?: string;
