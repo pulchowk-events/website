@@ -4414,3 +4414,26 @@
 .admin-users__action[data-tone="ok"]:hover { background: rgba(62, 207, 142, 0.1); }
 .admin-users__action[data-tone="danger"] { color: var(--danger); }
 .admin-users__action[data-tone="danger"]:hover { background: rgba(255, 92, 92, 0.1); }
+
+/* Admin notice ---------------------------------------------------------- */
+.admin-notice {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: rgba(245, 166, 35, 0.08);
+  border: 1px solid rgba(245, 166, 35, 0.3);
+  color: var(--a);
+}
+.admin-notice svg { flex: none; margin-top: 2px; }
+.admin-notice__title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--a);
+  margin-bottom: 2px;
+}
+.admin-notice__text {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--m);
+}
