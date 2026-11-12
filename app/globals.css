@@ -1474,3 +1474,19 @@
 .breadcrumb a { color: var(--m); transition: color 200ms; }
 .breadcrumb a:hover { color: var(--t); }
 .breadcrumb span:last-child { color: var(--t); }
+
+/* Product hunt ---------------------------------------------------------- */
+.products-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.products-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 32px;
+}
