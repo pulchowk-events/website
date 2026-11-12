@@ -1,72 +1,51 @@
-"use client";
+'use client';
 
-import { signIn } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
-import Image from "next/image";
+import { signIn } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 
 export function SignInPage() {
   const searchParams = useSearchParams();
-  const error = searchParams.get("error");
+  const error = searchParams.get('error');
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="bg-card border border-border p-8 rounded-lg max-w-md w-full">
-        <h1 className="text-2xl font-bold mb-6 text-center text-foreground">
-          Sign In to Pulchowk Events
-        </h1>
+    <div className="auth-shell">
+      <div className="card auth-card">
+        <h1 className="auth-title">Sign in to Pulchowk Events</h1>
+        <p className="auth-sub">Welcome back. Pick a provider to continue.</p>
 
         {error && (
-          <div className="mb-4 p-2 bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300 rounded text-sm">
+          <div className="auth-error" role="alert">
             Authentication failed. Please try again.
           </div>
         )}
 
-        <div className="flex flex-col space-y-4">
-          {/* Discord Sign In Button — brand color, do not theme */}
+        <div className="auth-stack">
           <form
             action={async () => {
-              await signIn("discord", { callbackUrl: "/" });
+              await signIn('discord', { callbackUrl: '/' });
             }}
-            className="flex justify-center"
           >
-            <button
-              type="submit"
-              className="w-full bg-[#5865F2] hover:bg-[#4752C4] text-white font-medium py-2 px-4 rounded-full transition flex items-center justify-center gap-2"
-            >
-              <Image
-                src="/discord-logo.png"
-                alt="Discord logo"
-                width={20}
-                height={20}
-              />
-              Sign In with Discord
+            <button type="submit" className="signin__btn signin__btn--discord">
+              <Image src="/discord-logo.png" alt="" width={18} height={18} aria-hidden="true" />
+              <span>Continue with Discord</span>
             </button>
           </form>
 
-          {/* Google Sign In Button — brand color, do not theme */}
           <form
             action={async () => {
-              await signIn("google", { callbackUrl: "/" });
+              await signIn('google', { callbackUrl: '/' });
             }}
-            className="flex justify-center"
           >
-            <button
-              type="submit"
-              className="w-full bg-white hover:bg-gray-100 text-gray-800 font-medium py-2 px-4 rounded-full transition flex items-center justify-center gap-2"
-            >
-              <Image
-                src="/google-logo.png"
-                alt="Google logo"
-                width={20}
-                height={20}
-              />
-              Sign In with Google
+            <button type="submit" className="signin__btn signin__btn--google">
+              <Image src="/google-logo.png" alt="" width={18} height={18} aria-hidden="true" />
+              <span>Continue with Google</span>
             </button>
           </form>
         </div>
 
-        <p className="text-muted-foreground text-sm text-center mt-6">
-          By signing in, you agree to our Terms of Service and Privacy Policy
+        <p className="auth-legal">
+          By signing in, you agree to our Terms of Service and Privacy Policy.
         </p>
       </div>
     </div>

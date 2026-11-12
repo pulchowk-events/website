@@ -3290,3 +3290,73 @@
   color: #ffffff;
 }
 .signin__btn--discord:hover { background: #4752c4; }
+
+/* Auth pages ------------------------------------------------------------ */
+.auth-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--bg);
+}
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 32px;
+}
+.auth-eyebrow {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--m);
+  margin-bottom: 12px;
+}
+.auth-title {
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1.15;
+  color: var(--t);
+  text-align: center;
+  margin-bottom: 8px;
+}
+.auth-sub {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--m);
+  text-align: center;
+  margin-bottom: 24px;
+}
+.auth-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.auth-stack form { display: contents; }
+.auth-error {
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(255, 92, 92, 0.1);
+  border: 1px solid rgba(255, 92, 92, 0.3);
+  color: var(--danger);
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 16px;
+}
+.auth-legal {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--m);
+  text-align: center;
+  margin-top: 20px;
+}
+.auth-user-name {
+  font-size: 13px;
+  color: var(--m);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}

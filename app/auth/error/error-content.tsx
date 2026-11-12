@@ -1,31 +1,28 @@
-// app/auth/error/error-content.tsx
-"use client";
+'use client';
 
-import { useSearchParams } from "next/navigation";
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 
 export default function ErrorContent() {
   const searchParams = useSearchParams();
-  const error = searchParams.get("error");
+  const error = searchParams.get('error');
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="bg-card border border-border p-8 rounded-lg max-w-md w-full">
-        <h1 className="text-2xl font-bold mb-6 text-center text-red-600 dark:text-red-400">
-          Authentication Error
-        </h1>
-        <p className="text-muted-foreground mb-6 text-center">
-          {error === "OAuthCallback"
-            ? "Something went wrong during authentication."
-            : "An unexpected error occurred."}
+    <div className="auth-shell">
+      <div className="card auth-card">
+        <p className="auth-eyebrow" style={{ color: 'var(--danger)' }}>
+          Authentication error
         </p>
-        <div className="flex justify-center">
-          <a
-            href="/auth/signin"
-            className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-full transition"
-          >
-            Try Again
-          </a>
-        </div>
+        <h1 className="auth-title">Something went wrong.</h1>
+        <p className="auth-sub">
+          {error === 'OAuthCallback'
+            ? 'The authentication provider rejected the callback. Try a different provider or try again.'
+            : 'An unexpected error occurred. Try signing in again.'}
+        </p>
+        <Link href="/auth/signin" className="btn btn--primary" style={{ width: '100%', height: 44 }}>
+          <span className="btn__label">Try again</span>
+          <span className="btn__label btn__label--dup" aria-hidden="true">Try again</span>
+        </Link>
       </div>
     </div>
   );

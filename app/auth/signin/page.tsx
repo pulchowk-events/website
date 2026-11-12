@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import { Suspense } from "react";
-import { SignInPage } from "./SignInPage"
+import { Suspense } from 'react';
+import { SignInPage } from './SignInPage';
 
 export default function SignInPageWrapper() {
   return (
@@ -13,8 +13,12 @@ export default function SignInPageWrapper() {
 
 function Loading() {
   return (
-    <div className="min-h-screen flex items-center justify-center text-foreground">
-      Loading...
+    <div className="auth-shell">
+      <div className="card auth-card">
+        <div className="skeleton" style={{ height: 24, width: '60%', margin: '0 auto 24px' }} />
+        <div className="skeleton" style={{ height: 44, borderRadius: 99, marginBottom: 12 }} />
+        <div className="skeleton" style={{ height: 44, borderRadius: 99 }} />
+      </div>
     </div>
   );
 }
