@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 import SignInModal from "@/app/components/signIn/SignInModal";
 import DeleteEventDialog from "./DeleteEventDialog";
-import EditEventModal from "./EditEventModal";
 
 interface EventForActions {
   id: string;
@@ -29,19 +28,19 @@ interface Props {
   isSaved: boolean;
   isAdmin: boolean;
   userId?: string;
+  onEdit?: () => void;
 }
 
 function discordInvite(): string {
   return "https://discord.gg/cQ5gxusATk";
 }
 
-export function EventDetailActions({ event, isPast, isSaved, isAdmin, userId }: Props) {
+export function EventDetailActions({ event, isPast, isSaved, isAdmin, userId, onEdit }: Props) {
   const router = useRouter();
   const { data: session } = useSession();
   const [signInOpen, setSignInOpen] = useState(false);
   const [saved, setSaved] = useState(isSaved);
   const [shareOpen, setShareOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
   const [overflowOpen, setOverflowOpen] = useState(false);
   const overflowRef = useRef<HTMLDivElement>(null);
 
@@ -199,7 +198,7 @@ export function EventDetailActions({ event, isPast, isSaved, isAdmin, userId }: 
                 <button
                   type="button"
                   className="menu__item"
-                  onClick={() => { setOverflowOpen(false); setEditOpen(true); }}
+                  onClick={() => { setOverflowOpen(false); onEdit?.(); }}
                 >
                   Edit event
                 </button>
@@ -218,10 +217,6 @@ export function EventDetailActions({ event, isPast, isSaved, isAdmin, userId }: 
 
       {isPast && (
         <div className="ev-ended">This event has ended.</div>
-      )}
-
-      {editOpen && (
-        <EditEventModal event={event} onClose={() => setEditOpen(false)} />
       )}
 
       <DeleteEventDialog

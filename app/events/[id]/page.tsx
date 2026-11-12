@@ -19,6 +19,7 @@ export const revalidate = 60;
 
 interface Props {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ edit?: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -51,8 +52,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function EventPage({ params }: Props) {
+export default async function EventPage({ params, searchParams }: Props) {
   const { id } = await params;
+  const sp = await searchParams;
+  const initialEditMode = sp.edit === "true";
   if (!id) notFound();
   const event = await getEventById(id);
   if (!event) notFound();
@@ -114,6 +117,7 @@ export default async function EventPage({ params }: Props) {
         similarEvents={similarEvents}
         moreFromOrganizer={moreFromOrganizer}
         savedIds={Array.from(saves)}
+        initialEditMode={initialEditMode}
       />
     </Layout>
   );

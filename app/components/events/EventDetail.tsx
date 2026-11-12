@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -7,6 +11,7 @@ import Markdown from "@/app/components/ui/Markdown";
 import { EventDetailActions } from "./EventDetailActions";
 import { EventListRow } from "./EventListRow";
 import { formatWeekdayLong, formatTime, daysUntilNPT } from "@/app/lib/formatDate";
+import { EventComposer } from "./EventComposer";
 
 interface Props {
   event: {
@@ -33,6 +38,7 @@ interface Props {
   similarEvents: any[];
   moreFromOrganizer: any[];
   savedIds: string[];
+  initialEditMode?: boolean;
 }
 
 function statusBadge(iso: string, isPast: boolean): { text: string; tone: "ok" | "warn" | "mute" } | null {
@@ -62,7 +68,45 @@ const CATEGORY_DOTS: Record<string, string> = {
   extra: "var(--cat-event-extra)",
 };
 
-export default function EventDetail({ event, isAdmin, isSaved, userId, similarEvents, moreFromOrganizer, savedIds }: Props) {
+export default function EventDetail({ event, isAdmin, isSaved, userId, similarEvents, moreFromOrganizer, savedIds, initialEditMode = false }: Props) {
+  const router = useRouter();
+  const [editOpen, setEditOpen] = useState(initialEditMode);
+
+  useEffect(() => {
+    setEditOpen(initialEditMode);
+  }, [initialEditMode]);
+
+  if (editOpen) {
+    return (
+      <article className="ev-detail">
+        <Link href="/events" className="ev-detail__back">
+          <ArrowLeft size={14} />
+          Events
+        </Link>
+        <EventComposer
+          userId={userId}
+          eventId={event.id}
+          initialValues={{
+            title: event.title,
+            description: event.description,
+            event_date: event.event_date,
+            form_link: event.form_link,
+            category: event.category as any,
+            image_url: event.image_url,
+            location: event.location,
+            price: event.price,
+            organizer: event.organizer,
+          }}
+          onCancel={() => setEditOpen(false)}
+          onSaved={() => {
+            setEditOpen(false);
+            router.refresh();
+          }}
+        />
+      </article>
+    );
+  }
+
   const eventDate = new Date(event.event_date);
   const isPast = eventDate < new Date();
   const status = statusBadge(event.event_date, isPast);
@@ -122,6 +166,7 @@ export default function EventDetail({ event, isAdmin, isSaved, userId, similarEv
             isSaved={isSaved}
             isAdmin={isAdmin}
             userId={userId}
+            onEdit={() => setEditOpen(true)}
           />
 
           <dl className="ev-detail__dl">
