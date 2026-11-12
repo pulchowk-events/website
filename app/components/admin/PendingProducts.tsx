@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { CheckCircle, XCircle, ExternalLink, User, Calendar } from 'lucide-react';
 import { formatDatePadded } from '@/app/lib/formatDate';
 import { toast } from 'sonner';
-import { motion } from 'framer-motion';
 import Image from 'next/image';
 
 interface Product {
@@ -27,17 +26,14 @@ export default function PendingProducts() {
 
   useEffect(() => {
     fetchPendingProducts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function fetchPendingProducts() {
     try {
       setLoading(true);
       const response = await fetch('/api/products/pending');
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch products');
-      }
-
+      if (!response.ok) throw new Error('Failed to fetch products');
       const { products, usernames } = await response.json();
       setProducts(products);
       setUsernames(usernames);
@@ -51,137 +47,136 @@ export default function PendingProducts() {
 
   async function handleProductApproval(id: number, approved: boolean) {
     try {
-      setProcessing(prev => ({ ...prev, [id]: true }));
-
+      setProcessing((prev) => ({ ...prev, [id]: true }));
       const response = await fetch('/api/products/pending/approve', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ productId: id, approved }),
       });
-
       if (!response.ok) {
         throw new Error(approved ? 'Failed to approve product' : 'Failed to reject product');
       }
-
-      toast.success(
-        approved
-          ? 'Product approved successfully'
-          : 'Product rejected and removed'
-      );
-
-      setProducts(products.filter(product => product.id !== id));
+      toast.success(approved ? 'Product approved' : 'Product rejected');
+      setProducts(products.filter((product) => product.id !== id));
     } catch (err) {
       console.error('Error:', err);
-      toast.error(
-        err instanceof Error
-          ? err.message
-          : 'Something went wrong'
-      );
+      toast.error(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
-      setProcessing(prev => ({ ...prev, [id]: false }));
+      setProcessing((prev) => ({ ...prev, [id]: false }));
     }
   }
 
   if (loading) {
     return (
-      <div className="flex justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+      <div className="admin-pending-grid">
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className="skeleton" style={{ height: 240, borderRadius: 12 }} />
+        ))}
       </div>
     );
   }
 
   if (products.length === 0) {
     return (
-      <div className="text-center py-12">
-        <h3 className="text-lg font-medium text-foreground">No pending products</h3>
-        <p className="text-muted-foreground mt-2">All products have been reviewed</p>
+      <div className="empty-state">
+        <p className="empty-state__title">No pending products.</p>
+        <p className="empty-state__desc">Every submitted project has been reviewed.</p>
       </div>
     );
   }
 
   return (
-    <div className="grid gap-6 md:grid-cols-2">
+    <div className="admin-pending-grid">
       {products.map((product) => (
-        <motion.div
-          key={product.id}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          className="bg-card/50 rounded-lg p-5 shadow-md flex flex-col justify-between border border-border"
-        >
-          <div className="space-y-4">
-            <div className="flex items-start space-x-4">
-              <div className="w-24 h-24 flex-shrink-0">
+        <article key={product.id} className="admin-pending__card">
+          <div className="admin-pending__body" style={{ padding: 16 }}>
+            <div className="admin-product-row">
+              <div className="admin-product-row__media">
                 {product.image_url ? (
                   <Image
                     src={product.image_url}
                     alt={product.name}
-                    width={96}
-                    height={96}
+                    fill
                     unoptimized
-                    className="rounded-lg object-cover w-full h-full"
+                    sizes="96px"
+                    className="admin-product-row__img"
                   />
                 ) : (
-                  <div className="w-full h-full bg-muted rounded-lg flex items-center justify-center">
-                    <span className="text-muted-foreground text-xs">No Image</span>
-                  </div>
+                  <span className="admin-pending__no-img">No image</span>
                 )}
               </div>
 
-              <div className="flex-grow min-w-0">
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="text-xl font-semibold text-foreground line-clamp-2 pr-2">
+              <div className="admin-product-row__text">
+                <div className="admin-product-row__head">
+                  <h3 className="admin-pending__title" style={{ fontSize: 15 }}>
                     {product.name}
                   </h3>
                   <a
                     href={product.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center flex-shrink-0"
+                    className="admin-pending__link"
+                    aria-label={'Open ' + product.name}
+                    style={{ margin: 0, flexShrink: 0 }}
                   >
-                    <ExternalLink className="h-5 w-5" />
+                    <ExternalLink size={14} />
                   </a>
                 </div>
 
-                <div className="flex items-center space-x-4 mb-2 text-sm text-muted-foreground">
-                  <div className="flex items-center">
-                    <User className="h-4 w-4 mr-1" />
-                    <span className="truncate">
+                <div className="admin-pending__meta">
+                  <span className="admin-pending__meta-item">
+                    <User size={12} />
+                    <span className="admin-pending__truncate">
                       {usernames[product.posted_by] || 'Unknown user'}
                     </span>
-                  </div>
-                  <div className="flex items-center">
-                    <Calendar className="h-4 w-4 mr-1" />
-                    <span>{formatDatePadded(product.created_at)}</span>
-                  </div>
+                  </span>
+                  <span className="admin-pending__meta-item">
+                    <Calendar size={12} />
+                    {formatDatePadded(product.created_at)}
+                  </span>
                 </div>
               </div>
             </div>
 
-            <p className="text-foreground line-clamp-3">{product.description}</p>
+            <p className="admin-pending__desc" style={{ marginTop: 12 }}>
+              {product.description}
+            </p>
           </div>
 
-          <div className="flex justify-end gap-3 mt-4">
+          <footer className="admin-pending__foot">
             <button
-              onClick={() => handleProductApproval(product.id, true)}
-              disabled={!!processing[product.id]}
-              className="p-2 rounded-full bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/30 disabled:opacity-50 transition-colors shadow-sm"
-              aria-label="Approve product"
-            >
-              <CheckCircle className="h-6 w-6" />
-            </button>
-            <button
+              type="button"
               onClick={() => handleProductApproval(product.id, false)}
               disabled={!!processing[product.id]}
-              className="p-2 rounded-full bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-500/30 disabled:opacity-50 transition-colors shadow-sm"
-              aria-label="Reject product"
+              className="btn btn--secondary"
+              style={{ color: 'var(--danger)' }}
             >
-              <XCircle className="h-6 w-6" />
+              <span className="btn__label">
+                <XCircle size={14} style={{ marginRight: 8 }} />
+                Reject
+              </span>
+              <span className="btn__label btn__label--dup" aria-hidden="true">
+                <XCircle size={14} style={{ marginRight: 8 }} />
+                Reject
+              </span>
             </button>
-          </div>
-        </motion.div>
+            <button
+              type="button"
+              onClick={() => handleProductApproval(product.id, true)}
+              disabled={!!processing[product.id]}
+              className="btn btn--primary"
+            >
+              <span className="btn__label">
+                <CheckCircle size={14} style={{ marginRight: 8 }} />
+                Approve
+              </span>
+              <span className="btn__label btn__label--dup" aria-hidden="true">
+                <CheckCircle size={14} style={{ marginRight: 8 }} />
+                Approve
+              </span>
+            </button>
+          </footer>
+        </article>
       ))}
     </div>
   );

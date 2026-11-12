@@ -3983,3 +3983,43 @@
   border-top: 1px solid var(--l2);
   background: var(--surface-1);
 }
+
+.admin-pending-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+@media (min-width: 768px) {
+  .admin-pending-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.admin-product-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.admin-product-row__media {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface-2);
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.admin-product-row__img { object-fit: cover; }
+.admin-product-row__text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.admin-product-row__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+.admin-pending__truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
