@@ -9209,3 +9209,12 @@ input[type="radio"]:disabled {
   white-space: nowrap;
   border: 0;
 }
+
+/* Product vote column — cooldown dims both arrows */
+.pvcol__btn--cooldown { opacity: 0.55; }
+
+/* Product row — vertical vote column shouldn't stretch */
+.prow > .pvcol {
+  align-self: center;
+  flex: none;
+}
