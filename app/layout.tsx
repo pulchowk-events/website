@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 import { Toaster } from '@/components/ui/sonner';
@@ -12,7 +12,17 @@ import JsonLd from '@/app/components/seo/JsonLd';
 import { SITE_URL, SITE_NAME, DEFAULT_DESCRIPTION } from '@/app/lib/seo';
 import Analytics from '@/app/components/analytics';
 
-const inter = Inter({ subsets: ['latin'] });
+const geistSans = Geist({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-geist-sans',
+});
+
+const geistMono = Geist_Mono({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-geist-mono',
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -43,7 +53,6 @@ export const metadata: Metadata = {
   },
 };
 
-
 const orgJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
@@ -73,7 +82,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <JsonLd data={orgJsonLd} />
         <JsonLd data={websiteJsonLd} />
         <NavigationLoader />
