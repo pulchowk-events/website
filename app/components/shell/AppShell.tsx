@@ -20,9 +20,10 @@ interface Props {
   initialCollapsed: boolean;
   density: "comfortable" | "compact";
   rail: RailBundle;
+  hiddenWidgets: string[];
 }
 
-export function AppShell({ children, counts, isAdmin, isSignedIn, initialCollapsed, density, rail }: Props) {
+export function AppShell({ children, counts, isAdmin, isSignedIn, initialCollapsed, density, rail, hiddenWidgets }: Props) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(initialCollapsed);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -44,6 +45,7 @@ export function AppShell({ children, counts, isAdmin, isSignedIn, initialCollaps
   }, []);
 
   useEffect(() => { setDrawerOpen(false); }, [pathname]);
+  useEffect(() => { setCollapsed(initialCollapsed); }, [initialCollapsed]);
 
   const toggleCollapsed = () => {
     setCollapsed((c) => {
@@ -67,7 +69,7 @@ export function AppShell({ children, counts, isAdmin, isSignedIn, initialCollaps
           onCollapseToggle={toggleCollapsed}
         />
         <main className="app__main">{children}<Footer /></main>
-        <RightRail bundle={rail} />
+        <RightRail bundle={rail} hiddenWidgets={hiddenWidgets} />
       </div>
       <BottomTabBar />
       <FloatingCreate />

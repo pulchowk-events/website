@@ -6,55 +6,69 @@ import { TrendingWidget } from "./rail/TrendingWidget";
 import { UpcomingEventsWidget } from "./rail/UpcomingEventsWidget";
 import { RecentSupportersWidget } from "./rail/RecentSupportersWidget";
 
-export function RightRail({ bundle }: { bundle: RailBundle }) {
+interface Props {
+  bundle: RailBundle;
+  hiddenWidgets: string[];
+}
+
+export function RightRail({ bundle, hiddenWidgets }: Props) {
+  const hide = new Set(hiddenWidgets);
+  const show = (key: string) => !hide.has(key);
+
   return (
     <aside className="rail" aria-label="Contextual">
       {bundle.context === "home" && (
         <>
-          <CommunityWidget discordUrl={bundle.community.discordUrl} />
-          <PrizePoolWidget
-            current={bundle.prizePool.currentAmount}
-            target={bundle.prizePool.targetAmount}
-            donors={bundle.prizePool.totalDonors}
-          />
-          <TopDonorsWidget donors={bundle.topDonors} />
+          {show("community") && <CommunityWidget discordUrl={bundle.community.discordUrl} />}
+          {show("prizePool") && (
+            <PrizePoolWidget
+              current={bundle.prizePool.currentAmount}
+              target={bundle.prizePool.targetAmount}
+              donors={bundle.prizePool.totalDonors}
+            />
+          )}
+          {show("topDonors") && <TopDonorsWidget donors={bundle.topDonors} />}
         </>
       )}
 
       {bundle.context === "lounge" && (
         <>
-          <TrendingWidget posts={bundle.trending} />
-          <UpcomingEventsWidget events={bundle.upcomingEvents} />
-          <PrizePoolWidget
-            current={bundle.prizePool.currentAmount}
-            target={bundle.prizePool.targetAmount}
-            donors={bundle.prizePool.totalDonors}
-          />
+          {show("trending") && <TrendingWidget posts={bundle.trending} />}
+          {show("upcomingEvents") && <UpcomingEventsWidget events={bundle.upcomingEvents} />}
+          {show("prizePool") && (
+            <PrizePoolWidget
+              current={bundle.prizePool.currentAmount}
+              target={bundle.prizePool.targetAmount}
+              donors={bundle.prizePool.totalDonors}
+            />
+          )}
         </>
       )}
 
       {bundle.context === "donate" && (
         <>
-          <TopDonorsWidget donors={bundle.topDonors} />
-          <RecentSupportersWidget supporters={bundle.recentSupporters} />
+          {show("topDonors") && <TopDonorsWidget donors={bundle.topDonors} />}
+          {show("recentSupporters") && <RecentSupportersWidget supporters={bundle.recentSupporters} />}
         </>
       )}
 
       {bundle.context === "utility" && (
         <>
-          <CommunityWidget discordUrl={bundle.community.discordUrl} />
-          <PrizePoolWidget
-            current={bundle.prizePool.currentAmount}
-            target={bundle.prizePool.targetAmount}
-            donors={bundle.prizePool.totalDonors}
-          />
+          {show("community") && <CommunityWidget discordUrl={bundle.community.discordUrl} />}
+          {show("prizePool") && (
+            <PrizePoolWidget
+              current={bundle.prizePool.currentAmount}
+              target={bundle.prizePool.targetAmount}
+              donors={bundle.prizePool.totalDonors}
+            />
+          )}
         </>
       )}
 
       {bundle.context !== "home" && bundle.context !== "lounge" && bundle.context !== "donate" && bundle.context !== "utility" && (
         <>
-          <CommunityWidget discordUrl="https://discord.gg/cQ5gxusATk" />
-          {"prizePool" in bundle && bundle.prizePool && (
+          {show("community") && <CommunityWidget discordUrl="https://discord.gg/cQ5gxusATk" />}
+          {"prizePool" in bundle && bundle.prizePool && show("prizePool") && (
             <PrizePoolWidget
               current={bundle.prizePool.currentAmount}
               target={bundle.prizePool.targetAmount}
