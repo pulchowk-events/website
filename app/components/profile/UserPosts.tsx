@@ -1,33 +1,32 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import PostCard from '../lounge/PostCard';
-import type { Post } from '@/app/api/lounge/posts/get/route';
+import { useEffect, useState } from "react";
+import { PostRow } from "@/app/components/shell/rows/PostRow";
+import type { Post } from "@/app/api/lounge/posts/get/route";
 
-export default function UserPosts({ userId }: { userId: string }) {
+export default function UserPosts({ userId, isOwner }: { userId: string; isOwner: boolean }) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchPosts() {
+    (async () => {
       try {
-        const response = await fetch('/api/users/' + userId + '/posts');
-        const data = await response.json();
-        setPosts(data.posts);
-      } catch (error) {
-        console.error('Error fetching user posts:', error);
+        const res = await fetch("/api/users/" + userId + "/posts");
+        const data = await res.json();
+        setPosts(data.posts || []);
+      } catch (err) {
+        console.error(err);
       } finally {
         setLoading(false);
       }
-    }
-    fetchPosts();
+    })();
   }, [userId]);
 
   if (loading) {
     return (
-      <div className="lounge-grid">
-        {[0, 1].map((i) => (
-          <div key={i} className="skeleton" style={{ height: 220 }} />
+      <div style={{ display: "grid", gap: 4 }}>
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="skeleton" style={{ height: 96 }} />
         ))}
       </div>
     );
@@ -35,17 +34,19 @@ export default function UserPosts({ userId }: { userId: string }) {
 
   if (posts.length === 0) {
     return (
-      <div className="empty-state">
-        <p className="empty-state__title">No posts yet.</p>
-        <p className="empty-state__desc">This user hasn&apos;t shared anything in the lounge.</p>
+      <div className="empty-row">
+        <p>No posts yet.</p>
+        {isOwner && (
+          <a href="/lounge" className="btn btn--primary btn--sm">Write your first post</a>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="lounge-grid">
-      {posts.map((post) => (
-        <PostCard key={post.id} post={post} />
+    <div className="row-list">
+      {posts.map((p: any) => (
+        <PostRow key={p.id} post={p} showThumb showExcerpt />
       ))}
     </div>
   );
