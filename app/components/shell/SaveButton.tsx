@@ -1,0 +1,69 @@
+"use client";
+
+import { Bookmark } from "lucide-react";
+import { useState, useTransition } from "react";
+import { toast } from "sonner";
+
+type ItemType = "post" | "event" | "job" | "project";
+
+interface Props {
+  itemType: ItemType;
+  itemId: string;
+  initialSaved: boolean;
+  compact?: boolean;
+}
+
+export function SaveButton({ itemType, itemId, initialSaved, compact = false }: Props) {
+  const [saved, setSaved] = useState(initialSaved);
+  const [isPending, startTransition] = useTransition();
+
+  const toggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const next = !saved;
+    setSaved(next);
+
+    startTransition(async () => {
+      try {
+        const res = await fetch("/api/saves", {
+          method: next ? "PUT" : "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ item_type: itemType, item_id: itemId }),
+        });
+        if (!res.ok) throw new Error("Failed");
+        toast.success(next ? "Saved" : "Removed from Saved", {
+          duration: 3000,
+          action: next
+            ? undefined
+            : {
+                label: "Undo",
+                onClick: () => {
+                  setSaved(true);
+                  fetch("/api/saves", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ item_type: itemType, item_id: itemId }),
+                  });
+                },
+              },
+        });
+      } catch {
+        setSaved(!next);
+        toast.error("Could not save. Try again.");
+      }
+    });
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      disabled={isPending}
+      aria-label={saved ? "Unsave" : "Save"}
+      aria-pressed={saved}
+      className={"save-btn" + (saved ? " save-btn--on" : "") + (compact ? " save-btn--compact" : "")}
+    >
+      <Bookmark size={16} fill={saved ? "currentColor" : "none"} />
+    </button>
+  );
+}
