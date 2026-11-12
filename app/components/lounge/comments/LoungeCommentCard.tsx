@@ -1,187 +1,193 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { formatDistanceToNow } from 'date-fns';
-import Image from 'next/image';
-import Link from 'next/link';
-import { User, Edit2, X, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { formatDistanceToNow } from "date-fns";
+import { User, Edit2, X, Trash2, CornerDownRight, ChevronDown, ChevronRight } from "lucide-react";
+import { toast } from "sonner";
+import { CommentComposer } from "./CommentComposer";
 
-interface Profile {
-  name: string;
-  image: string | null;
+export interface CommentNode {
+  id: string;
+  comment: string;
+  post_id: string;
+  user_id: string;
+  parent_id: string | null;
+  depth: number;
+  created_at: string;
+  updated_at: string | null;
+  edited_at: string | null;
+  profiles?: { name: string | null; image: string | null } | null;
+  pending?: boolean;
+  children: CommentNode[];
 }
 
-interface LoungeCommentCardProps {
-  comment: {
-    id: string;
-    comment: string;
-    created_at: string;
-    user_id: string;
-  };
-  profiles?: Profile;
-  isOwner: boolean;
+interface Props {
+  comment: CommentNode;
+  postId: string;
+  session: { id?: string; name?: string | null; image?: string | null } | null;
+  onPosted: (comment: any, parentId?: string) => void;
+  onUpdate: (id: string, text: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
-  onUpdate: (id: string, nextText: string) => Promise<void>;
 }
 
-export function LoungeCommentCard({
-  comment,
-  profiles,
-  isOwner,
-  onDelete,
-  onUpdate,
-}: LoungeCommentCardProps) {
-  const [userData, setUserData] = useState<Profile | null>(profiles ?? null);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [editedComment, setEditedComment] = useState(comment.comment);
-  const [isEditing, setIsEditing] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
+export function LoungeCommentCard({ comment, postId, session, onPosted, onUpdate, onDelete }: Props) {
+  const [replying, setReplying] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editedText, setEditedText] = useState(comment.comment);
+  const [updating, setUpdating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
-  useEffect(() => {
-    if (profiles) {
-      setUserData(profiles);
-      return;
-    }
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch('/api/users/' + comment.user_id);
-        if (!res.ok) throw new Error('Failed to fetch user data');
-        const data = await res.json();
-        if (!cancelled) setUserData(data);
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [profiles, comment.user_id]);
+  const isOwner = session?.id === comment.user_id;
+  const author = comment.profiles?.name || "Anonymous";
+  const childCount = comment.children.length;
 
-  useEffect(() => {
-    setEditedComment(comment.comment);
-  }, [comment.comment]);
-
-  async function handleDelete() {
-    setIsDeleting(true);
-    try {
-      await onDelete(comment.id);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to delete comment');
-    } finally {
-      setIsDeleting(false);
-    }
-  }
-
-  async function handleEdit() {
-    const next = editedComment.trim();
+  const saveEdit = async () => {
+    const next = editedText.trim();
     if (!next || next === comment.comment) {
-      setIsEditing(false);
+      setEditing(false);
+      setEditedText(comment.comment);
       return;
     }
-    setIsUpdating(true);
+    setUpdating(true);
     try {
       await onUpdate(comment.id, next);
-      setIsEditing(false);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to update comment');
+      setEditing(false);
+    } catch {
+      toast.error("Could not update");
     } finally {
-      setIsUpdating(false);
+      setUpdating(false);
     }
-  }
+  };
 
-  function cancelEdit() {
-    setEditedComment(comment.comment);
-    setIsEditing(false);
-  }
+  const remove = async () => {
+    setDeleting(true);
+    try {
+      await onDelete(comment.id);
+    } catch {
+      toast.error("Could not delete");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditing(false);
+    setEditedText(comment.comment);
+  };
 
   return (
-    <div className="comment-card">
-      <Link
-        href={'/profile/' + comment.user_id}
-        className="comment-card__avatar-link"
-        aria-label={userData?.name || 'User'}
-      >
-        <span className="comment-card__avatar">
-          {userData?.image ? (
-            <Image
-              src={userData.image}
-              alt={userData.name || 'User'}
-              width={36}
-              height={36}
-              className="comment-card__avatar-img"
-            />
-          ) : (
-            <User size={18} />
-          )}
-        </span>
-      </Link>
-
-      <div className="comment-card__body">
-        <header className="comment-card__head">
-          <span className="comment-card__name">{userData?.name || 'Anonymous'}</span>
-          <span className="comment-card__time" suppressHydrationWarning>
-            {formatDistanceToNow(new Date(comment.created_at))} ago
+    <div className={"comment-node" + (comment.pending ? " comment-node--pending" : "")} data-depth={comment.depth}>
+      <div className="comment-node__inner">
+        <Link href={"/profile/" + comment.user_id} className="comment-node__avatar-link">
+          <span className="comment-node__avatar">
+            {comment.profiles?.image ? (
+              <Image src={comment.profiles.image} alt={author} width={24} height={24} />
+            ) : (
+              <User size={12} />
+            )}
           </span>
+        </Link>
 
-          {isOwner && (
-            <div className="comment-card__actions">
-              {isEditing ? (
+        <div className="comment-node__body">
+          <div className="comment-node__head">
+            <span className="comment-node__author">{author}</span>
+            <span className="comment-node__time" suppressHydrationWarning>
+              {comment.pending ? "Sending…" : formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+            </span>
+            {comment.edited_at && <span className="comment-node__edited">edited</span>}
+          </div>
+
+          {editing ? (
+            <div className="comment-node__edit-wrap">
+              <textarea
+                className="comment-node__edit"
+                value={editedText}
+                onChange={(e) => setEditedText(e.target.value)}
+                rows={3}
+                maxLength={2000}
+              />
+              <div className="comment-node__edit-actions">
+                <button type="button" onClick={cancelEdit} className="btn btn--secondary btn--sm" disabled={updating}>Cancel</button>
+                <button type="button" onClick={saveEdit} className="btn btn--primary btn--sm" disabled={updating}>
+                  {updating ? "Saving…" : "Save"}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <p className="comment-node__text">{comment.comment}</p>
+          )}
+
+          {!editing && !comment.pending && (
+            <div className="comment-node__actions">
+              <button
+                type="button"
+                className="comment-node__action"
+                onClick={() => setReplying((v) => !v)}
+              >
+                <CornerDownRight size={12} /> Reply
+              </button>
+              {isOwner && (
                 <>
-                  <button
-                    type="button"
-                    onClick={cancelEdit}
-                    aria-label="Cancel edit"
-                    className="comment-card__icon-btn"
-                  >
-                    <X size={14} />
+                  <button type="button" className="comment-node__action" onClick={() => setEditing(true)}>
+                    Edit
                   </button>
                   <button
                     type="button"
-                    onClick={handleEdit}
-                    disabled={isUpdating}
-                    className="comment-card__save-btn"
+                    className="comment-node__action comment-node__action--danger"
+                    onClick={remove}
+                    disabled={deleting}
                   >
-                    {isUpdating ? 'Saving…' : 'Save'}
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => setIsEditing(true)}
-                    aria-label="Edit comment"
-                    className="comment-card__icon-btn"
-                  >
-                    <Edit2 size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleDelete}
-                    disabled={isDeleting}
-                    aria-label="Delete comment"
-                    className="comment-card__icon-btn comment-card__icon-btn--danger"
-                  >
-                    <Trash2 size={14} />
+                    {deleting ? "Deleting…" : "Delete"}
                   </button>
                 </>
               )}
+              {childCount > 0 && (
+                <button
+                  type="button"
+                  className="comment-node__action comment-node__action--toggle"
+                  onClick={() => setCollapsed((v) => !v)}
+                >
+                  {collapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
+                  {collapsed ? childCount + " replies hidden" : "Hide replies"}
+                </button>
+              )}
             </div>
           )}
-        </header>
 
-        {isEditing ? (
-          <textarea
-            value={editedComment}
-            onChange={(e) => setEditedComment(e.target.value)}
-            className="input input--multi comment-card__edit"
-            rows={3}
-          />
-        ) : (
-          <p className="comment-card__text">{comment.comment}</p>
-        )}
+          {replying && (
+            <div className="comment-node__reply">
+              <CommentComposer
+                postId={postId}
+                parentId={comment.id}
+                parentAuthor={author}
+                compact
+                session={session}
+                onPosted={onPosted}
+                onCancel={() => setReplying(false)}
+              />
+            </div>
+          )}
+        </div>
       </div>
+
+      {!collapsed && comment.children.length > 0 && (
+        <div className="comment-node__children">
+          {comment.children.map((child) => (
+            <LoungeCommentCard
+              key={child.id}
+              comment={child}
+              postId={postId}
+              session={session}
+              onPosted={onPosted}
+              onUpdate={onUpdate}
+              onDelete={onDelete}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

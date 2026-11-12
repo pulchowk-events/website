@@ -7073,3 +7073,140 @@
   font-size: 11px; color: var(--text-3);
   font-variant-numeric: tabular-nums;
 }
+
+/* Comments tree */
+.comments { display: flex; flex-direction: column; gap: 12px; }
+.comments__head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+}
+.comments__title {
+  font-size: 14px; font-weight: 600; letter-spacing: -0.01em;
+  color: var(--text-1); margin: 0;
+}
+.comments__list {
+  display: flex; flex-direction: column; gap: 4px;
+}
+.comments__empty {
+  font-size: 13px; color: var(--text-3); padding: 8px 0;
+}
+
+.comment-composer {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  transition: border-color var(--t-fast);
+}
+.comment-composer:focus-within { border-color: var(--border-strong); }
+.comment-composer--expanded { padding: 10px 12px; }
+.comment-composer--compact { margin-top: 8px; }
+
+.comment-composer__input {
+  width: 100%;
+  padding: 6px 0;
+  background: transparent;
+  border: 0; outline: none;
+  color: var(--text-1);
+  font: 400 14px/1.5 var(--font-geist-sans), system-ui, sans-serif;
+  resize: none;
+}
+.comment-composer__input::placeholder { color: var(--text-3); }
+
+.comment-composer__bar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+.comment-composer__count {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 11px; color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+.comment-composer__actions {
+  display: flex; gap: 6px;
+}
+.comment-composer__guest {
+  font-size: 13px; color: var(--text-2); margin: 0;
+}
+.comment-composer__guest a { color: var(--accent); text-decoration: none; }
+.comment-composer__guest a:hover { text-decoration: underline; }
+
+.comment-node {
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+.comment-node--pending { opacity: 0.7; }
+.comment-node__inner {
+  display: flex; gap: 10px; align-items: flex-start;
+}
+.comment-node__avatar-link { flex: none; }
+.comment-node__avatar {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--surface);
+  color: var(--text-3);
+}
+.comment-node__avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.comment-node__body { flex: 1; min-width: 0; }
+.comment-node__head {
+  display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.comment-node__author {
+  font-size: 13px; font-weight: 500; color: var(--text-1);
+}
+.comment-node__time, .comment-node__edited {
+  font-size: 11px; color: var(--text-3);
+}
+.comment-node__text {
+  font-size: 14px; line-height: 1.5; color: var(--text-1); margin: 0;
+  white-space: pre-wrap; word-break: break-word;
+}
+
+.comment-node__actions {
+  display: flex; gap: 4px; margin-top: 6px;
+  flex-wrap: wrap;
+}
+.comment-node__action {
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 22px; padding: 0 6px;
+  border: 0; border-radius: 4px;
+  background: transparent;
+  color: var(--text-3);
+  font: 500 11px var(--font-geist-sans), system-ui, sans-serif;
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.comment-node__action:hover { background: var(--hover); color: var(--text-1); }
+.comment-node__action--danger:hover { color: var(--danger); }
+.comment-node__action--toggle { color: var(--accent); }
+.comment-node__action--toggle:hover { background: rgba(62,207,142,0.1); color: var(--accent); }
+.comment-node__action:disabled { opacity: 0.5; cursor: progress; }
+
+.comment-node__reply { margin-left: -34px; }
+.comment-node__children {
+  margin-left: 34px;
+  padding-left: 20px;
+  border-left: 1px solid var(--border);
+}
+
+.comment-node__edit-wrap { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.comment-node__edit {
+  width: 100%;
+  padding: 8px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--border-strong);
+  background: var(--bg);
+  color: var(--text-1);
+  font: 400 13px var(--font-geist-sans), system-ui, sans-serif;
+  outline: none;
+  resize: vertical;
+  min-height: 60px;
+}
+.comment-node__edit:focus { border-color: var(--accent); }
+.comment-node__edit-actions { display: flex; gap: 6px; justify-content: flex-end; }

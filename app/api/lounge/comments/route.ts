@@ -1,125 +1,101 @@
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/auth';
-import { supabase } from '@/app/lib/supabase';
-import { insertNotification } from '@/lib/notifications';
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/auth";
+import { supabase } from "@/app/lib/supabase";
 
-
+export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const postId = searchParams.get('post_id');
-    // chek on this if error
+  const url = new URL(request.url);
+  const postId = url.searchParams.get("post_id");
+  if (!postId) return NextResponse.json({ error: "post_id required" }, { status: 400 });
 
-    if (!postId) {
-      return NextResponse.json(
-        { error: 'Post ID is required' },
-        { status: 400 }
-      );
-    }
+  const { data, error } = await supabase
+    .from("lounge_comments")
+    .select("id, comment, post_id, user_id, parent_id, depth, created_at, updated_at, edited_at")
+    .eq("post_id", postId)
+    .order("created_at", { ascending: true });
 
-    const { data: comments, error } = await supabase
-      .from('lounge_comments')
-      .select(`
-        *,
-        users:user_id (
-          name,
-          image
-        )
-      `)
-      .eq('post_id', postId)
-      .order('created_at', { ascending: false });
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-    if (error) {
-      return NextResponse.json(
-        { error: 'Failed to fetch comments' },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json(comments || []);
-
-  } catch (error) {
-    console.error('Comments fetch error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+  const userIds = Array.from(new Set((data || []).map((c) => c.user_id)));
+  let profiles: Record<string, { name: string | null; image: string | null }> = {};
+  if (userIds.length > 0) {
+    const { data: users } = await supabase
+      .from("users")
+      .select("id, name, image")
+      .in("id", userIds);
+    profiles = Object.fromEntries((users || []).map((u) => [u.id, { name: u.name, image: u.image }]));
   }
+
+  const comments = (data || []).map((c) => ({
+    ...c,
+    profiles: profiles[c.user_id] || null,
+  }));
+
+  return NextResponse.json(comments);
 }
 
 export async function POST(request: Request) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
 
-    const { comment, post_id } = await request.json();
+  const body = await request.json().catch(() => null);
+  const postId = body?.post_id;
+  const commentText = (body?.comment || "").trim();
+  const parentId = body?.parent_id || null;
 
-    if (!comment?.trim() || !post_id) {
-      return NextResponse.json({
-        error: 'Comment text and post ID are required'
-      }, { status: 400 });
-    }
+  if (!postId) return NextResponse.json({ error: "post_id required" }, { status: 400 });
+  if (!commentText) return NextResponse.json({ error: "Comment cannot be empty" }, { status: 400 });
+  if (commentText.length > 2000) {
+    return NextResponse.json({ error: "Comment too long" }, { status: 400 });
+  }
 
-    const { data: newComment, error } = await supabase
-      .from('lounge_comments')
-      .insert({
-        comment: comment.trim(),
-        post_id,
-        user_id: session.user.id,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .select(`
-        *,
-        users:user_id (
-          name,
-          image
-        )
-      `)
+  let depth = 0;
+  let effectiveParentId = parentId;
+
+  if (parentId) {
+    const { data: parent } = await supabase
+      .from("lounge_comments")
+      .select("id, parent_id, depth, post_id")
+      .eq("id", parentId)
       .single();
 
-    if (error) {
-      return NextResponse.json(
-        { error: 'Failed to create comment' },
-        { status: 500 }
-      );
+    if (!parent || parent.post_id !== postId) {
+      return NextResponse.json({ error: "Parent comment invalid" }, { status: 400 });
     }
 
-        // For post comments
-    if (post_id) {
-      const { data: post } = await supabase
-        .from('lounge_posts')
-        .select('author_id, title')
-        .eq('id', post_id)
-        .single();
-
-      if (post) {
-        await insertNotification(supabase, {
-          user_id: post.author_id,
-          type: 'post_comment',
-          title: `${session.user.name} commented on your post "${post.title}"`,
-          link: `/lounge/${post_id}`,
-          source_user_id: session.user.id
-        });
-      }
+    if (parent.depth >= 2) {
+      effectiveParentId = parent.parent_id;
+      depth = 2;
+    } else {
+      depth = parent.depth + 1;
     }
-
-    // confused if session.user.name actually; works could be undefined
-
-    return NextResponse.json(newComment);
-
-  } catch (error) {
-    console.error('Comment creation error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
   }
+
+  const { data: inserted, error } = await supabase
+    .from("lounge_comments")
+    .insert({
+      post_id: postId,
+      user_id: session.user.id,
+      comment: commentText,
+      parent_id: effectiveParentId,
+      depth,
+    })
+    .select("id, comment, post_id, user_id, parent_id, depth, created_at, updated_at, edited_at")
+    .single();
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  const enriched = {
+    ...inserted,
+    profiles: {
+      name: session.user.name || null,
+      image: session.user.image || null,
+    },
+  };
+
+  return NextResponse.json(enriched, { status: 201 });
 }
