@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { signIn } from 'next-auth/react';
 import { X } from 'lucide-react';
 import Image from 'next/image';
-import { BorderBeam } from "@/components/magicui/border-beam";
 
 interface SignInModalProps {
   isOpen: boolean;
@@ -15,75 +14,86 @@ export default function SignInModal({ isOpen, onClose }: SignInModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+    if (!isOpen) return;
+
+    const onClick = (e: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
         onClose();
       }
     };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
 
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.body.style.overflow = 'hidden';
-    }
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    document.addEventListener('mousedown', onClick);
+    document.addEventListener('keydown', onKey);
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.body.style.overflow = 'auto';
+      document.removeEventListener('mousedown', onClick);
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;
     };
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 dark:bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="signin-title">
       <div
         ref={modalRef}
-        className="bg-popover border border-border rounded-lg p-6 w-full max-w-md relative shadow-2xl"
+        className="modal"
+        style={{ maxWidth: 400 }}
       >
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
-          aria-label="Close modal"
-        >
-          <X size={20} />
-        </button>
-
-        <h2 className="text-xl font-bold text-center mb-6 text-foreground">Sign In</h2>
-
-        <div className="space-y-4">
-          {/* Google button — keep official brand styling (white bg, dark text) */}
+        <header className="modal__head">
+          <h2 id="signin-title" className="modal__title">Sign in</h2>
           <button
+            type="button"
+            onClick={onClose}
+            className="modal__close"
+            aria-label="Close"
+          >
+            <X size={18} />
+          </button>
+        </header>
+
+        <div className="modal__body">
+          <p className="signin__intro">
+            Sign in to submit projects, vote, comment, and access the community lounge.
+          </p>
+
+          <button
+            type="button"
             onClick={() => signIn('google', { callbackUrl: '/' })}
-            className="flex items-center justify-center space-x-2 w-full bg-white text-gray-800 py-3 px-4 rounded-md hover:bg-gray-100 transition-colors"
+            className="signin__btn signin__btn--google"
           >
             <Image
               src="/google-logo.png"
-              alt="Google logo"
-              width={20}
-              height={20}
+              alt=""
+              width={18}
+              height={18}
+              aria-hidden="true"
             />
-            <span>Sign in with Google</span>
+            <span>Continue with Google</span>
           </button>
 
-          {/* Discord button — keep official brand styling (indigo bg, white text) */}
           <button
+            type="button"
             onClick={() => signIn('discord', { callbackUrl: '/' })}
-            className="flex items-center justify-center space-x-2 w-full bg-indigo-600 text-white py-3 px-4 rounded-md hover:bg-indigo-700 transition-colors"
+            className="signin__btn signin__btn--discord"
           >
             <Image
               src="/discord-logo.png"
-              alt="Discord logo"
-              width={20}
-              height={20}
+              alt=""
+              width={18}
+              height={18}
+              aria-hidden="true"
             />
-            <span>Sign in with Discord</span>
+            <span>Continue with Discord</span>
           </button>
         </div>
-
-        <p className="text-muted-foreground text-sm text-center mt-6">
-          Sign in to access exclusive features and content.
-        </p>
-        <BorderBeam duration={8} size={120} />
       </div>
     </div>
   );
