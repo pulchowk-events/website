@@ -2150,3 +2150,64 @@
   background: var(--surface-2);
 }
 .composer__preview-img { object-fit: cover; }
+
+/* Donate ---------------------------------------------------------------- */
+.donate-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+@media (min-width: 768px) {
+  .donate-grid {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  .donate-grid__form {
+    flex: 2;
+    min-width: 0;
+  }
+  .donate-grid__sidebar {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: sticky;
+    top: 88px;
+  }
+}
+.donate-pool__text {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--m);
+  margin-top: 12px;
+}
+.donate-pool__stats {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--l2);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.donate-pool__stats > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.donate-pool__stats dt {
+  font-size: 13px;
+  color: var(--m);
+}
+.donate-pool__stats dd {
+  font-size: 20px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--t);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+}
+.donate-pool__stats dd.donate-pool__target {
+  font-size: 14px;
+  color: var(--m);
+}
