@@ -8647,3 +8647,86 @@ details.admin-panel[open] > summary { border-bottom: 1px solid var(--border); }
   text-decoration-color: rgba(62, 207, 142, 0.35);
 }
 .prose-page a:hover { text-decoration-color: var(--accent); }
+
+.page-head[data-size="sm"] .page-head__title {
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+/* Jobs active filters */
+.jobs-active {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.jobs-active__summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--text-2);
+  min-width: 0;
+}
+.jobs-active__count {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 12px;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.jobs-active__sep { color: var(--text-3); }
+.jobs-active__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.jobs-active__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-1);
+  font-size: 11px;
+  cursor: pointer;
+  transition: background var(--t-fast), border-color var(--t-fast);
+}
+.jobs-active__chip:hover {
+  background: var(--hover);
+  border-color: var(--border-strong);
+}
+.jobs-active__chip svg { color: var(--text-3); }
+.jobs-active__clear {
+  height: 22px;
+  padding: 0 8px;
+  border: 0;
+  background: transparent;
+  color: var(--text-3);
+  font-size: 11px;
+  cursor: pointer;
+  border-radius: var(--radius-control);
+}
+.jobs-active__clear:hover { color: var(--text-1); background: var(--hover); }
+
+.jobs-active__sort {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+.jobs-active__sort-label {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-3);
+}

@@ -6,6 +6,7 @@ import Layout from "@/app/components/layout/Layout";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { JobsFilterPanel } from "@/app/components/jobs/JobsFilterPanel";
 import { JobsClient } from "@/app/components/jobs/JobsClient";
+import { JobsActiveFilters } from "@/app/components/jobs/JobsActiveFilters";
 import {
   getJobsPage,
   getJobFacets,
@@ -96,6 +97,8 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
         title="Jobs"
         count={totalCount + (totalCount === 1 ? " job" : " jobs")}
       />
+
+      <JobsActiveFilters totalCount={totalCount} />
 
       <div className="jobs-layout">
         <JobsFilterPanel facets={facets} />

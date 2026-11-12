@@ -41,6 +41,7 @@ export default async function Home() {
   return (
     <Layout railContext="home">
       <PageHeader
+        size="sm"
         title={session ? greeting() + ", " + (firstName || "there") : "Events, jobs and projects from across Nepal"}
         description={
           new Date().toLocaleDateString("en-US", {
