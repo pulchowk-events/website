@@ -6,14 +6,16 @@ import type { Scholarship } from "@/app/lib/queries";
 
 interface Props {
   scholarships: Scholarship[];
+  savedIds: string[];
   page: number;
   totalPages: number;
 }
 
-export function ScholarshipsClient({ scholarships, page, totalPages }: Props) {
+export function ScholarshipsClient({ scholarships, savedIds, page, totalPages }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const savedSet = new Set(savedIds);
 
   const go = (next: number) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -40,7 +42,7 @@ export function ScholarshipsClient({ scholarships, page, totalPages }: Props) {
     <>
       <div className="row-list">
         {scholarships.map((s) => (
-          <ScholarshipRow key={s.id} scholarship={s} />
+          <ScholarshipRow key={s.id} scholarship={s} saved={savedSet.has(s.id)} />
         ))}
       </div>
 

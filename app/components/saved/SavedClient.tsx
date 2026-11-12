@@ -7,8 +7,9 @@ import { PostRow } from "@/app/components/shell/rows/PostRow";
 import { EventRow } from "@/app/components/shell/rows/EventRow";
 import { JobRow } from "@/app/components/shell/rows/JobRow";
 import { ProjectRow } from "@/app/components/shell/rows/ProjectRow";
+import { ScholarshipRow } from "@/app/components/scholarships/ScholarshipRow";
 
-type Tab = "all" | "posts" | "events" | "jobs" | "projects";
+type Tab = "all" | "posts" | "events" | "jobs" | "projects" | "scholarships";
 
 const TABS: { value: Tab; label: string }[] = [
   { value: "all", label: "All" },
@@ -16,6 +17,7 @@ const TABS: { value: Tab; label: string }[] = [
   { value: "events", label: "Events" },
   { value: "jobs", label: "Jobs" },
   { value: "projects", label: "Projects" },
+  { value: "scholarships", label: "Scholarships" },
 ];
 
 interface Props {
@@ -32,6 +34,9 @@ function renderRow(item: SavedItemType) {
   if (item.type === "job") {
     return <JobRow job={item.data} />;
   }
+  if (item.type === "scholarship") {
+    return <ScholarshipRow scholarship={item.data} saved />;
+  }
   return <ProjectRow project={item.data} />;
 }
 
@@ -41,6 +46,7 @@ function matchesTab(item: SavedItemType, tab: Tab): boolean {
   if (tab === "events") return item.type === "event";
   if (tab === "jobs") return item.type === "job";
   if (tab === "projects") return item.type === "project";
+  if (tab === "scholarships") return item.type === "scholarship";
   return false;
 }
 
@@ -54,6 +60,7 @@ export function SavedClient({ items }: Props) {
       events: items.filter((i) => i.type === "event").length,
       jobs: items.filter((i) => i.type === "job").length,
       projects: items.filter((i) => i.type === "project").length,
+      scholarships: items.filter((i) => i.type === "scholarship").length,
     }),
     [items],
   );
@@ -93,7 +100,7 @@ export function SavedClient({ items }: Props) {
               : "Nothing saved in this category."}
           </p>
           <p className="saved-empty-hint">
-            Tap the bookmark on any event, job, post, or project.
+            Tap the bookmark on any event, job, post, scholarship, or project.
           </p>
         </div>
       ) : (

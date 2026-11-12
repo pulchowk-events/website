@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/auth";
 import Layout from "@/app/components/layout/Layout";
 import JsonLd from "@/app/components/seo/JsonLd";
 import { ScholarshipDetail } from "@/app/components/scholarships/ScholarshipDetail";
-import { getScholarshipById } from "@/app/lib/queries";
+import { getScholarshipById, getSavedIds } from "@/app/lib/queries";
 import { SITE_URL, breadcrumbSchema } from "@/app/lib/seo";
 
 export const revalidate = 60;
@@ -51,6 +53,9 @@ export default async function ScholarshipPage({ params }: Props) {
   const s = await getScholarshipById(id);
   if (!s) notFound();
 
+  const session = await getServerSession(authOptions);
+  const saves = await getSavedIds(session?.user?.id, "scholarship");
+
   const jsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "EducationalOccupationalProgram",
@@ -73,7 +78,7 @@ export default async function ScholarshipPage({ params }: Props) {
     <Layout railContext="utility">
       <JsonLd data={jsonLd} />
       <JsonLd data={breadcrumbJsonLd} />
-      <ScholarshipDetail scholarship={s} />
+      <ScholarshipDetail scholarship={s} isSaved={saves.has(id)} />
     </Layout>
   );
 }

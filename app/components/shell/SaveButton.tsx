@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import SignInModal from "@/app/components/signIn/SignInModal";
 
-type ItemType = "post" | "event" | "job" | "project";
+type ItemType = "post" | "event" | "job" | "project" | "scholarship";
 
 interface Props {
   itemType: ItemType;

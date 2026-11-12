@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, Building2, Calendar, ExternalLink, GraduationCap, Tag } from "lucide-react";
 import { ScholarshipImage } from "./ScholarshipImage";
 import { DeadlinePill } from "./DeadlinePill";
+import { SaveButton } from "@/app/components/shell/SaveButton";
 import { formatDateShort } from "@/app/lib/formatDate";
 import type { Scholarship } from "@/app/lib/queries";
 
@@ -12,7 +13,12 @@ function sourceLabel(source: string | null): string | null {
   return source.charAt(0).toUpperCase() + source.slice(1);
 }
 
-export function ScholarshipDetail({ scholarship }: { scholarship: Scholarship }) {
+interface Props {
+  scholarship: Scholarship;
+  isSaved?: boolean;
+}
+
+export function ScholarshipDetail({ scholarship, isSaved = false }: Props) {
   const provider = scholarship.provider || sourceLabel(scholarship.source);
   const initial = (provider || scholarship.title).charAt(0).toUpperCase();
   const tags = scholarship.tags || [];
@@ -59,6 +65,7 @@ export function ScholarshipDetail({ scholarship }: { scholarship: Scholarship })
             View source
           </a>
         )}
+        <SaveButton itemType="scholarship" itemId={scholarship.id} initialSaved={isSaved} />
       </div>
 
       {(scholarship.funding_type || scholarship.funding_amount) && (

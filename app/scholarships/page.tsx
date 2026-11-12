@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/auth";
 import Layout from "@/app/components/layout/Layout";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ScholarshipFilterBar } from "@/app/components/scholarships/ScholarshipFilterBar";
 import { ScholarshipsClient } from "@/app/components/scholarships/ScholarshipsClient";
-import { getScholarshipsPage } from "@/app/lib/queries";
+import { getScholarshipsPage, getSavedIds } from "@/app/lib/queries";
 
 export const revalidate = 60;
 
@@ -48,19 +50,25 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
 export default async function ScholarshipsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const sp = await searchParams;
   const params = parseParams(sp);
+  const session = await getServerSession(authOptions);
 
-  const { scholarships, totalCount } = await getScholarshipsPage({
-    ...params,
-    pageSize: PAGE_SIZE,
-  });
+  const [result, saves] = await Promise.all([
+    getScholarshipsPage({ ...params, pageSize: PAGE_SIZE }),
+    getSavedIds(session?.user?.id, "scholarship"),
+  ]);
 
-  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(result.totalCount / PAGE_SIZE));
 
   return (
     <Layout railContext="utility">
       <PageHeader title="Scholarships" />
       <ScholarshipFilterBar />
-      <ScholarshipsClient scholarships={scholarships} page={params.page} totalPages={totalPages} />
+      <ScholarshipsClient
+        scholarships={result.scholarships}
+        savedIds={Array.from(saves)}
+        page={params.page}
+        totalPages={totalPages}
+      />
     </Layout>
   );
 }

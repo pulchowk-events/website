@@ -4,7 +4,7 @@ import { useState } from "react";
 import { SaveButton } from "@/app/components/shell/SaveButton";
 
 interface Props {
-  itemType: "post" | "event" | "job" | "project";
+  itemType: "post" | "event" | "job" | "project" | "scholarship";
   itemId: string;
   children: React.ReactNode;
 }

@@ -953,7 +953,7 @@ export const getHomeStats = unstable_cache(
 
 export async function getSavedIds(
   userId: string | undefined,
-  itemType: "post" | "event" | "job" | "project",
+  itemType: "post" | "event" | "job" | "project" | "scholarship",
 ): Promise<Set<string>> {
   if (!userId) return new Set();
   const { data } = await supabase
@@ -1111,7 +1111,7 @@ export const getVerifiedDonationsLedger = unstable_cache(
 );
 
 export interface SavedItem {
-  type: "post" | "event" | "job" | "project";
+  type: "post" | "event" | "job" | "project" | "scholarship";
   data: any;
   savedAt: string;
 }
@@ -1125,12 +1125,12 @@ export async function getSavedItemsFull(userId: string): Promise<SavedItem[]> {
 
   if (!saves || saves.length === 0) return [];
 
-  const grouped: Record<string, string[]> = { post: [], event: [], job: [], project: [] };
+  const grouped: Record<string, string[]> = { post: [], event: [], job: [], project: [], scholarship: [] };
   for (const s of saves) {
     if (grouped[s.item_type]) grouped[s.item_type].push(s.item_id);
   }
 
-  const [postsRes, eventsRes, jobsRes, projectsRes] = await Promise.all([
+  const [postsRes, eventsRes, jobsRes, projectsRes, scholarshipsRes] = await Promise.all([
     grouped.post.length > 0
       ? supabase
           .from("lounge_posts")
@@ -1160,6 +1160,13 @@ export async function getSavedItemsFull(userId: string): Promise<SavedItem[]> {
             grouped.project.map((n) => Number(n)).filter((n) => !isNaN(n)),
           )
       : Promise.resolve({ data: [] as any[] }),
+    grouped.scholarship.length > 0
+      ? supabase
+          .from("scholarships")
+          .select("*")
+          .eq("verified", true)
+          .in("id", grouped.scholarship)
+      : Promise.resolve({ data: [] as any[] }),
   ]);
 
   const postMap = new Map(
@@ -1168,6 +1175,7 @@ export async function getSavedItemsFull(userId: string): Promise<SavedItem[]> {
   const eventMap = new Map((eventsRes.data || []).map((e: any) => [e.id, e]));
   const jobMap = new Map((jobsRes.data || []).map((j: any) => [j.id, j]));
   const projectMap = new Map((projectsRes.data || []).map((p: any) => [String(p.id), p]));
+  const scholarshipMap = new Map((scholarshipsRes.data || []).map((s: any) => [String(s.id), s]));
 
   const items: SavedItem[] = [];
   for (const s of saves) {
@@ -1176,6 +1184,7 @@ export async function getSavedItemsFull(userId: string): Promise<SavedItem[]> {
     else if (s.item_type === "event") data = eventMap.get(s.item_id);
     else if (s.item_type === "job") data = jobMap.get(s.item_id);
     else if (s.item_type === "project") data = projectMap.get(s.item_id);
+    else if (s.item_type === "scholarship") data = scholarshipMap.get(s.item_id);
     if (data) {
       items.push({
         type: s.item_type as SavedItem["type"],

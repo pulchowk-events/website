@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 import { supabase } from "@/app/lib/supabase";
 
-const VALID_TYPES = ["post", "event", "job", "project"] as const;
+const VALID_TYPES = ["post", "event", "job", "project", "scholarship"] as const;
 type ItemType = typeof VALID_TYPES[number];
 
 export const dynamic = "force-dynamic";
