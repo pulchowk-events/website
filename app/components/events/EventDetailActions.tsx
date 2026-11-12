@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ExternalLink, CalendarPlus, Share2, Bookmark, MoreHorizontal } from "lucide-react";
@@ -42,6 +42,26 @@ export function EventDetailActions({ event, isPast, isSaved, isAdmin, userId }: 
   const [saved, setSaved] = useState(isSaved);
   const [shareOpen, setShareOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [overflowOpen, setOverflowOpen] = useState(false);
+  const overflowRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!overflowOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (overflowRef.current && !overflowRef.current.contains(e.target as Node)) {
+        setOverflowOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOverflowOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [overflowOpen]);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -165,10 +185,33 @@ export function EventDetailActions({ event, isPast, isSaved, isAdmin, userId }: 
           )}
         </div>
         {canManage && (
-          <div className="overflow-wrap">
-            <button type="button" className="row-icon-btn" onClick={() => setEditOpen(true)} aria-label="Edit event">
+          <div className="overflow-wrap" ref={overflowRef}>
+            <button
+              type="button"
+              className="row-icon-btn"
+              onClick={() => setOverflowOpen((v) => !v)}
+              aria-label="More"
+            >
               <MoreHorizontal size={16} />
             </button>
+            {overflowOpen && (
+              <div className="menu" style={{ right: 0, left: "auto" }}>
+                <button
+                  type="button"
+                  className="menu__item"
+                  onClick={() => { setOverflowOpen(false); setEditOpen(true); }}
+                >
+                  Edit event
+                </button>
+                <button
+                  type="button"
+                  className="menu__item menu__item--danger"
+                  onClick={() => { setOverflowOpen(false); setDeleteOpen(true); }}
+                >
+                  Delete event
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

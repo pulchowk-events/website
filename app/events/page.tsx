@@ -8,7 +8,7 @@ import { EventFilters } from "@/app/components/events/EventFilters";
 import { readEventFilters } from "@/app/lib/eventFilters";
 import { EventGridCard } from "@/app/components/events/EventGridCard";
 import { EventListWrapper } from "@/app/components/events/EventListWrapper";
-import { AddEventLauncher } from "@/app/components/events/AddEventLauncher";
+import { EventComposer } from "@/app/components/events/EventComposer";
 import { getEventsPage, getSavedIds, getActiveEventTaxonomies } from "@/app/lib/queries";
 import { formatMonthSlug } from "@/app/lib/seo";
 import { isAdmin } from "@/app/lib/isAdmin";
@@ -84,15 +84,15 @@ export default async function EventsPage({
         count={totalCount + (totalCount === 1 ? " event" : " events")}
         actions={
           session ? (
-            <Link href="/events?showAddEvent=true" className="btn btn--secondary btn--sm">
+            <Link href="/events/new" className="btn btn--secondary btn--sm">
               Add event
             </Link>
           ) : undefined
         }
       />
 
+      {session?.user?.id && <EventComposer userId={session.user.id} />}
       <EventFilters state={filters} />
-      <AddEventLauncher />
 
       {events.length === 0 ? (
         <div className="empty-row">
@@ -102,7 +102,7 @@ export default async function EventsPage({
               Clear filters
             </Link>
           ) : (
-            <Link href="/events?showAddEvent=true" className="btn btn--primary btn--sm">
+            <Link href="/events/new" className="btn btn--primary btn--sm">
               Submit the first one
             </Link>
           )}
