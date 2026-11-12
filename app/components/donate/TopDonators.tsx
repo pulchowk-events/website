@@ -1,8 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Trophy, ChevronRight } from 'lucide-react';
-import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 
 interface Donator {
@@ -17,6 +15,10 @@ interface TopDonatorsProps {
   limit?: number;
 }
 
+function formatUSD(n: number): string {
+  return '$' + (n || 0).toLocaleString('en-US');
+}
+
 export default function TopDonators({ donators, limit = 5 }: TopDonatorsProps) {
   const [animateIn, setAnimateIn] = useState(false);
 
@@ -26,55 +28,44 @@ export default function TopDonators({ donators, limit = 5 }: TopDonatorsProps) {
 
   const displayDonators = Array.isArray(donators) ? donators.slice(0, limit) : [];
 
+  if (displayDonators.length === 0) {
+    return (
+      <p className="top-donators__empty">
+        No donors yet, or all are anonymous. Be the first.
+      </p>
+    );
+  }
+
   return (
-    <div className="bg-muted/30 py-4 px-3 rounded-lg shadow-lg mb-4">
-      <div className="space-y-4">
-        {displayDonators.length > 0 ? (
-          displayDonators.map((donator, index) => (
-            <div
-              key={donator.id}
-              className={`flex items-center justify-between transition-all duration-300 ease-out transform ${
-                animateIn ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'
-              }`}
-              style={{ transitionDelay: `${index * 100}ms` }}
-            >
-              <div className="flex items-center">
-                <div className="w-6 text-left font-bold text-lg text-muted-foreground">
-                  {index + 1}
-                </div>
+    <ul className="top-donators">
+      {displayDonators.map((donator, index) => (
+        <li
+          key={donator.id}
+          className={'top-donators__row' + (animateIn ? ' top-donators__row--in' : '')}
+          style={{ transitionDelay: index * 60 + 'ms' }}
+        >
+          <span className="top-donators__rank">{index + 1}</span>
 
-                <div className="h-10 w-10 rounded-full overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center mr-4">
-                  {donator.avatar_url ? (
-                    <Image
-                      src={donator.avatar_url}
-                      alt={donator.name}
-                      width={40}
-                      height={40}
-                      className="object-cover"
-                    />
-                  ) : (
-                    <span className="text-muted-foreground text-xl font-medium mr-4">
-                      {donator.name.charAt(0).toUpperCase()}
-                    </span>
-                  )}
-                </div>
-
-                <span className="font-medium text-foreground truncate min-w-24 max-w-[10px]">
-                  {donator.name}
-                </span>
-              </div>
-
-              <span className="font-bold text-green-600 dark:text-green-400">
-                ${donator.amount.toLocaleString()}
+          <span className="top-donators__avatar">
+            {donator.avatar_url ? (
+              <Image
+                src={donator.avatar_url}
+                alt={donator.name}
+                width={32}
+                height={32}
+                className="top-donators__avatar-img"
+              />
+            ) : (
+              <span className="top-donators__initial">
+                {donator.name.charAt(0).toUpperCase()}
               </span>
-            </div>
-          ))
-        ) : (
-          <div className="text-left w-full py-4 text-muted-foreground">
-            No donors yet or private donors.<br/> Be the first!
-          </div>
-        )}
-      </div>
-    </div>
+            )}
+          </span>
+
+          <span className="top-donators__name">{donator.name}</span>
+          <span className="top-donators__amount">{formatUSD(donator.amount)}</span>
+        </li>
+      ))}
+    </ul>
   );
 }
