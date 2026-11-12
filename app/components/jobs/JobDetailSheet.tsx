@@ -58,7 +58,7 @@ export function JobDetailSheet({ job, saved, onClose }: Props) {
   const facts: { label: string; value: string | null }[] = [
     { label: "Location", value: job.location },
     { label: "Type", value: job.employment_type },
-    { label: "Salary", value: job.salary_disclosed ? job.salary : "Not disclosed" },
+    { label: "Salary", value: job.salary && job.salary.trim() ? job.salary : "Not disclosed" },
     { label: "Experience", value: job.experience },
     { label: "Level", value: job.level },
     { label: "Openings", value: job.openings ? String(job.openings) : null },

@@ -394,7 +394,13 @@ export const getJobsPage = unstable_cache(
     }
 
     if (f.types.length > 0) {
-      const orParts = f.types.map((t) => "employment_type.ilike.%" + t.replace("-", " ") + "%");
+      const orParts: string[] = [];
+      for (const t of f.types) {
+        const hyphen = t.toLowerCase();
+        const spaced = t.replace(/-/g, " ").toLowerCase();
+        orParts.push("employment_type.ilike.%" + hyphen + "%");
+        orParts.push("employment_type.ilike.%" + spaced + "%");
+      }
       q = q.or(orParts.join(","));
     }
 
@@ -416,7 +422,9 @@ export const getJobsPage = unstable_cache(
       q = q.or(orParts.join(","));
     }
 
-    if (f.salaryDisclosed) q = q.eq("salary_disclosed", true);
+    if (f.salaryDisclosed) {
+      q = q.not("salary", "is", null).neq("salary", "");
+    }
 
     if (f.closingSoon) {
       q = q.lte(
