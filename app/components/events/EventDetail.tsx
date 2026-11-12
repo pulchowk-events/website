@@ -59,41 +59,25 @@ export default function EventDetail({
   const authorName = event.author?.name || 'Anonymous';
   const authorId = event.created_by || 'anonymous';
 
-  // Button logic:
-  //   - Register for Event: always shown when there's a form URL and event
-  //     isn't past.
-  //   - If source_url === form_link (same page — the listing IS the
-  //     registration): show "Join Discord Server" as the secondary CTA
-  //     instead of a duplicate "View Original Listing" link.
-  //   - If they're different: show "View Original Listing" as the
-  //     secondary CTA.
-  //   - Past event: no CTAs, "This event has ended" message only.
   const sourceUrl = event.source_url;
   const formUrl = event.form_link;
-  const linksAreSame =
-    !!(sourceUrl && formUrl && sourceUrl.trim().toLowerCase() === formUrl.trim().toLowerCase());
+  const linksAreSame = !!(sourceUrl && formUrl && sourceUrl.trim().toLowerCase() === formUrl.trim().toLowerCase());
 
   const showRegister = !isPast && !!formUrl;
   const showDiscord = !isPast && !!formUrl && linksAreSame;
   const showSource = !isPast && !!sourceUrl && !linksAreSame;
-
   const hasAnyCTA = showRegister || showDiscord || showSource;
 
   return (
-    <article className="space-y-6">
-      <Link
-        href="/events"
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
+    <article className="event-detail">
+      <Link href="/events" className="event-detail__back">
+        <ArrowLeft size={14} />
         Back to Events
       </Link>
 
-      {/* Two-column layout: image on left, content on right (stacks on mobile) */}
-      <div className="grid grid-cols-1 md:grid-cols-[minmax(240px,320px)_1fr] gap-6 sm:gap-8">
-        {/* Image column */}
+      <div className="event-detail__grid">
         <div>
-          <div className="relative w-full aspect-square md:aspect-[4/5] rounded-xl overflow-hidden bg-muted border border-border">
+          <div className="event-detail__media">
             {event.image_url ? (
               <Image
                 src={event.image_url}
@@ -101,93 +85,75 @@ export default function EventDetail({
                 fill
                 unoptimized
                 sizes="(max-width: 768px) 100vw, 320px"
-                className="object-cover"
+                className="event-detail__img"
                 priority
               />
             ) : (
-              <div className="h-full w-full flex items-center justify-center">
-                <CategoryIcon className="w-20 h-20 text-muted-foreground/40" />
+              <div className="event-detail__fallback">
+                <CategoryIcon size={64} />
               </div>
             )}
             {isPast && (
-              <div className="absolute top-3 left-3 bg-red-500/90 text-white px-3 py-1.5 rounded-full text-sm font-medium backdrop-blur-sm">
-                Past Event
-              </div>
+              <span className="tag event-detail__past" style={{ '--c': 'var(--danger)' } as React.CSSProperties}>
+                Past event
+              </span>
             )}
           </div>
         </div>
 
-        {/* Content column */}
-        <div className="space-y-4 min-w-0">
-          {/* Badges */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 bg-muted text-foreground px-3 py-1.5 rounded-full text-sm font-medium">
-              <CategoryIcon className="w-3.5 h-3.5" />
-              <span className="capitalize">{event.category}</span>
+        <div className="event-detail__content">
+          <div className="event-detail__badges">
+            <span className="tag" style={{ '--c': 'var(--c)' } as React.CSSProperties}>
+              <CategoryIcon size={12} />
+              <span style={{ textTransform: 'capitalize' }}>{event.category}</span>
             </span>
-            {sourceLabel && (
-              <span className="inline-flex items-center gap-1.5 bg-muted text-muted-foreground px-3 py-1.5 rounded-full text-xs font-medium">
-                via {sourceLabel}
-              </span>
-            )}
-            {attendanceLabel && (
-              <span className="inline-flex items-center gap-1.5 bg-muted text-muted-foreground px-3 py-1.5 rounded-full text-xs font-medium">
-                {attendanceLabel}
-              </span>
-            )}
+            {sourceLabel && <span className="tag" style={{ '--c': 'var(--m)' } as React.CSSProperties}>via {sourceLabel}</span>}
+            {attendanceLabel && <span className="tag" style={{ '--c': 'var(--m)' } as React.CSSProperties}>{attendanceLabel}</span>}
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight">
-            {event.title}
-          </h1>
+          <h1 className="event-detail__title">{event.title}</h1>
 
-          {/* Compact info grid */}
-          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+          <dl className="event-detail__dl">
             <div>
-              <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-0.5 flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5" /> Date
+              <dt className="event-detail__dt">
+                <Calendar size={12} /> Date
               </dt>
-              <dd className="text-foreground">{formatWeekdayLong(eventDate)}</dd>
+              <dd className="event-detail__dd">{formatWeekdayLong(eventDate)}</dd>
             </div>
             <div>
-              <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-0.5 flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5" /> Time
+              <dt className="event-detail__dt">
+                <Clock size={12} /> Time
               </dt>
-              <dd className="text-foreground">{formatTime(eventDate)}</dd>
+              <dd className="event-detail__dd">{formatTime(eventDate)}</dd>
             </div>
             {event.location && (
               <div>
-                <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-0.5 flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5" /> Location
+                <dt className="event-detail__dt">
+                  <MapPin size={12} /> Location
                 </dt>
-                <dd className="text-foreground">{event.location}</dd>
+                <dd className="event-detail__dd">{event.location}</dd>
               </div>
             )}
             {event.price && (
               <div>
-                <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-0.5 flex items-center gap-1.5">
-                  <DollarSign className="w-3.5 h-3.5" /> Price
+                <dt className="event-detail__dt">
+                  <DollarSign size={12} /> Price
                 </dt>
-                <dd className="text-foreground">{event.price}</dd>
+                <dd className="event-detail__dd">{event.price}</dd>
               </div>
             )}
             {event.organizer && (
               <div>
-                <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-0.5 flex items-center gap-1.5">
-                  <Building2 className="w-3.5 h-3.5" /> Organizer
+                <dt className="event-detail__dt">
+                  <Building2 size={12} /> Organizer
                 </dt>
-                <dd className="text-foreground">{event.organizer}</dd>
+                <dd className="event-detail__dd">{event.organizer}</dd>
               </div>
             )}
             <div>
-              <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-0.5">
-                {isBotEvent ? 'Curated by' : 'Created by'}
-              </dt>
-              <dd>
-                <Link
-                  href={`/profile/${authorId}`}
-                  className="text-foreground hover:text-green-600 dark:hover:text-green-400"
-                >
+              <dt className="event-detail__dt">{isBotEvent ? 'Curated by' : 'Created by'}</dt>
+              <dd className="event-detail__dd">
+                <Link href={'/profile/' + authorId} className="event-detail__author">
                   {authorName}
                 </Link>
               </dd>
@@ -196,26 +162,30 @@ export default function EventDetail({
         </div>
       </div>
 
-      {/* Description — markdown, full width below the two columns */}
       {event.description && (
-        <div className="bg-card border border-border rounded-xl p-5 sm:p-6">
-          <h2 className="text-lg font-semibold text-foreground mb-3">About this event</h2>
+        <div className="event-detail__about">
+          <h2 className="event-detail__about-title">About this event</h2>
           <Markdown content={event.description} />
         </div>
       )}
 
-      {/* CTAs */}
       {hasAnyCTA ? (
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="event-detail__ctas">
           {showRegister && formUrl && (
             <a
               href={formUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg font-medium transition-colors"
+              className="btn btn--primary event-detail__cta"
             >
-              <ExternalLink className="w-4 h-4" />
-              Register for Event
+              <span className="btn__label">
+                <ExternalLink size={16} style={{ marginRight: 8 }} />
+                Register for Event
+              </span>
+              <span className="btn__label btn__label--dup" aria-hidden="true">
+                <ExternalLink size={16} style={{ marginRight: 8 }} />
+                Register for Event
+              </span>
             </a>
           )}
           {showDiscord && (
@@ -223,10 +193,16 @@ export default function EventDetail({
               href={DISCORD_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-6 rounded-lg font-medium transition-colors"
+              className="btn btn--secondary event-detail__cta"
             >
-              <ExternalLink className="w-4 h-4" />
-              Join Discord Server
+              <span className="btn__label">
+                <ExternalLink size={16} style={{ marginRight: 8 }} />
+                Join Discord Server
+              </span>
+              <span className="btn__label btn__label--dup" aria-hidden="true">
+                <ExternalLink size={16} style={{ marginRight: 8 }} />
+                Join Discord Server
+              </span>
             </a>
           )}
           {showSource && sourceUrl && (
@@ -234,17 +210,21 @@ export default function EventDetail({
               href={sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 inline-flex items-center justify-center gap-2 bg-secondary hover:bg-accent text-secondary-foreground py-3 px-6 rounded-lg font-medium transition-colors border border-border"
+              className="btn btn--secondary event-detail__cta"
             >
-              <ExternalLink className="w-4 h-4" />
-              View Original Listing
+              <span className="btn__label">
+                <ExternalLink size={16} style={{ marginRight: 8 }} />
+                View Original Listing
+              </span>
+              <span className="btn__label btn__label--dup" aria-hidden="true">
+                <ExternalLink size={16} style={{ marginRight: 8 }} />
+                View Original Listing
+              </span>
             </a>
           )}
         </div>
       ) : isPast ? (
-        <div className="text-center py-3 px-6 rounded-lg bg-muted text-muted-foreground border border-border">
-          This event has ended
-        </div>
+        <p className="event-detail__ended">This event has ended.</p>
       ) : null}
     </article>
   );

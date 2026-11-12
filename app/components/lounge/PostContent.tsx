@@ -23,11 +23,7 @@ interface Post {
   show_embed_image: boolean;
   created_at: string;
   author_id: string;
-  users: {
-    name: string;
-    image: string | null;
-    id: string;
-  };
+  users: { name: string; image: string | null; id: string };
 }
 
 interface PostContentProps {
@@ -47,117 +43,120 @@ export default function PostContent({ post, isAdmin, isAuthor }: PostContentProp
 
   return (
     <>
-      <div className="flex flex-col md:flex-row gap-4 sm:gap-8">
-        {/* Author column */}
-        <div className="w-full md:w-48 flex-shrink-0 mb-6 md:mb-0">
-          <div className="md:sticky md:top-24">
-            <div className="flex flex-row md:flex-col items-center text-center gap-4 md:gap-0">
-              <Link href={`/profile/${post.users.id}`}>
-                <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 md:mb-4 flex-shrink-0">
-                  <Image
-                    src={post.users.image || '/default-avatar.png'}
-                    alt={post.users.name}
-                    fill
-                    className="rounded-full object-cover border-2 border-border shadow-lg"
-                  />
-                </div>
-              </Link>
-              <div className="md:w-full">
-                <h3 className="font-medium text-base sm:text-lg text-foreground text-left md:text-center">
-                  {post.users.name}
-                </h3>
-                <span className="text-xs sm:text-sm text-muted-foreground text-left md:text-center block">
-                  {formatDistanceToNow(new Date(post.created_at))} ago
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Content column */}
-        <div className="flex-grow max-w-3xl">
-          <div className="mb-4 sm:mb-6">
-            <span className="inline-flex items-center gap-1.5 bg-muted text-muted-foreground px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium">
-              {categoryIcons[post.category]} {categoryDisplayMap[post.category]}
+      <div className="post-detail">
+        <aside className="post-detail__author">
+          <Link href={'/profile/' + post.users.id} className="post-detail__avatar-link">
+            <span className="post-detail__avatar">
+              <Image
+                src={post.users.image || '/default-avatar.png'}
+                alt={post.users.name}
+                fill
+                sizes="96px"
+                className="post-detail__avatar-img"
+              />
             </span>
+          </Link>
+          <div className="post-detail__author-meta">
+            <p className="post-detail__author-name">{post.users.name}</p>
+            <p className="post-detail__author-time" suppressHydrationWarning>
+              {formatDistanceToNow(new Date(post.created_at))} ago
+            </p>
           </div>
+        </aside>
 
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-zinc-300 bg-clip-text text-transparent">
-            {post.title}
-          </h1>
+        <div className="post-detail__body">
+          <span className="tag" style={{ '--c': 'var(--c)' } as React.CSSProperties}>
+            {categoryIcons[post.category]} {categoryDisplayMap[post.category]}
+          </span>
 
-          {/* Hero image — full width below title, above body */}
+          <h1 className="post-detail__title">{post.title}</h1>
+
           {showImage && (
-            <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-muted mb-6 sm:mb-8 border border-border">
+            <div className="post-detail__hero">
               <Image
                 src={post.image_url!}
                 alt={post.title}
                 fill
                 unoptimized
                 sizes="(max-width: 768px) 100vw, 768px"
-                className="object-cover"
+                className="post-detail__hero-img"
                 onError={() => setImageBroken(true)}
               />
             </div>
           )}
 
-          <Markdown content={post.content} className="mb-6 sm:mb-8" />
+          <div className="post-detail__content">
+            <Markdown content={post.content} />
+          </div>
 
           {post.redirect_url && (
-            <div className="mt-6 sm:mt-8 p-3 sm:p-4 bg-muted/50 rounded-lg border border-border backdrop-blur-sm">
-              <h3 className="text-xs sm:text-sm font-medium text-muted-foreground mb-2">Reference Link</h3>
+            <div className="post-detail__ref">
+              <p className="page-header__eyebrow" style={{ marginBottom: 8 }}>
+                Reference link
+              </p>
               <Link
                 href={post.redirect_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                className="post-detail__ref-link"
               >
-                <ExternalLink size={16} />
-                <span className="text-xs sm:text-sm break-all">{post.redirect_url}</span>
+                <ExternalLink size={14} />
+                <span className="post-detail__ref-url">{post.redirect_url}</span>
               </Link>
             </div>
           )}
 
           {(isAdmin || isAuthor) && (
-            <div className="mt-8 pt-6 border-t border-border">
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                {showEditModal && (
-                  <EditPostModal
-                    post={post}
-                    onClose={() => setShowEditModal(false)}
-                  />
-                )}
-                {showDeleteDialog && (
-                  <DeletePostDialog
-                    postId={post.id}
-                    postTitle={post.title}
-                    onClose={() => setShowDeleteDialog(false)}
-                  />
-                )}
-                <button
-                  onClick={() => setShowEditModal(true)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors"
-                >
-                  <Pencil size={16} />
-                  Edit Post
-                </button>
-                <button
-                  onClick={() => setShowDeleteDialog(true)}
-                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors"
-                >
-                  <Trash2 size={16} />
-                  Delete Post
-                </button>
-              </div>
+            <div className="post-detail__admin">
+              {showEditModal && (
+                <EditPostModal post={post} onClose={() => setShowEditModal(false)} />
+              )}
+              {showDeleteDialog && (
+                <DeletePostDialog
+                  postId={post.id}
+                  postTitle={post.title}
+                  onClose={() => setShowDeleteDialog(false)}
+                />
+              )}
+              <button
+                type="button"
+                onClick={() => setShowEditModal(true)}
+                className="btn btn--secondary"
+              >
+                <span className="btn__label">
+                  <Pencil size={14} style={{ marginRight: 8 }} />
+                  Edit post
+                </span>
+                <span className="btn__label btn__label--dup" aria-hidden="true">
+                  <Pencil size={14} style={{ marginRight: 8 }} />
+                  Edit post
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowDeleteDialog(true)}
+                className="btn btn--secondary"
+                style={{ color: 'var(--danger)' }}
+              >
+                <span className="btn__label">
+                  <Trash2 size={14} style={{ marginRight: 8 }} />
+                  Delete post
+                </span>
+                <span className="btn__label btn__label--dup" aria-hidden="true">
+                  <Trash2 size={14} style={{ marginRight: 8 }} />
+                  Delete post
+                </span>
+              </button>
             </div>
           )}
 
           {!isAuthor && session?.user && (
             <button
+              type="button"
               onClick={() => setShowReportModal(true)}
-              className="inline-flex items-center gap-2 mt-6 text-muted-foreground hover:text-foreground transition-colors text-sm"
+              className="post-detail__report"
             >
-              <Flag className="w-4 h-4" />
+              <Flag size={14} />
               Report
             </button>
           )}
@@ -172,7 +171,7 @@ export default function PostContent({ post, isAdmin, isAuthor }: PostContentProp
         </div>
       </div>
 
-      <div className="mt-8 sm:mt-12 pt-6 border-t border-border">
+      <div className="post-detail__comments">
         <LoungeComments postId={post.id} />
       </div>
     </>
