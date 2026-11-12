@@ -21,10 +21,27 @@ export function DeleteConfirmationDialog({
   return (
     <Dialog.Root open={isOpen} onOpenChange={(v) => !v && onClose()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="modal-backdrop" />
+        <Dialog.Overlay
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 50,
+            background: 'rgba(0, 0, 0, 0.7)',
+            backdropFilter: 'blur(4px)',
+            WebkitBackdropFilter: 'blur(4px)',
+          }}
+        />
         <Dialog.Content
           className="modal"
-          style={{ maxWidth: 420 }}
+          style={{
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 'calc(100vw - 32px)',
+            maxWidth: 420,
+            zIndex: 51,
+          }}
           onClick={(e) => e.stopPropagation()}
         >
           <header className="modal__head">
