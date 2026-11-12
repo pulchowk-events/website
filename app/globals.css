@@ -1888,3 +1888,26 @@
   padding-top: 32px;
   border-top: 1px solid var(--l2);
 }
+
+/* Comments -------------------------------------------------------------- */
+.comments { display: flex; flex-direction: column; gap: 16px; }
+.comments__title {
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--t);
+}
+.comments__form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+.comments__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
