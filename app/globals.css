@@ -3360,3 +3360,132 @@
   text-overflow: ellipsis;
   max-width: 120px;
 }
+
+/* Markdown -------------------------------------------------------------- */
+.markdown {
+  color: var(--t);
+  font-size: 15px;
+  line-height: 1.65;
+  word-wrap: break-word;
+}
+.markdown > *:first-child { margin-top: 0; }
+.markdown > *:last-child { margin-bottom: 0; }
+
+.markdown p,
+.markdown ul,
+.markdown ol,
+.markdown blockquote,
+.markdown pre,
+.markdown table {
+  margin: 0 0 16px;
+}
+.markdown p:last-child,
+.markdown ul:last-child,
+.markdown ol:last-child { margin-bottom: 0; }
+
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4,
+.markdown h5,
+.markdown h6 {
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--t);
+  margin: 24px 0 12px;
+  line-height: 1.25;
+}
+.markdown h1 { font-size: 26px; }
+.markdown h2 { font-size: 22px; }
+.markdown h3 { font-size: 18px; }
+.markdown h4 { font-size: 16px; }
+.markdown h5,
+.markdown h6 { font-size: 14px; }
+
+.markdown a {
+  color: var(--g);
+  text-decoration: underline;
+  text-decoration-color: rgba(62, 207, 142, 0.35);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 150ms;
+}
+.markdown a:hover { text-decoration-color: var(--g); }
+
+.markdown strong { color: var(--t); font-weight: 600; }
+.markdown em { font-style: italic; }
+
+.markdown ul,
+.markdown ol { padding-left: 22px; }
+.markdown li { margin: 4px 0; }
+.markdown li > p { margin: 0; }
+.markdown li::marker { color: var(--m); }
+
+.markdown blockquote {
+  border-left: 2px solid var(--g);
+  padding: 4px 0 4px 16px;
+  color: var(--m);
+  font-style: italic;
+}
+.markdown blockquote > *:last-child { margin-bottom: 0; }
+
+.markdown code {
+  font-family: var(--font-geist-mono), ui-monospace, Menlo, monospace;
+  font-size: 0.9em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--surface-2);
+  color: var(--t);
+}
+.markdown pre {
+  padding: 16px;
+  border-radius: 10px;
+  background: var(--surface-1);
+  border: 1px solid var(--l2);
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.markdown pre code {
+  padding: 0;
+  background: transparent;
+  color: #d4d4d4;
+  font-size: inherit;
+}
+
+.markdown hr {
+  border: 0;
+  border-top: 1px solid var(--l2);
+  margin: 24px 0;
+}
+
+.markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.markdown th,
+.markdown td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--l2);
+}
+.markdown th {
+  font-weight: 500;
+  color: var(--m);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.markdown img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 12px 0;
+}
+
+.markdown input[type="checkbox"] {
+  margin-right: 6px;
+  accent-color: var(--g);
+}
