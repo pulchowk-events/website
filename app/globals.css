@@ -4285,3 +4285,10 @@
 @media (min-width: 768px) {
   .admin-form__row { grid-template-columns: 1fr 1fr; }
 }
+
+/* Kill the label-slide on app pages. Must match the specificity of the
+   base rule (`.btn:hover .btn__label:not(.btn__label--dup)`), and appear
+   later in source so it wins. */
+@media (hover: hover) {
+  .btn:hover .btn__label:not(.btn__label--dup) { transform: none; }
+}

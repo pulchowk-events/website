@@ -1,154 +1,125 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { toast } from 'sonner'
-import { useSession } from 'next-auth/react'
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 export default function AdminEventForm() {
-  const { data: session } = useSession()
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     eventDate: '',
     formLink: '',
-  })
-  const [image, setImage] = useState<File | null>(null)
+  });
+  const [image, setImage] = useState<File | null>(null);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.size > 1024 * 1024) {
+        toast.error('Image must be less than 1MB');
+        return;
+      }
+      setImage(file);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!formData.title || !formData.description || !formData.eventDate || !formData.formLink) {
-      toast.error('Please fill all required fields')
-      return
+      toast.error('Please fill all required fields');
+      return;
     }
 
     try {
-      setLoading(true)
-
-      const formDataToSend = new FormData()
-      formDataToSend.append('title', formData.title)
-      formDataToSend.append('description', formData.description)
-      formDataToSend.append('eventDate', formData.eventDate)
-      formDataToSend.append('formLink', formData.formLink)
-
+      setLoading(true);
+      const formDataToSend = new FormData();
+      formDataToSend.append('title', formData.title);
+      formDataToSend.append('description', formData.description);
+      formDataToSend.append('eventDate', formData.eventDate);
+      formDataToSend.append('formLink', formData.formLink);
       if (image instanceof File) {
-        formDataToSend.append('image', image, image.name)
+        formDataToSend.append('image', image, image.name);
       }
 
       const response = await fetch('/api/events/submit', {
         method: 'POST',
         body: formDataToSend,
-      })
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Failed to add event');
 
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to add event')
-      }
-
-      toast.success('Event added successfully')
-      setFormData({
-        title: '',
-        description: '',
-        eventDate: '',
-        formLink: '',
-      })
-      setImage(null)
+      toast.success('Event added');
+      setFormData({ title: '', description: '', eventDate: '', formLink: '' });
+      setImage(null);
     } catch (err) {
-      console.error('Error:', err)
-      if (err instanceof Error) {
-        toast.error(err.message)
-      } else {
-        toast.error('Something went wrong')
-      }
+      console.error('Error:', err);
+      toast.error(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0]
-      if (file.size > 1024 * 1024) {
-        toast.error('Image must be less than 1MB')
-        return
-      }
-      setImage(file)
-    }
-  }
+  };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label
-            htmlFor="title"
-            className="block text-sm font-medium text-foreground mb-2"
-          >
-            Event Title *
+    <form onSubmit={handleSubmit} className="admin-form">
+      <div className="admin-form__row">
+        <div className="field">
+          <label htmlFor="title" className="field__label">
+            Event title <span className="field__label-req">*</span>
           </label>
           <input
-            type="text"
             id="title"
             name="title"
+            type="text"
             value={formData.title}
             onChange={handleChange}
-            className="w-full bg-background border border-border rounded-md shadow-sm focus:border-green-500 focus:ring focus:ring-green-500 text-foreground px-4 py-2"
+            className="input"
             required
+            disabled={loading}
           />
         </div>
-
-        <div>
-          <label
-            htmlFor="eventDate"
-            className="block text-sm font-medium text-foreground mb-2"
-          >
-            Event Date *
+        <div className="field">
+          <label htmlFor="eventDate" className="field__label">
+            Event date <span className="field__label-req">*</span>
           </label>
           <input
-            type="datetime-local"
             id="eventDate"
             name="eventDate"
+            type="datetime-local"
             value={formData.eventDate}
             onChange={handleChange}
-            className="w-full bg-background border border-border rounded-md shadow-sm focus:border-green-500 focus:ring focus:ring-green-500 text-foreground px-4 py-2"
+            className="input"
             required
+            disabled={loading}
           />
         </div>
       </div>
 
-      <div>
-        <label
-          htmlFor="formLink"
-          className="block text-sm font-medium text-foreground mb-2"
-        >
-          Registration Form Link *
+      <div className="field">
+        <label htmlFor="formLink" className="field__label">
+          Registration form link <span className="field__label-req">*</span>
         </label>
         <input
-          type="url"
           id="formLink"
           name="formLink"
+          type="url"
           value={formData.formLink}
           onChange={handleChange}
-          className="w-full bg-background border border-border rounded-md shadow-sm focus:border-green-500 focus:ring focus:ring-green-500 text-foreground px-4 py-2"
+          className="input"
           required
+          disabled={loading}
         />
       </div>
 
-      <div>
-        <label
-          htmlFor="description"
-          className="block text-sm font-medium text-foreground mb-2"
-        >
-          Description *
+      <div className="field">
+        <label htmlFor="description" className="field__label">
+          Description <span className="field__label-req">*</span>
         </label>
         <textarea
           id="description"
@@ -156,56 +127,35 @@ export default function AdminEventForm() {
           value={formData.description}
           onChange={handleChange}
           rows={4}
-          className="w-full bg-background border border-border rounded-md shadow-sm focus:border-green-500 focus:ring focus:ring-green-500 text-foreground px-4 py-2 resize-y"
+          className="input input--multi"
           required
+          disabled={loading}
         />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-foreground mb-2">
-          Event Image
+      <div className="field">
+        <label htmlFor="event-image" className="field__label">
+          Image <span style={{ color: 'var(--m)', fontWeight: 400 }}>(optional)</span>
         </label>
-
-        <div className="relative">
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            id="event-image"
-            className="sr-only"
-          />
-
-          <label
-            htmlFor="event-image"
-            className="inline-block px-4 py-2 text-sm font-medium text-foreground bg-secondary hover:bg-accent rounded cursor-pointer"
-          >
-            Upload Image
-          </label>
-
-          {image && (
-            <p className="mt-2 text-xs text-muted-foreground truncate">
-              Selected: {image.name}
-            </p>
-          )}
-        </div>
+        <input
+          id="event-image"
+          type="file"
+          accept="image/*"
+          onChange={handleImageChange}
+          className="input input--file"
+          disabled={loading}
+        />
+        {image && <p className="field__hint">Selected: {image.name}</p>}
       </div>
 
-      <div className="flex justify-end">
-        <button
-          type="submit"
-          disabled={loading}
-          className="px-6 py-2 bg-green-600 hover:bg-green-700 rounded-md font-medium text-white shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-        >
-          {loading ? (
-            <>
-              <span className="mr-2">Adding...</span>
-              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
-            </>
-          ) : (
-            'Add Event'
-          )}
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <button type="submit" disabled={loading} className="btn btn--primary">
+          <span className="btn__label">{loading ? 'Adding…' : 'Add event'}</span>
+          <span className="btn__label btn__label--dup" aria-hidden="true">
+            {loading ? 'Adding…' : 'Add event'}
+          </span>
         </button>
       </div>
     </form>
-  )
+  );
 }
