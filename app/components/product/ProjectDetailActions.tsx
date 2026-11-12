@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ExternalLink, Bookmark, Share2, MoreHorizontal } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
+import SignInModal from "@/app/components/signIn/SignInModal";
 import { ProjectVoteButton } from "./ProjectVoteButton";
 import EditButton from "./EditProduct";
 import { RemoveButton } from "./RemoveProduct";
@@ -30,13 +31,14 @@ export function ProjectDetailActions({ product, isSaved, isAdmin }: Props) {
   const [saved, setSaved] = useState(isSaved);
   const [saving, setSaving] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [signInOpen, setSignInOpen] = useState(false);
 
   const isOwner = session?.user?.id === product.posted_by;
   const canManage = isAdmin || isOwner;
 
   const toggleSave = async () => {
     if (!session?.user?.id) {
-      toast.error("Sign in to save projects");
+      setSignInOpen(true);
       return;
     }
     setSaving(true);
@@ -122,6 +124,7 @@ export function ProjectDetailActions({ product, isSaved, isAdmin }: Props) {
           <MoreHorizontal size={16} />
         </button>
       )}
+      <SignInModal isOpen={signInOpen} onClose={() => setSignInOpen(false)} />
     </div>
   );
 }

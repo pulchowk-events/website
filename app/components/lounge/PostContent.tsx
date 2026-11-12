@@ -6,6 +6,8 @@ import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ArrowLeft, ExternalLink, MessageSquare, Bookmark, Share2, MoreHorizontal, Copy } from "lucide-react";
 import { toast } from "sonner";
+import { useSession } from "next-auth/react";
+import SignInModal from "@/app/components/signIn/SignInModal";
 import { PostCategory, categoryDisplayMap, categoryIcons } from "@/types/posts";
 import Markdown from "@/app/components/ui/Markdown";
 import { PostVoteButton } from "./PostVoteButton";
@@ -41,6 +43,8 @@ interface PostContentProps {
 }
 
 export default function PostContent({ post, isAdmin, isAuthor, isSaved, myVote, userId }: PostContentProps) {
+  const { data: session } = useSession();
+  const [signInOpen, setSignInOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
@@ -58,8 +62,8 @@ export default function PostContent({ post, isAdmin, isAuthor, isSaved, myVote, 
       : "https://pulchowkevents.netlify.app/lounge/" + post.id;
 
   const toggleSave = async () => {
-    if (!userId) {
-      toast.error("Sign in to save");
+    if (!session?.user?.id || !userId) {
+      setSignInOpen(true);
       return;
     }
     setSaving(true);
@@ -266,6 +270,8 @@ export default function PostContent({ post, isAdmin, isAuthor, isSaved, myVote, 
           onClose={() => setReportOpen(false)}
         />
       )}
+
+      <SignInModal isOpen={signInOpen} onClose={() => setSignInOpen(false)} />
     </>
   );
 }

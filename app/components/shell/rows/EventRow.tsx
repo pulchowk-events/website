@@ -13,15 +13,18 @@ interface EventRowProps {
   compact?: boolean;
 }
 
-const MONTH = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
-const DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-
 function dateParts(iso: string) {
-  const d = new Date(iso);
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Kathmandu",
+    month: "short",
+    day: "numeric",
+    weekday: "short",
+  }).formatToParts(new Date(iso));
+  const get = (t: string) => parts.find((p) => p.type === t)?.value || "";
   return {
-    month: MONTH[d.getMonth()],
-    day: d.getDate(),
-    dow: DOW[d.getDay()],
+    month: get("month").toUpperCase(),
+    day: parseInt(get("day") || "0", 10),
+    dow: get("weekday"),
   };
 }
 

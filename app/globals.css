@@ -6295,6 +6295,11 @@
   .ev-detail__grid { grid-template-columns: 1fr; }
 }
 
+.ev-detail__poster-wrap {
+  position: sticky;
+  top: calc(var(--topbar-h) + 16px);
+  align-self: flex-start;
+}
 .ev-detail__poster {
   position: relative;
   width: 100%;
@@ -6303,10 +6308,10 @@
   overflow: hidden;
   background: var(--surface);
   box-shadow: 0 0 0 1px var(--border);
-  position: sticky; top: calc(var(--topbar-h) + 16px); align-self: flex-start;
 }
 @media (max-width: 1023px) {
-  .ev-detail__poster { position: static; max-width: 400px; margin: 0 auto; }
+  .ev-detail__poster-wrap { position: static; }
+  .ev-detail__poster { max-width: 400px; margin: 0 auto; }
 }
 .ev-detail__poster-img { object-fit: cover; }
 .ev-detail__poster-fallback {
@@ -8167,3 +8172,87 @@
 }
 .settings__check:hover { color: var(--text-1); }
 .settings__check input { accent-color: var(--accent); }
+
+/* Sign-in shared content */
+.signin-content { display: flex; flex-direction: column; gap: 14px; }
+
+.signin-content__intro {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-2);
+  margin: 0;
+}
+
+.signin-content__error {
+  padding: 10px 14px;
+  border-radius: var(--radius-control);
+  background: rgba(255, 92, 92, 0.08);
+  border: 1px solid rgba(255, 92, 92, 0.3);
+  color: var(--danger);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.signin-content__stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.signin__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: var(--radius-control);
+  border: 0;
+  font: 500 14px var(--font-geist-sans), system-ui, sans-serif;
+  cursor: pointer;
+  transition: background var(--t-fast), opacity var(--t-fast);
+}
+.signin__btn:disabled { opacity: 0.85; cursor: progress; }
+.signin__btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.signin__btn--discord {
+  background: #5865f2;
+  color: #fff;
+}
+.signin__btn--discord:hover:not(:disabled) { background: #4752c4; }
+
+.signin__btn--google {
+  background: #fff;
+  color: #1f1f1f;
+}
+.signin__btn--google:hover:not(:disabled) { background: #ededed; }
+
+.signin__spinner {
+  animation: signin-spin 900ms linear infinite;
+}
+@keyframes signin-spin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .signin__spinner { animation: none; }
+}
+
+.signin-content__legal {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-3);
+  text-align: center;
+  margin: 4px 0 0;
+}
+.signin-content__legal a {
+  color: var(--text-2);
+  text-decoration: underline;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 2px;
+}
+.signin-content__legal a:hover { color: var(--text-1); }
+
+.signin-content--page .signin-content__intro {
+  text-align: center;
+}

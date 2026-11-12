@@ -2,7 +2,9 @@
 
 import { Bookmark } from "lucide-react";
 import { useState, useTransition } from "react";
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
+import SignInModal from "@/app/components/signIn/SignInModal";
 
 type ItemType = "post" | "event" | "job" | "project";
 
@@ -15,12 +17,20 @@ interface Props {
 }
 
 export function SaveButton({ itemType, itemId, initialSaved, compact = false, onChange }: Props) {
+  const { data: session } = useSession();
   const [saved, setSaved] = useState(initialSaved);
   const [isPending, startTransition] = useTransition();
+  const [signInOpen, setSignInOpen] = useState(false);
 
   const toggle = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (!session?.user?.id) {
+      setSignInOpen(true);
+      return;
+    }
+
     const next = !saved;
     setSaved(next);
     onChange?.(next);
@@ -59,15 +69,18 @@ export function SaveButton({ itemType, itemId, initialSaved, compact = false, on
   };
 
   return (
-    <button
-      type="button"
-      onClick={toggle}
-      disabled={isPending}
-      aria-label={saved ? "Unsave" : "Save"}
-      aria-pressed={saved}
-      className={"save-btn" + (saved ? " save-btn--on" : "") + (compact ? " save-btn--compact" : "")}
-    >
-      <Bookmark size={16} fill={saved ? "currentColor" : "none"} />
-    </button>
+    <>
+      <button
+        type="button"
+        onClick={toggle}
+        disabled={isPending}
+        aria-label={saved ? "Unsave" : "Save"}
+        aria-pressed={saved}
+        className={"save-btn" + (saved ? " save-btn--on" : "") + (compact ? " save-btn--compact" : "")}
+      >
+        <Bookmark size={16} fill={saved ? "currentColor" : "none"} />
+      </button>
+      <SignInModal isOpen={signInOpen} onClose={() => setSignInOpen(false)} />
+    </>
   );
 }

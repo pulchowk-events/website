@@ -22,21 +22,34 @@ interface Props {
   onDelete?: (id: string) => void;
 }
 
+function nptDateKey(d: Date): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kathmandu",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(d);
+  const get = (t: string) => parts.find((p) => p.type === t)?.value || "";
+  return get("year") + "-" + get("month") + "-" + get("day");
+}
+
 function dayKey(iso: string): string {
-  const d = new Date(iso);
-  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  return nptDateKey(new Date(iso));
 }
 
 function dayLabel(iso: string): string {
-  const d = new Date(iso);
-  const today = new Date();
-  const tKey = dayKey(today.toISOString());
-  const y = new Date(today.getTime() - 864e5);
-  const yKey = dayKey(y.toISOString());
-  const k = dayKey(iso);
-  if (k === tKey) return "Today";
-  if (k === yKey) return "Yesterday";
-  return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "Asia/Kathmandu" });
+  const now = new Date();
+  const todayKey = nptDateKey(now);
+  const yesterdayKey = nptDateKey(new Date(now.getTime() - 864e5));
+  const k = nptDateKey(new Date(iso));
+  if (k === todayKey) return "Today";
+  if (k === yesterdayKey) return "Yesterday";
+  return new Date(iso).toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    timeZone: "Asia/Kathmandu",
+  });
 }
 
 export function EventListGrouped({ events, isPast, savedIds, userId, isAdmin, onEdit, onDelete }: Props) {
@@ -55,7 +68,9 @@ export function EventListGrouped({ events, isPast, savedIds, userId, isAdmin, on
         const list = groups.get(k)!;
         return (
           <section key={k} className="event-day">
-            <header className="event-day__head">{dayLabel(list[0].event_date)}</header>
+            <header className="event-day__head" suppressHydrationWarning>
+              {dayLabel(list[0].event_date)}
+            </header>
             <div className="event-day__body">
               {list.map((e) => (
                 <EventListRow

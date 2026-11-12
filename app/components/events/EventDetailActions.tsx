@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ExternalLink, CalendarPlus, Share2, Bookmark, MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
+import { useSession } from "next-auth/react";
+import SignInModal from "@/app/components/signIn/SignInModal";
 import DeleteEventDialog from "./DeleteEventDialog";
 import EditEventModal from "./EditEventModal";
 
@@ -35,6 +37,8 @@ function discordInvite(): string {
 
 export function EventDetailActions({ event, isPast, isSaved, isAdmin, userId }: Props) {
   const router = useRouter();
+  const { data: session } = useSession();
+  const [signInOpen, setSignInOpen] = useState(false);
   const [saved, setSaved] = useState(isSaved);
   const [shareOpen, setShareOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -50,6 +54,10 @@ export function EventDetailActions({ event, isPast, isSaved, isAdmin, userId }: 
   const showSource = !isPast && !!event.source_url && !linksAreSame;
 
   const toggleSave = async () => {
+    if (!session?.user?.id) {
+      setSignInOpen(true);
+      return;
+    }
     setSaving(true);
     const next = !saved;
     setSaved(next);
@@ -178,6 +186,8 @@ export function EventDetailActions({ event, isPast, isSaved, isAdmin, userId }: 
         eventTitle={event.title}
         onClose={() => setDeleteOpen(false)}
       />
+
+      <SignInModal isOpen={signInOpen} onClose={() => setSignInOpen(false)} />
     </>
   );
 }

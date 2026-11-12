@@ -8,6 +8,8 @@ import {
   ExternalLink, Bookmark, Share2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useSession } from "next-auth/react";
+import SignInModal from "@/app/components/signIn/SignInModal";
 import { formatDateShort } from "@/app/lib/formatDate";
 import Markdown from "@/app/components/ui/Markdown";
 
@@ -61,6 +63,8 @@ function sourceLabel(origin: string): string | null {
 }
 
 export default function JobDetail({ job, isSaved, similarJobs }: Props) {
+  const { data: session } = useSession();
+  const [signInOpen, setSignInOpen] = useState(false);
   const [saved, setSaved] = useState(isSaved);
   const [saving, setSaving] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
@@ -92,6 +96,10 @@ export default function JobDetail({ job, isSaved, similarJobs }: Props) {
     : "https://pulchowkevents.netlify.app/jobs/" + job.id;
 
   const toggleSave = async () => {
+    if (!session?.user?.id) {
+      setSignInOpen(true);
+      return;
+    }
     setSaving(true);
     const next = !saved;
     setSaved(next);
@@ -219,6 +227,8 @@ export default function JobDetail({ job, isSaved, similarJobs }: Props) {
           <Markdown content={job.description} />
         </section>
       )}
+
+      <SignInModal isOpen={signInOpen} onClose={() => setSignInOpen(false)} />
 
       {similarJobs.length > 0 && (
         <section className="job-detail__section">
