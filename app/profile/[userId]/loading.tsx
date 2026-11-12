@@ -1,50 +1,56 @@
-// app/profile/[userId]/loading.tsx
+import Layout from '@/app/components/layout/Layout';
+
 export default function Loading() {
   return (
-    <div className="max-w-7xl mx-auto min-h-200 px-4 sm:px-6 lg:px-8 py-8">
-      {/* Profile header skeleton */}
-      <div className="bg-card border border-border rounded-xl p-6 shadow-lg mb-8 animate-pulse">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
-            <div className="w-32 h-32 rounded-full bg-muted flex-shrink-0" />
-            <div className="flex flex-col gap-3 flex-1 w-full">
-              <div className="h-8 bg-muted rounded w-2/3" />
-              <div className="h-4 bg-muted rounded w-1/2" />
-              <div className="h-10 bg-muted rounded w-32" />
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="bg-muted/50 rounded-xl p-4">
-                <div className="h-8 w-8 rounded-full bg-muted mx-auto mb-2" />
-                <div className="h-6 bg-muted rounded w-12 mx-auto mb-1" />
-                <div className="h-3 bg-muted rounded w-16 mx-auto" />
+    <Layout>
+      <div className="w">
+        <div className="profile">
+          <div className="profile__header">
+            <div className="profile__identity">
+              <div
+                className="skeleton"
+                style={{ width: 112, height: 112, borderRadius: '50%', flexShrink: 0 }}
+              />
+              <div className="profile__info" style={{ gap: 10 }}>
+                <div className="skeleton" style={{ height: 28, width: 180 }} />
+                <div className="skeleton" style={{ height: 14, width: 200 }} />
+                <div
+                  className="skeleton"
+                  style={{ height: 32, width: 120, borderRadius: 99, marginTop: 8 }}
+                />
               </div>
+            </div>
+            <dl className="profile__stats">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="profile__stat">
+                  <div
+                    className="skeleton"
+                    style={{ width: 14, height: 14, borderRadius: '50%' }}
+                  />
+                  <div className="skeleton" style={{ height: 22, width: 40, marginTop: 4 }} />
+                  <div className="skeleton" style={{ height: 10, width: 48, marginTop: 4 }} />
+                </div>
+              ))}
+            </dl>
+          </div>
+
+          <div className="profile__tablist">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="skeleton"
+                style={{ height: 40, borderRadius: 8 }}
+              />
+            ))}
+          </div>
+
+          <div className="lounge-grid">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="skeleton" style={{ height: 220 }} />
             ))}
           </div>
         </div>
       </div>
-
-      {/* Tabs skeleton */}
-      <div className="grid grid-cols-3 gap-2 bg-card border border-border rounded-xl p-2 mb-6">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-10 bg-muted rounded-xl animate-pulse" />
-        ))}
-      </div>
-
-      {/* Content skeleton */}
-      <div className="grid gap-6 sm:grid-cols-2">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-card border border-border rounded-xl p-6 animate-pulse">
-            <div className="h-5 w-24 bg-muted rounded-full mb-4" />
-            <div className="h-6 bg-muted rounded w-3/4 mb-3" />
-            <div className="space-y-2">
-              <div className="h-4 bg-muted rounded w-full" />
-              <div className="h-4 bg-muted rounded w-5/6" />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+    </Layout>
   );
 }
