@@ -116,15 +116,27 @@ export const getUpcomingEvents = unstable_cache(
 // ============================================================================
 
 export const getApprovedProducts = unstable_cache(
-  async () => {
-    const { data } = await supabase
+  async (sort: "today" | "week" | "all" = "all") => {
+    let q = supabase
       .from("products")
-      .select("*")
+      .select(
+        "id, name, description, url, votes, created_at, image_url, posted_by, users:posted_by(name, image)",
+      )
       .eq("approved", true)
+      .order("votes", { ascending: false })
       .order("created_at", { ascending: false });
-    return data || [];
+    if (sort === "today") {
+      q = q.gte("created_at", new Date(Date.now() - 864e5).toISOString());
+    } else if (sort === "week") {
+      q = q.gte("created_at", new Date(Date.now() - 7 * 864e5).toISOString());
+    }
+    const { data } = await q;
+    return (data || []).map((p: any) => ({
+      ...p,
+      users: normalizeRelation(p.users),
+    }));
   },
-  ["approved-products"],
+  ["approved-products-v2"],
   { revalidate: 60, tags: ["products"] },
 );
 
@@ -133,13 +145,14 @@ export const getProductBySlug = unstable_cache(
     const { data } = await supabase
       .from("products")
       .select(
-        "id, name, description, url, created_at, posted_by, image_url, redirect_url",
+        "id, name, description, url, votes, created_at, posted_by, image_url, redirect_url, users:posted_by(name, image)",
       )
       .eq("url", slug)
       .single();
-    return data;
+    if (!data) return null;
+    return { ...(data as any), users: normalizeRelation((data as any).users) };
   },
-  ["product-by-slug"],
+  ["product-by-slug-v2"],
   { revalidate: 60, tags: ["products"] },
 );
 

@@ -6686,3 +6686,150 @@
   color: var(--text-1); margin: 0 0 12px;
 }
 .job-detail__skills { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* Projects list */
+.phead-tabs {
+  display: flex; gap: 6px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.plist { border-top: 1px solid var(--border); }
+
+.prow {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  transition: background var(--t-fast);
+}
+.prow:hover { background: var(--hover); }
+
+.prow__rank {
+  width: 24px; flex: none;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 13px; color: var(--text-3); text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.pv {
+  display: inline-flex; flex-direction: column; align-items: center; gap: 0;
+  width: 40px; padding: 4px 0; flex: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
+}
+.pv:hover { border-color: var(--border-strong); color: var(--text-1); }
+.pv--on {
+  color: var(--accent); border-color: var(--accent); background: rgba(62,207,142,0.08);
+}
+.pv--cooldown { opacity: 0.7; }
+.pv:disabled { opacity: 0.5; cursor: progress; }
+.pv__icon { flex: none; }
+.pv__score {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 12px; font-weight: 600; color: currentColor;
+  font-variant-numeric: tabular-nums;
+  margin-top: -2px;
+}
+
+.prow__link {
+  flex: 1; min-width: 0;
+  display: flex; align-items: center; gap: 12px;
+  color: inherit; text-decoration: none;
+}
+.prow__logo {
+  width: 56px; height: 56px; flex: none;
+  border-radius: var(--radius-card);
+  background: var(--surface); box-shadow: 0 0 0 1px var(--border);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.prow__logo img { width: 100%; height: 100%; object-fit: cover; }
+.prow__logo-initial {
+  font-size: 20px; font-weight: 500; color: var(--text-2);
+}
+.prow__body { flex: 1; min-width: 0; }
+.prow__tagline {
+  font-size: 13px; line-height: 18px; color: var(--text-2);
+  margin: 2px 0 0;
+  display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.prow__ext {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px;
+  color: var(--text-3); border-radius: var(--radius-control);
+  text-decoration: none;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.prow__ext:hover { background: var(--hover); color: var(--text-1); }
+
+.plist__sparse {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  margin-top: 12px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-card);
+}
+.plist__sparse p {
+  font-size: 13px; color: var(--text-2); margin: 0;
+}
+
+/* Project detail */
+.pd {
+  display: flex; flex-direction: column; gap: 20px;
+  max-width: var(--content-w);
+}
+
+.pd__head {
+  display: flex; gap: 20px; align-items: flex-start;
+}
+.pd__logo {
+  width: 96px; height: 96px; flex: none;
+  border-radius: var(--radius-card);
+  background: var(--surface); box-shadow: 0 0 0 1px var(--border);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.pd__logo img { width: 100%; height: 100%; object-fit: cover; }
+.pd__logo-initial {
+  font-size: 40px; font-weight: 500; color: var(--text-2);
+}
+.pd__head-body { flex: 1; min-width: 0; }
+.pd__title {
+  font-size: 24px; line-height: 30px; font-weight: 600;
+  letter-spacing: -0.04em; color: var(--text-1); margin: 0 0 4px;
+}
+.pd__tagline {
+  font-size: 15px; line-height: 1.5; color: var(--text-1); margin: 0 0 6px;
+}
+.pd__meta {
+  font-size: 12px; color: var(--text-3);
+  font-family: var(--font-geist-mono), monospace;
+  margin: 0;
+}
+
+.pd-actions {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.pd__body {
+  padding-top: 4px;
+}
+.pd__body p {
+  font-size: 15px; line-height: 1.6; color: var(--text-1);
+  margin: 0;
+}
+
+.pd__comments {
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
