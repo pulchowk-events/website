@@ -5455,8 +5455,10 @@
 .side--collapsed .side__label,
 .side--collapsed .side__group-label,
 .side--collapsed .side__discord span,
+.side--collapsed .side__collapse span,
 .side--collapsed .side__brand { display: none; }
 .side--collapsed .side__row { justify-content: center; padding: 0; }
+.side--collapsed .side__collapse { justify-content: center; padding: 0; }
 .side--collapsed .side__count { display: none; }
 .side__scroll { flex: 1; overflow-y: auto; padding: 12px 8px; scrollbar-width: thin; scrollbar-color: #262626 transparent; }
 .side__group { margin-bottom: 16px; }
@@ -5500,8 +5502,8 @@
 .side__discord:hover { background: var(--hover); color: var(--text-1); }
 .side__discord span:first-of-type { flex: 1; }
 .side__collapse {
-  display: flex; align-items: center; justify-content: center;
-  height: 32px; padding: 0 10px; gap: 8px;
+  display: flex; align-items: center; justify-content: flex-start;
+  height: 32px; padding: 0 10px; gap: 10px;
   border-radius: var(--radius-control); border: 0;
   background: transparent; color: var(--text-3); cursor: pointer;
   font-size: 13px;

@@ -91,6 +91,7 @@ export function Sidebar({ counts, isAdmin, isSignedIn, collapsed, drawerOpen, on
         </a>
         <button type="button" className="side__collapse" onClick={onCollapseToggle} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>
           {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+          <span>{collapsed ? "Expand" : "Collapse"}</span>
         </button>
       </div>
     </>
