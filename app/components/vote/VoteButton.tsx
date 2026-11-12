@@ -1,9 +1,28 @@
 'use client';
 
 import { useVotes } from '@/app/lib/VoteContext';
-import { useSession, signIn } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { useEffect, useRef, useState } from 'react';
 import SignInModal from '@/app/components/signIn/SignInModal';
+
+function VoteIcon({ direction, filled }: { direction: 'up' | 'down'; filled: boolean }) {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      className={'vote__icon' + (filled ? ' vote__icon--filled' : '')}
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="10" />
+      {direction === 'up' ? (
+        <path d="M16 12l-4-4l-4 4M12 16V8" />
+      ) : (
+        <path d="M12 8v8M8 12l4 4l4-4" />
+      )}
+    </svg>
+  );
+}
 
 export function VoteButton({ productId }: { productId: number }) {
   const {
@@ -16,8 +35,7 @@ export function VoteButton({ productId }: { productId: number }) {
     votesLoading,
     refreshVotes,
     showLoginMessage,
-    setShowLoginMessage,
-    userVotes
+    userVotes,
   } = useVotes();
 
   const { data: session, status } = useSession();
@@ -36,10 +54,8 @@ export function VoteButton({ productId }: { productId: number }) {
   const votes = productVotes[productId] || { upvotes: 0, downvotes: 0 };
   const userVoteType = userVotes[productId];
   const totalVotes = votes.upvotes - votes.downvotes;
-
-  const isLoadingData =
-    status === 'loading' ||
-    isVotesLoading;
+  const isLoadingData = status === 'loading' || isVotesLoading;
+  const cooldownActive = !!session?.user?.id && !canVote && !isAdmin && !!timeRemaining;
 
   const handleVoteAttempt = (voteType: 'upvote' | 'downvote') => {
     if (!session?.user?.id) {
@@ -51,79 +67,60 @@ export function VoteButton({ productId }: { productId: number }) {
 
   if (status === 'loading') {
     return (
-      <div className="flex items-center gap-2">
-        <div className="h-6 w-6 rounded-full bg-muted animate-pulse" />
-        <p className="text-sm text-muted-foreground animate-pulse">Loading session...</p>
+      <div className="vote" aria-busy="true">
+        <span className="skeleton" style={{ width: 28, height: 28, borderRadius: 99 }} />
+        <span className="skeleton" style={{ width: 20, height: 14 }} />
+        <span className="skeleton" style={{ width: 28, height: 28, borderRadius: 99 }} />
       </div>
     );
   }
 
-  const canUserVote = (session?.user?.id && canVote) || isAdmin;
-  const isDisabled = isLoadingData || loading || (session?.user?.id && !canUserVote);
+  const title = cooldownActive && timeRemaining ? 'You can vote again in ' + timeRemaining : undefined;
+  const disabled = loading || isLoadingData;
 
   return (
     <>
-      <div className="flex flex-row items-center gap-0">
+      <div className="vote">
         <button
+          type="button"
           onClick={() => handleVoteAttempt('upvote')}
-          disabled={isLoadingData || loading}
-          className="px-2 py-1 rounded-full font-medium text-sm hover:cursor-pointer"
-          title={session?.user?.id && !canVote && timeRemaining ? `You can vote again in ${timeRemaining}` : ''}
+          disabled={disabled}
+          className={
+            'vote__btn vote__btn--up' +
+            (userVoteType === 'upvote' ? ' vote__btn--active' : '') +
+            (cooldownActive ? ' vote__btn--cooldown' : '')
+          }
+          title={title}
+          aria-label="Upvote"
+          aria-pressed={userVoteType === 'upvote'}
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            className={`transition ${
-              isDisabled
-                ? 'stroke-muted-foreground/50'
-                : userVoteType === 'upvote'
-                ? 'stroke-green-600 dark:stroke-green-500 fill-green-600 dark:fill-green-500'
-                : 'stroke-green-600 dark:stroke-green-500 hover:stroke-green-700 dark:hover:stroke-green-400'
-            }`}
-          >
-            <g fill={userVoteType === 'upvote' ? 'none' : 'none'} strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
-              <circle cx="12" cy="12" r="10" />
-              <path d="m16 12l-4-4l-4 4m4 4V8" />
-            </g>
-          </svg>
+          <VoteIcon direction="up" filled={userVoteType === 'upvote'} />
         </button>
 
         {isVotesLoading ? (
-          <p className="text-sm font-semibold text-muted-foreground animate-pulse w-6 text-center">-</p>
+          <span className="vote__count vote__count--loading">–</span>
         ) : (
-          <p className="text-sm font-semibold text-foreground">{totalVotes}</p>
+          <span className="vote__count">{totalVotes}</span>
         )}
 
         <button
+          type="button"
           onClick={() => handleVoteAttempt('downvote')}
-          disabled={isLoadingData || loading}
-          className="px-2 py-1 rounded-full font-medium text-sm hover:cursor-pointer"
-          title={session?.user?.id && !canVote && timeRemaining ? `You can vote again in ${timeRemaining}` : ''}
+          disabled={disabled}
+          className={
+            'vote__btn vote__btn--down' +
+            (userVoteType === 'downvote' ? ' vote__btn--active' : '') +
+            (cooldownActive ? ' vote__btn--cooldown' : '')
+          }
+          title={title}
+          aria-label="Downvote"
+          aria-pressed={userVoteType === 'downvote'}
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            className={`transition ${
-              isDisabled
-                ? 'stroke-muted-foreground/50'
-                : userVoteType === 'downvote'
-                ? 'stroke-red-600 dark:stroke-red-500 fill-red-600 dark:fill-red-500'
-                : 'stroke-red-600 dark:stroke-red-500 hover:stroke-red-700 dark:hover:stroke-red-400'
-            }`}
-          >
-            <g fill={userVoteType === 'downvote' ? 'currentColor' : 'none'} strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
-              <circle cx="12" cy="12" r="10" />
-              <path d="M12 8v8m-4-4l4 4l4-4" />
-            </g>
-          </svg>
+          <VoteIcon direction="down" filled={userVoteType === 'downvote'} />
         </button>
 
         {showLoginMessage && !session?.user?.id && (
-          <p className="text-red-600 dark:text-red-500 text-sm mt-1 ml-2">Please log in to vote</p>
+          <p className="vote__hint">Sign in to vote</p>
         )}
       </div>
 
