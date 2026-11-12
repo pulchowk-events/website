@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
 import { SaveButton } from "@/app/components/shell/SaveButton";
 
 interface Job {
@@ -63,28 +64,36 @@ export function JobRow({ job, saved, selected, onClick }: Props) {
   const dl = deadlineLabel(job.application_ends_at);
   const type = typeLabel(job.employment_type);
   const source = sourceLabel(job.origin);
-  const salaryShown = job.salary_disclosed && job.salary ? job.salary : null;
+  const salaryShown = job.salary && job.salary.trim() ? job.salary : null;
+  const [imgBroken, setImgBroken] = useState(false);
+  const showLogo = !!job.image_url && !imgBroken;
 
   return (
     <div className={"job-row-new" + (selected ? " job-row-new--selected" : "")} onClick={onClick}>
       <span className="job-row-new__logo">
-        {job.image_url ? (
-          <Image src={job.image_url} alt="" width={40} height={40} unoptimized />
+        {showLogo ? (
+          <Image
+            src={job.image_url!}
+            alt=""
+            width={40}
+            height={40}
+            unoptimized
+            referrerPolicy="no-referrer"
+            onError={() => setImgBroken(true)}
+          />
         ) : (
           <span className="job-row-new__logo-initial">{job.company.charAt(0).toUpperCase()}</span>
         )}
       </span>
 
       <div className="job-row-new__body">
-        <div className="job-row-new__title-row">
-          <p className="row-title">{job.title}</p>
-          {source && <span className="job-row-new__source">{source}</span>}
-        </div>
+        <p className="row-title">{job.title}</p>
         <div className="row-meta">
           <span>{job.company}</span>
           {job.location && <><span className="row-dot">·</span><span>{job.location}</span></>}
           {type && <><span className="row-dot">·</span><span className="job-row-new__badge">{type}</span></>}
           {job.attendance_mode && <><span className="row-dot">·</span><span>{job.attendance_mode}</span></>}
+          {source && <><span className="row-dot">·</span><span className="job-row-new__source">{source}</span></>}
         </div>
       </div>
 
