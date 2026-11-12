@@ -30,21 +30,28 @@ interface Event {
 }
 
 const categoryIcons = {
-  software: Code, gaming: Gamepad, music: Music,
-  hardware: LucideCircuitBoard, sports: Dumbbell, extra: Plus,
+  software: Code,
+  gaming: Gamepad,
+  music: Music,
+  hardware: LucideCircuitBoard,
+  sports: Dumbbell,
+  extra: Plus,
 } as const;
 
 const categoryColors = {
-  software: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20',
-  gaming: 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20',
-  music: 'bg-pink-100 text-pink-700 border-pink-200 dark:bg-pink-500/10 dark:text-pink-400 dark:border-pink-500/20',
-  hardware: 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-500/10 dark:text-orange-400 dark:border-orange-500/20',
-  sports: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20',
-  extra: 'bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20',
+  software: 'var(--c)',
+  hardware: 'var(--a)',
+  gaming: 'var(--v)',
+  music: '#ff6b9d',
+  sports: 'var(--g)',
+  extra: 'var(--m)',
 } as const;
 
 const SOURCE_LABELS: Record<string, string> = {
-  khalti: 'Khalti', katajaam: 'KataJaam', nepvents: 'NepVents', kgarira: 'Kgarira',
+  khalti: 'Khalti',
+  katajaam: 'KataJaam',
+  nepvents: 'NepVents',
+  kgarira: 'Kgarira',
 };
 
 function formatSourceBadge(origin: string | null | undefined): string | null {
@@ -63,26 +70,23 @@ export default function EventCard({
 }) {
   const eventDate = new Date(event.event_date);
   const CategoryIcon = categoryIcons[event.category] || Plus;
-  const categoryColor = categoryColors[event.category] || categoryColors.extra;
+  const catColor = categoryColors[event.category] || categoryColors.extra;
   const isBotEvent = event.origin?.startsWith('scraper:') || false;
   const sourceLabel = formatSourceBadge(event.origin);
   const authorName = event.author?.name || 'Anonymous';
   const authorImage = event.author?.image || '/default-avatar.png';
-  const authorId = event.created_by || 'anonymous';
 
   return (
-    <div className="bg-card border border-border rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col h-full relative group">
-      {/* Admin actions — absolutely positioned, OUTSIDE the Link so they don't trigger navigation */}
+    <article className="event-card">
       {!isBotEvent && (isAdmin || event.created_by === userId) && (
-        <div className="absolute top-3 right-3 z-20 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="event-card__actions">
           <EditEventButton event={event} />
           <DeleteButton eventId={event.id} onSuccess={() => window.location.reload()} />
         </div>
       )}
 
-      <Link href={`/events/${event.id}`} className="flex flex-col h-full">
-        {/* Image */}
-        <div className="relative h-52 w-full bg-muted flex-shrink-0">
+      <Link href={'/events/' + event.id} className="event-card__link">
+        <div className="event-card__media">
           {event.image_url ? (
             <>
               <Image
@@ -91,107 +95,97 @@ export default function EventCard({
                 fill
                 unoptimized
                 sizes="(max-width: 768px) 100vw, 50vw"
-                className="object-cover"
+                className="event-card__img"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+              <div className="event-card__scrim" aria-hidden="true" />
             </>
           ) : (
-            <div className="h-full w-full flex items-center justify-center">
-              <CategoryIcon className="w-16 h-16 text-muted-foreground/40" />
+            <div className="event-card__fallback" aria-hidden="true">
+              <CategoryIcon size={56} />
             </div>
           )}
 
-          {/* Category badge */}
-          <div className="absolute top-3 left-3">
-            <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border backdrop-blur-lg ${categoryColor}`}>
-              <CategoryIcon className="w-3.5 h-3.5" />
-              <span className="text-xs font-medium capitalize">{event.category}</span>
-            </div>
+          <div className="event-card__badges">
+            <span
+              className="tag tag--cat"
+              style={{ '--c': catColor } as React.CSSProperties}
+            >
+              <CategoryIcon size={12} />
+              <span>{event.category}</span>
+            </span>
+            {isBotEvent && sourceLabel && (
+              <span className="event-card__source">via {sourceLabel}</span>
+            )}
           </div>
 
-          {/* Source badge (bot events) */}
-          {isBotEvent && sourceLabel && (
-            <div className="absolute top-3 right-3 z-10">
-              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-black/50 text-white text-xs font-medium border border-white/10 backdrop-blur-md">
-                via {sourceLabel}
-              </div>
-            </div>
-          )}
-
-          {/* Status */}
-          <div className="absolute bottom-3 left-3">
-            {isPast ? (
-              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-red-500/20 text-red-200 border border-red-500/20 backdrop-blur-sm">
-                <span className="text-xs font-medium">Past Event</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-green-500/20 text-green-200 border border-green-500/20 backdrop-blur-sm">
-                <span className="text-xs font-medium">{formatRelativeDay(eventDate)}</span>
-              </div>
-            )}
+          <div className="event-card__status">
+            <span
+              className="tag"
+              style={{ '--c': isPast ? 'var(--danger)' : 'var(--g)' } as React.CSSProperties}
+            >
+              {isPast ? 'Past event' : formatRelativeDay(eventDate)}
+            </span>
           </div>
         </div>
 
-        {/* Details */}
-        <div className="p-5 flex-grow flex flex-col">
-          <h3 className="text-xl font-bold text-foreground mb-3 line-clamp-2 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
-            {event.title}
-          </h3>
+        <div className="event-card__body">
+          <h3 className="event-card__title">{event.title}</h3>
 
-          <div className="flex items-center text-muted-foreground text-sm mb-2 gap-1.5">
-            <Calendar className="h-4 w-4 flex-shrink-0" />
+          <p className="event-card__meta">
+            <Calendar size={14} />
             <span>{formatDateTime(eventDate)}</span>
-          </div>
+          </p>
 
-          {(event.location || event.price) && (
-            <div className="flex flex-wrap items-center text-muted-foreground text-sm mb-2 gap-x-3 gap-y-1">
+          {(event.location || (event.price && event.price !== 'Free')) && (
+            <p className="event-card__meta event-card__meta--row">
               {event.location && (
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <MapPin className="h-4 w-4 flex-shrink-0" />
-                  <span className="truncate">{event.location}</span>
-                </div>
+                <span className="event-card__inline">
+                  <MapPin size={14} />
+                  <span className="event-card__truncate">{event.location}</span>
+                </span>
               )}
               {event.price && event.price !== 'Free' && (
-                <div className="flex items-center gap-1.5">
-                  <DollarSign className="h-4 w-4 flex-shrink-0" />
+                <span className="event-card__inline">
+                  <DollarSign size={14} />
                   <span>{event.price}</span>
-                </div>
+                </span>
               )}
-            </div>
+            </p>
           )}
 
           {event.organizer && (
-            <div className="flex items-center text-muted-foreground text-sm mb-4 gap-1.5">
-              <Building2 className="h-4 w-4 flex-shrink-0" />
-              <span className="truncate">{event.organizer}</span>
-            </div>
+            <p className="event-card__meta">
+              <Building2 size={14} />
+              <span className="event-card__truncate">{event.organizer}</span>
+            </p>
           )}
 
-          <p className="text-muted-foreground mb-5 text-sm leading-relaxed line-clamp-3">
-            {event.description.length > 150 ? event.description.slice(0, 150) + '...' : event.description}
+          <p className="event-card__desc">
+            {event.description.length > 150
+              ? event.description.slice(0, 150) + '...'
+              : event.description}
           </p>
 
-          {/* Author — bottom of card */}
-          <div className="mt-auto pt-3 border-t border-border flex items-center gap-3">
-            <div className="relative w-8 h-8 rounded-full overflow-hidden bg-muted flex-shrink-0">
+          <footer className="event-card__foot">
+            <div className="event-card__avatar">
               <Image
                 src={authorImage}
                 alt={authorName}
                 fill
-                sizes="32px"
-                className="object-cover"
+                sizes="28px"
+                className="event-card__avatar-img"
                 onError={(e) => { (e.target as HTMLImageElement).src = '/default-avatar.png'; }}
               />
             </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-xs text-muted-foreground">
+            <div className="event-card__author">
+              <span className="event-card__author-label">
                 {isBotEvent ? 'Curated by' : 'Created by'}
               </span>
-              <span className="text-sm font-medium text-foreground truncate">{authorName}</span>
+              <span className="event-card__author-name">{authorName}</span>
             </div>
-          </div>
+          </footer>
         </div>
       </Link>
-    </div>
+    </article>
   );
 }
