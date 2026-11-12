@@ -1752,3 +1752,13 @@
   transition: color 200ms, background 200ms;
 }
 .post-card__arrow:hover { color: var(--t); background: var(--surface-3); }
+
+.lounge-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+@media (min-width: 640px) {
+  .lounge-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

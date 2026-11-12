@@ -2,10 +2,10 @@
 
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import PostCard from '@/app/components/lounge/PostCard';
 import AddPostModal from '@/app/components/lounge/AddPostModal';
 import CategoryFilter from '@/app/components/lounge/CategoryFilter';
-import { createPortal } from 'react-dom';
 import SignInModal from '@/app/components/signIn/SignInModal';
 import { Post } from '@/app/api/lounge/posts/get/route';
 import { Loader2 } from 'lucide-react';
@@ -33,12 +33,9 @@ export default function LoungeClient({ initialPosts, userId }: Props) {
   }, [searchParams]);
 
   const handleCategoryToggle = (category: PostCategory) => {
-    setSelectedCategories(prev => {
-      if (prev.includes(category)) {
-        return prev.filter(c => c !== category);
-      } else {
-        return [...prev, category];
-      }
+    setSelectedCategories((prev) => {
+      if (prev.includes(category)) return prev.filter((c) => c !== category);
+      return [...prev, category];
     });
     setPage(1);
   };
@@ -46,29 +43,24 @@ export default function LoungeClient({ initialPosts, userId }: Props) {
   const fetchPosts = async (pageNum: number) => {
     try {
       setLoading(true);
-
-      const categoryQuery = selectedCategories.length > 0
-        ? `&categories=${selectedCategories.join(',')}`
-        : '';
-
-      const response = await fetch(`/api/lounge/posts/get?page=${pageNum}&limit=6${categoryQuery}`);
+      const categoryQuery =
+        selectedCategories.length > 0 ? '&categories=' + selectedCategories.join(',') : '';
+      const response = await fetch(
+        '/api/lounge/posts/get?page=' + pageNum + '&limit=6' + categoryQuery
+      );
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch posts');
-      }
+      if (!response.ok) throw new Error(data.error || 'Failed to fetch posts');
 
       if (pageNum === 1) {
         setPosts(data.posts);
       } else {
-        setPosts(prevPosts => {
+        setPosts((prev) => {
           const newPosts = data.posts.filter(
-            (newPost: Post) => !prevPosts.some(existingPost => existingPost.id === newPost.id)
+            (p: Post) => !prev.some((existing) => existing.id === p.id)
           );
-          return [...prevPosts, ...newPosts];
+          return [...prev, ...newPosts];
         });
       }
-
       setHasMore(pageNum < data.totalPages);
     } catch (error) {
       console.error('Error fetching posts:', error);
@@ -79,6 +71,7 @@ export default function LoungeClient({ initialPosts, userId }: Props) {
 
   useEffect(() => {
     fetchPosts(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategories]);
 
   const loadMore = () => {
@@ -97,27 +90,22 @@ export default function LoungeClient({ initialPosts, userId }: Props) {
     router.push('?showAddPost=true');
   };
 
-const closeAddPostModal = () => {
-  // 1. Update local UI state — modal disappears immediately
-  setShowModal(false);
-
-  // 2. Strip the query param from the URL without triggering a server nav
-  if (typeof window !== 'undefined') {
-    const url = new URL(window.location.href);
-    url.searchParams.delete('showAddPost');
-    window.history.replaceState({}, '', url.toString());
-  }
-
-  // 3. Silently refresh in the background (fetch interceptor handles loader)
-  fetch('/api/lounge/posts/get?page=1')
-    .then((r) => r.json())
-    .then((data) => {
-      setPosts(data.posts);
-      setPage(1);
-      setHasMore(1 < data.totalPages);
-    })
-    .catch((err) => console.error('Background refresh failed:', err));
-};
+  const closeAddPostModal = () => {
+    setShowModal(false);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('showAddPost');
+      window.history.replaceState({}, '', url.toString());
+    }
+    fetch('/api/lounge/posts/get?page=1')
+      .then((r) => r.json())
+      .then((data) => {
+        setPosts(data.posts);
+        setPage(1);
+        setHasMore(1 < data.totalPages);
+      })
+      .catch((err) => console.error('Background refresh failed:', err));
+  };
 
   return (
     <>
@@ -128,67 +116,72 @@ const closeAddPostModal = () => {
         />
       )}
 
-      {showModal && typeof document !== 'undefined' &&
+      {showModal &&
+        typeof document !== 'undefined' &&
         createPortal(
           <AddPostModal onClose={closeAddPostModal} />,
           document.getElementById('portal-root')! || document.body
-        )
-      }
+        )}
 
-      <div className="relative">
-        <div className="lounge-toolbar">
+      <div className="lounge-toolbar">
+        <button type="button" onClick={openAddPostModal} className="btn btn--primary">
+          <span className="btn__label">Add post</span>
+          <span className="btn__label btn__label--dup" aria-hidden="true">
+            Add post
+          </span>
+        </button>
+      </div>
+
+      <CategoryFilter
+        selectedCategories={selectedCategories}
+        onCategoryToggle={handleCategoryToggle}
+      />
+
+      {loading && posts.length === 0 ? (
+        <div className="lounge-grid">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="skeleton" style={{ height: 220 }} />
+          ))}
+        </div>
+      ) : posts.length > 0 ? (
+        <div className="lounge-grid">
+          {posts.map((post) => (
+            <PostCard key={post.id} post={post} />
+          ))}
+        </div>
+      ) : (
+        <div className="empty-state" style={{ marginTop: 16 }}>
+          <p className="empty-state__title">No posts match these filters.</p>
+          <p className="empty-state__desc">
+            Try a different category, or write the first one.
+          </p>
+        </div>
+      )}
+
+      {hasMore && (
+        <div style={{ marginTop: 32, display: 'flex', justifyContent: 'center' }}>
           <button
             type="button"
-            onClick={openAddPostModal}
-            className="btn btn--primary"
+            onClick={loadMore}
+            disabled={loading}
+            className="btn btn--secondary"
           >
-            <span className="btn__label">Add post</span>
-            <span className="btn__label btn__label--dup" aria-hidden="true">Add post</span>
-          </button>
-        </div>
-
-        <CategoryFilter
-          selectedCategories={selectedCategories}
-          onCategoryToggle={handleCategoryToggle}
-        />
-
-        {loading && posts.length === 0 ? (
-          <div className="flex justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-green-500" />
-          </div>
-        ) : (
-          <div className="grid sm:grid-cols-2 gap-6">
-            {posts.length > 0 ? (
-              posts.map((post) => (
-                <PostCard key={post.id} post={post} />
-              ))
-            ) : (
-              <p className="text-center text-muted-foreground col-span-2">
-                No posts found for selected categories.
-              </p>
-            )}
-          </div>
-        )}
-
-        {hasMore && (
-          <div className="mt-8 flex justify-center">
-            <button
-              onClick={loadMore}
-              disabled={loading}
-              className="bg-secondary hover:bg-accent text-secondary-foreground px-6 py-2 rounded-lg flex items-center gap-2 disabled:opacity-50"
-            >
+            <span className="btn__label">
               {loading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Loading...
+                  <Loader2 size={14} className="animate-spin" style={{ marginRight: 8 }} />
+                  Loading
                 </>
               ) : (
-                'Load More'
+                'Load more'
               )}
-            </button>
-          </div>
-        )}
-      </div>
+            </span>
+            <span className="btn__label btn__label--dup" aria-hidden="true">
+              {loading ? 'Loading' : 'Load more'}
+            </span>
+          </button>
+        </div>
+      )}
     </>
   );
 }
