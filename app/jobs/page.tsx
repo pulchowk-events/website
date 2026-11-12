@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Layout from '@/app/components/layout/Layout';
-import LeftSidebar from '@/app/components/layout/LeftSidebar';
-import RightSidebar from '@/app/components/layout/RightSidebar';
 import JobCard from '@/app/components/jobs/JobCard';
 import Pagination from '@/app/components/events/Pagination';
 import { getJobsPage, getActiveJobTaxonomies } from '@/app/lib/queries';
@@ -91,7 +89,6 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
       <div className="bg-background min-h-screen">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
           <div className="flex flex-col lg:flex-row lg:gap-6">
-            <LeftSidebar />
 
             <div className="w-full lg:mx-auto lg:min-h-[calc(100vh-8rem)]">
               <div className="bg-card border border-border rounded-xl shadow-lg overflow-hidden p-4 sm:p-5">
@@ -224,7 +221,6 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
               </div>
             </div>
 
-            <RightSidebar exclude={['jobs']} />
           </div>
         </div>
       </div>

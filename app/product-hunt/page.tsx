@@ -5,8 +5,6 @@ import ProductHuntClient from './ProductHuntClient';
 import TopDonators from '@/app/components/donate/TopDonators';
 import Link from 'next/link';
 import { getApprovedProducts, getSidebarData } from '@/app/lib/queries';
-import LeftSidebar from '@/app/components/layout/LeftSidebar';
-import RightSidebar from '@/app/components/layout/RightSidebar';
 
 export const revalidate = 60;
 
@@ -45,7 +43,6 @@ export default async function ProductHuntPage() {
       <div className="bg-background min-h-screen">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
           <div className="flex flex-col lg:flex-row lg:gap-6">
-            <LeftSidebar />
 
             {/* Main — min-height ensures the middle column is always taller
                 than the sidebar content, giving sticky enough room to work */}
@@ -118,7 +115,6 @@ export default async function ProductHuntPage() {
 
             {/* Right Sidebar — exclude products so it doesn't repeat the
                 main content, and reduces sidebar height on this page */}
-            <RightSidebar exclude={['products']} />
           </div>
         </div>
       </div>

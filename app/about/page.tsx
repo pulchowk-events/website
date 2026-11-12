@@ -16,9 +16,7 @@ import {
 import PrizePoolProgress from '@/app/components/donate/SmPrizePoolProgress';
 import { getAboutStats } from '@/app/lib/queries';
 import { SITE_URL } from '@/app/lib/seo';
-import RightSidebar from '@/app/components/layout/RightSidebar';
 import { Github, Linkedin, Globe, Mail } from 'lucide-react';
-import LeftSidebar from '../components/layout/LeftSidebar';
 
 
 export const revalidate = 60;
@@ -124,7 +122,6 @@ export default async function AboutPage() {
       <div className="bg-background min-h-screen">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
           <div className="flex flex-col lg:flex-row lg:gap-6">
-            <LeftSidebar/>
 
             {/* Main content */}
             <div className="w-full space-y-6">
@@ -420,7 +417,6 @@ export default async function AboutPage() {
               </section>
             </div>
 
-            <RightSidebar/>
           </div>
         </div>
       </div>

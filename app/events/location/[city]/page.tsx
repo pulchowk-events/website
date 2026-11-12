@@ -2,8 +2,6 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Layout from '@/app/components/layout/Layout';
-import LeftSidebar from '@/app/components/layout/LeftSidebar';
-import RightSidebar from '@/app/components/layout/RightSidebar';
 import EventCard from '@/app/components/events/EventCard';
 import { getEventsByCity } from '@/app/lib/queries';
 import { SITE_URL, breadcrumbSchema } from '@/app/lib/seo';
@@ -57,7 +55,6 @@ export default async function CityPage({
       <div className="bg-background min-h-screen">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
           <div className="flex flex-col lg:flex-row lg:gap-6">
-            <LeftSidebar />
             <div className="w-full lg:mx-auto lg:min-h-[calc(100vh-8rem)]">
               <div className="bg-card border border-border rounded-xl shadow-lg overflow-hidden p-4 sm:p-5">
                 <nav className="mb-3 text-sm text-muted-foreground">
@@ -95,7 +92,6 @@ export default async function CityPage({
                 </div>
               </div>
             </div>
-            <RightSidebar exclude={['events']} />
           </div>
         </div>
       </div>
