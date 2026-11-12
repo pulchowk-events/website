@@ -7,7 +7,6 @@ export function CommunityWidget({ discordUrl }: { discordUrl: string }) {
       <a href={discordUrl} target="_blank" rel="noopener noreferrer" className="rail-community">
         <MessageSquare size={16} />
         <span className="rail-community__label">Join Discord</span>
-        <span className="rail-community__count">11k+</span>
       </a>
     </RailWidget>
   );

@@ -252,7 +252,6 @@ function FilterCheck({
     <label className="jobs-filter__check">
       <input type="checkbox" checked={checked} onChange={onChange} />
       <span className="jobs-filter__check-label">{label}</span>
-      {count !== undefined && <span className="jobs-filter__check-count">{count}</span>}
     </label>
   );
 }

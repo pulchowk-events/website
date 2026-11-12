@@ -49,7 +49,6 @@ export default async function LoungePage({
       <div id="portal-root" />
       <PageHeader
         title="Lounge"
-        count={totalCount > 0 ? totalCount + (totalCount === 1 ? " post" : " posts") : undefined}
       />
       <SortDensityBar sort={sort} density={density} category={category} />
       <LoungeFeed

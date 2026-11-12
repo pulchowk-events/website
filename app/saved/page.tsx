@@ -33,7 +33,6 @@ export default async function SavedPage() {
     <Layout railContext="utility">
       <PageHeader
         title="Saved"
-        count={items.length > 0 ? items.length + (items.length === 1 ? " item" : " items") : undefined}
       />
       <SavedClient items={items} />
     </Layout>

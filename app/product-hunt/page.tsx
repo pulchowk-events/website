@@ -50,7 +50,6 @@ export default async function ProductHuntPage({
 
       <PageHeader
         title="Projects"
-        count={products.length > 0 ? products.length + (products.length === 1 ? " project" : " projects") : undefined}
         actions={<Link href="/product-hunt/new" className="btn btn--primary btn--sm">Submit project</Link>}
       />
 

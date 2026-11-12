@@ -81,7 +81,6 @@ export default async function EventsPage({
     <Layout railContext="events">
       <PageHeader
         title="Events"
-        count={totalCount + (totalCount === 1 ? " event" : " events")}
         actions={
           session ? (
             <Link href="/events/new" className="btn btn--secondary btn--sm">

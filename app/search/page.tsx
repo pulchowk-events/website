@@ -119,7 +119,7 @@ export default async function SearchPage({
 
   return (
     <Layout railContext="utility">
-      <PageHeader title={"Results for " + q} count={total > 0 ? total + " total" : undefined} />
+      <PageHeader title={"Results for " + q} />
 
       <form action="/search" method="get" className="search-form-lg">
         <Search size={16} />

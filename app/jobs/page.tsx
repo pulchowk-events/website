@@ -95,7 +95,6 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
     <Layout railContext="jobs">
       <PageHeader
         title="Jobs"
-        count={totalCount + (totalCount === 1 ? " job" : " jobs")}
       />
 
       <JobsActiveFilters />

@@ -47,7 +47,6 @@ export function Sidebar({ counts, isAdmin, isSignedIn, collapsed, drawerOpen, on
       <Link href={href} className="side__row" aria-current={isActive(href) ? "page" : undefined} onClick={onDrawerClose}>
         <Icon size={16} className="side__icon" />
         <span className="side__label">{label}</span>
-        {count > 0 && <span className="side__count">{count}</span>}
       </Link>
     );
   };
@@ -89,7 +88,6 @@ export function Sidebar({ counts, isAdmin, isSignedIn, collapsed, drawerOpen, on
         <a href="https://discord.gg/cQ5gxusATk" target="_blank" rel="noopener noreferrer" className="side__discord">
           <MessageSquare size={14} />
           <span>Join Discord</span>
-          <span className="side__count">11k+</span>
         </a>
         <button type="button" className="side__collapse" onClick={onCollapseToggle} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>
           {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
