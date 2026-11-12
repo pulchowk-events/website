@@ -2,6 +2,8 @@ import type { RailBundle } from "@/app/lib/queries";
 import { CommunityWidget } from "./rail/CommunityWidget";
 import { PrizePoolWidget } from "./rail/PrizePoolWidget";
 import { TopDonorsWidget } from "./rail/TopDonorsWidget";
+import { TrendingWidget } from "./rail/TrendingWidget";
+import { UpcomingEventsWidget } from "./rail/UpcomingEventsWidget";
 
 export function RightRail({ bundle }: { bundle: RailBundle }) {
   return (
@@ -17,6 +19,19 @@ export function RightRail({ bundle }: { bundle: RailBundle }) {
           <TopDonorsWidget donors={bundle.topDonors} />
         </>
       )}
+
+      {bundle.context === "lounge" && (
+        <>
+          <TrendingWidget posts={bundle.trending} />
+          <UpcomingEventsWidget events={bundle.upcomingEvents} />
+          <PrizePoolWidget
+            current={bundle.prizePool.currentAmount}
+            target={bundle.prizePool.targetAmount}
+            donors={bundle.prizePool.totalDonors}
+          />
+        </>
+      )}
+
       {bundle.context === "utility" && (
         <>
           <CommunityWidget discordUrl={bundle.community.discordUrl} />
@@ -27,7 +42,8 @@ export function RightRail({ bundle }: { bundle: RailBundle }) {
           />
         </>
       )}
-      {bundle.context !== "home" && bundle.context !== "utility" && (
+
+      {bundle.context !== "home" && bundle.context !== "lounge" && bundle.context !== "utility" && (
         <>
           <CommunityWidget discordUrl="https://discord.gg/cQ5gxusATk" />
           {"prizePool" in bundle && bundle.prizePool && (

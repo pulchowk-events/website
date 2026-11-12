@@ -9,9 +9,10 @@ interface Props {
   postId: string;
   initialScore: number;
   initialVote: 1 | -1 | undefined;
+  orientation?: "vertical" | "horizontal";
 }
 
-export function PostVoteButton({ postId, initialScore, initialVote }: Props) {
+export function PostVoteButton({ postId, initialScore, initialVote, orientation = "vertical" }: Props) {
   const { data: session } = useSession();
   const [score, setScore] = useState(initialScore);
   const [vote, setVote] = useState<1 | -1 | undefined>(initialVote);
@@ -53,7 +54,10 @@ export function PostVoteButton({ postId, initialScore, initialVote }: Props) {
 
   return (
     <>
-      <div className="pvcol" onClick={(e) => e.stopPropagation()}>
+      <div
+        className={"pvcol" + (orientation === "horizontal" ? " pvcol--h" : "")}
+        onClick={(e) => e.stopPropagation()}
+      >
         <button
           type="button"
           onClick={() => cast(1)}
