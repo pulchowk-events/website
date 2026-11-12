@@ -1461,3 +1461,16 @@
   height: 44px;
   text-decoration: none;
 }
+
+/* Breadcrumb ------------------------------------------------------------ */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--m);
+  margin-bottom: 24px;
+}
+.breadcrumb a { color: var(--m); transition: color 200ms; }
+.breadcrumb a:hover { color: var(--t); }
+.breadcrumb span:last-child { color: var(--t); }
