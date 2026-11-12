@@ -3829,3 +3829,48 @@
 @media (min-width: 1200px) {
   .admin-stats-skeleton { grid-template-columns: repeat(6, 1fr); }
 }
+
+/* Admin stats ----------------------------------------------------------- */
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+@media (min-width: 768px) {
+  .admin-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 1200px) {
+  .admin-stats { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
+.admin-stat {
+  padding: 14px 16px;
+  border: 1px solid var(--l);
+  border-radius: 12px;
+  background: var(--surface-1);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.admin-stat__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+.admin-stat__value {
+  font: 500 22px/1.1 var(--font-geist-mono), ui-monospace, monospace;
+  letter-spacing: -0.02em;
+  color: var(--t);
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+}
+.admin-stat__label {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--m);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  margin: 0;
+}
