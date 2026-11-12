@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Pencil } from 'lucide-react';
 import EditProductModal from './EditProductModal';
 
@@ -17,26 +17,22 @@ interface EditButtonProps {
 
 export default function EditButton({ product }: EditButtonProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640);
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   return (
     <>
       <button
+        type="button"
         onClick={() => setIsModalOpen(true)}
-        className="flex items-center gap-2 px-3 py-2 sm:px-4 bg-blue-100 dark:bg-blue-600/20 hover:bg-blue-200 dark:hover:bg-blue-600/30 text-blue-700 dark:text-blue-500 rounded-lg transition-colors"
+        className="btn btn--secondary"
       >
-        <Pencil className="w-4 h-4" />
-        {!isMobile && <span>Edit Product</span>}
+        <span className="btn__label">
+          <Pencil size={14} style={{ marginRight: 8 }} />
+          Edit project
+        </span>
+        <span className="btn__label btn__label--dup" aria-hidden="true">
+          <Pencil size={14} style={{ marginRight: 8 }} />
+          Edit project
+        </span>
       </button>
 
       {isModalOpen && (

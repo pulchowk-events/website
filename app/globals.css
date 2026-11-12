@@ -3220,3 +3220,40 @@
   color: var(--t);
   font-variant-numeric: tabular-nums;
 }
+
+/* Form field ------------------------------------------------------------ */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field__label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--t);
+}
+.field__label-req { color: var(--danger); margin-left: 2px; }
+.field__hint { font-size: 12px; line-height: 1.4; color: var(--m); }
+.field__error { font-size: 12px; line-height: 1.4; color: var(--danger); }
+
+.input--file {
+  padding: 6px 12px;
+  height: auto;
+  border-radius: 10px;
+  line-height: 1.4;
+  font-size: 13px;
+}
+.input--file::file-selector-button {
+  appearance: none;
+  -webkit-appearance: none;
+  height: 28px;
+  padding: 0 12px;
+  margin-right: 12px;
+  border-radius: 6px;
+  border: 0;
+  background: var(--surface-3);
+  color: var(--t);
+  font: 500 12px var(--font-geist-sans), system-ui, sans-serif;
+  cursor: pointer;
+}
+.input--file::file-selector-button:hover { background: #2a2a2a; }

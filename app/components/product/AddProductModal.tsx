@@ -1,34 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useSession, signIn } from 'next-auth/react';
 import { toast } from 'sonner';
-import { motion, AnimatePresence } from 'framer-motion';
-import { BorderBeam } from "@/components/magicui/border-beam";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { X } from 'lucide-react';
 
 interface AddProductModalProps {
   onClose: () => void;
 }
 
-interface ApiError {
-  error?: string;
-  message?: string;
-}
-
 export default function AddProductModal({ onClose }: AddProductModalProps) {
   const { data: session } = useSession();
-  const router = useRouter();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -39,17 +21,24 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
   const [redirectUrl, setRedirectUrl] = useState('');
 
   useEffect(() => {
+    const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = prev;
     };
   }, []);
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !loading) onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose, loading]);
+
   const validateUrl = (value: string) => {
     const regex = /^[a-z0-9]+(-[a-z0-9]+)*$/;
-    if (!regex.test(value)) {
-      return 'Url must use lowercase letters and hyphens only, no spaces.';
-    }
+    if (!regex.test(value)) return 'Slug must use lowercase letters and hyphens only.';
     return '';
   };
 
@@ -59,7 +48,7 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
       new URL(value);
       return '';
     } catch {
-      return 'Please enter a valid URL (including http:// or https://)';
+      return 'Enter a valid URL (including http:// or https://)';
     }
   };
 
@@ -67,14 +56,20 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
     e.preventDefault();
 
     if (!session?.user?.id) {
-      toast.error('You must be signed in to submit.');
-      router.push('/api/auth/signin');
+      toast.error('Sign in to submit a project.');
+      signIn();
       return;
     }
 
     const errorMsg = validateUrl(url);
     if (errorMsg) {
       setUrlError(errorMsg);
+      return;
+    }
+
+    const redirectError = validateRedirectUrl(redirectUrl);
+    if (redirectError) {
+      toast.error(redirectError);
       return;
     }
 
@@ -86,17 +81,7 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
       formData.append('description', description);
       formData.append('url', url);
       formData.append('redirect_url', redirectUrl);
-      if (image) {
-        formData.append('image', image);
-      }
-
-      if (redirectUrl) {
-        const redirectUrlError = validateRedirectUrl(redirectUrl);
-        if (redirectUrlError) {
-          toast.error(redirectUrlError);
-          return;
-        }
-      }
+      if (image) formData.append('image', image);
 
       const response = await fetch('/api/products/submit', {
         method: 'POST',
@@ -104,148 +89,151 @@ export default function AddProductModal({ onClose }: AddProductModalProps) {
       });
 
       const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Failed to submit product');
 
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to submit product');
-      }
-
-      toast.success(result.message || 'Product submitted for review!');
-      setName('');
-      setDescription('');
-      setUrl('');
-      setImage(null);
+      toast.success(result.message || 'Project submitted for review');
       onClose();
     } catch (error) {
       console.error('Submission error:', error);
-
-      if (error instanceof Error) {
-        toast.error(error.message);
-      } else if (typeof error === 'string') {
-        toast.error(error);
-      } else {
-        toast.error('An unexpected error occurred');
-      }
+      toast.error(error instanceof Error ? error.message : 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <AnimatePresence>
-      <motion.div
-        key="modal"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[999] min-h-screen flex items-center justify-center bg-black/50 dark:bg-black/70 backdrop-blur-sm px-4 sm:px-0"
-        onClick={onClose}
-      >
-        <motion.div
-          initial={{ scale: 0.95, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.95, opacity: 0 }}
-          transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Card className="relative w-full max-w-md bg-card text-card-foreground overflow-hidden">
-            <CardHeader>
-              <CardTitle>Add New Product</CardTitle>
-              <CardDescription>Submit your product for daily listing.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form className="space-y-4" onSubmit={handleSubmit}>
-                <div className="space-y-1.5">
-                  <Label htmlFor="name">Product Name</Label>
-                  <Input
-                    id="name"
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Product Name"
-                    required
-                  />
-                </div>
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <header className="modal__head">
+          <div>
+            <h2 className="modal__title">Submit a project</h2>
+            <p style={{ fontSize: 13, color: 'var(--m)', marginTop: 4 }}>
+              Goes through review before appearing on the leaderboard.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="modal__close"
+            aria-label="Close"
+            disabled={loading}
+          >
+            <X size={18} />
+          </button>
+        </header>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="description">Description</Label>
-                  <textarea
-                    id="description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Brief description"
-                    required
-                    className="w-full p-3 rounded-md bg-background border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                  />
-                </div>
+        <form onSubmit={handleSubmit}>
+          <div className="modal__body">
+            <div className="field">
+              <label htmlFor="name" className="field__label">
+                Project name <span className="field__label-req">*</span>
+              </label>
+              <input
+                id="name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Your project name"
+                className="input"
+                required
+                disabled={loading}
+              />
+            </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="redirect-url">View Product URL (Optional)</Label>
-                  <Input
-                    id="redirect-url"
-                    type="url"
-                    value={redirectUrl}
-                    onChange={(e) => setRedirectUrl(e.target.value)}
-                    placeholder="https://your-product-url.com"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Add a link to your product's website or repository
-                  </p>
-                </div>
+            <div className="field">
+              <label htmlFor="description" className="field__label">
+                Description <span className="field__label-req">*</span>
+              </label>
+              <textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="What does it do, and who is it for?"
+                className="input input--multi"
+                rows={3}
+                required
+                disabled={loading}
+              />
+            </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="url">Product Slug</Label>
-                  <Input
-                    id="url"
-                    type="text"
-                    value={url}
-                    onChange={(e) => {
-                      setUrl(e.target.value);
-                      if (urlError) setUrlError('');
-                    }}
-                    placeholder=".com/product-hunt/{your-slug}"
-                    required
-                  />
-                  {urlError && (
-                    <p className="text-sm text-red-600 dark:text-red-400">{urlError}</p>
-                  )}
-                </div>
+            <div className="field">
+              <label htmlFor="url" className="field__label">
+                URL slug <span className="field__label-req">*</span>
+              </label>
+              <input
+                id="url"
+                type="text"
+                value={url}
+                onChange={(e) => {
+                  setUrl(e.target.value);
+                  if (urlError) setUrlError('');
+                }}
+                placeholder="my-project-name"
+                className="input"
+                required
+                disabled={loading}
+                aria-invalid={!!urlError}
+              />
+              {urlError ? (
+                <p className="field__error">{urlError}</p>
+              ) : (
+                <p className="field__hint">
+                  Lives at <span style={{ fontFamily: 'var(--font-geist-mono), monospace' }}>/product-hunt/{url || 'your-slug'}</span>
+                </p>
+              )}
+            </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="product-image">Product Image</Label>
-                  <Input
-                    id="product-image"
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) =>
-                      setImage(e.target.files ? e.target.files[0] : null)
-                    }
-                  />
-                  {image && (
-                    <p className="text-sm text-muted-foreground truncate">
-                      Selected: {image.name}
-                    </p>
-                  )}
-                </div>
+            <div className="field">
+              <label htmlFor="redirect-url" className="field__label">
+                Live URL <span style={{ color: 'var(--m)', fontWeight: 400 }}>(optional)</span>
+              </label>
+              <input
+                id="redirect-url"
+                type="url"
+                value={redirectUrl}
+                onChange={(e) => setRedirectUrl(e.target.value)}
+                placeholder="https://your-project.com"
+                className="input"
+                disabled={loading}
+              />
+              <p className="field__hint">Link to your project&apos;s website or repository.</p>
+            </div>
 
-                <div className="flex justify-end gap-2 pt-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={onClose}
-                    disabled={loading}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={loading}>
-                    {loading ? 'Submitting...' : 'Submit'}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-            <BorderBeam duration={8} size={120} />
-          </Card>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+            <div className="field">
+              <label htmlFor="product-image" className="field__label">
+                Image <span style={{ color: 'var(--m)', fontWeight: 400 }}>(optional)</span>
+              </label>
+              <input
+                id="product-image"
+                type="file"
+                accept="image/*"
+                onChange={(e) => setImage(e.target.files ? e.target.files[0] : null)}
+                className="input input--file"
+                disabled={loading}
+              />
+              {image && <p className="field__hint">Selected: {image.name}</p>}
+            </div>
+          </div>
+
+          <div className="modal__foot">
+            <button
+              type="button"
+              onClick={onClose}
+              className="btn btn--secondary"
+              disabled={loading}
+            >
+              <span className="btn__label">Cancel</span>
+              <span className="btn__label btn__label--dup" aria-hidden="true">Cancel</span>
+            </button>
+            <button type="submit" className="btn btn--primary" disabled={loading}>
+              <span className="btn__label">{loading ? 'Submitting…' : 'Submit'}</span>
+              <span className="btn__label btn__label--dup" aria-hidden="true">
+                {loading ? 'Submitting…' : 'Submit'}
+              </span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }
