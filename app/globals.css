@@ -5238,10 +5238,9 @@
 }
 
 /* ============================================================================
-   SPEC TOKENS — Phase 1 of the redesign.
+   SPEC TOKENS.
    Source of truth: Pulchowk_Events_UI_UX_Spec.pdf §3.1, §3.2, §3.4.
-   Old token names bridge via :root alias below. Each page migration removes
-   the ones it no longer needs; Phase 7 removes the block entirely.
+   Old token names bridge via the alias block below.
    ============================================================================ */
 :root {
   /* Foundation — spec §3.1 */
@@ -5303,7 +5302,7 @@
   --t-fast: 150ms;
   --t-med: 250ms;
 
-  /* Bridge — old token names. Delete during Phase 7. */
+  /* Bridge — old token names. */
   --t: var(--text-1);
   --m: var(--text-2);
   --l: var(--border-strong);
