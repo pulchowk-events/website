@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { formatDistanceToNow, format } from 'date-fns';
+import { formatDateTime, formatRelativeDay } from '@/app/lib/formatDate';
 import Link from 'next/link';
 import DeleteButton from './DeleteButton';
 import {
@@ -126,7 +126,7 @@ export default function EventCard({
               </div>
             ) : (
               <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-green-500/20 text-green-200 border border-green-500/20 backdrop-blur-sm">
-                <span className="text-xs font-medium">{formatDistanceToNow(eventDate, { addSuffix: true })}</span>
+                <span className="text-xs font-medium">{formatRelativeDay(eventDate)}</span>
               </div>
             )}
           </div>
@@ -140,7 +140,7 @@ export default function EventCard({
 
           <div className="flex items-center text-muted-foreground text-sm mb-2 gap-1.5">
             <Calendar className="h-4 w-4 flex-shrink-0" />
-            <span>{format(eventDate, 'PPP')} at {format(eventDate, 'p')}</span>
+            <span>{formatDateTime(eventDate)}</span>
           </div>
 
           {(event.location || event.price) && (
