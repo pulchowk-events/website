@@ -2,16 +2,16 @@ import type { Metadata } from 'next';
 import Layout from '@/app/components/layout/Layout';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Calendar, Box, MessageSquare, Clock, TrendingUp, Users, Award, Search as SearchIcon } from 'lucide-react';
+import { Calendar, Box, MessageSquare, Search as SearchIcon } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import PrizePoolProgress from '@/app/components/donate/SmPrizePoolProgress';
-import TopDonators from '@/app/components/donate/TopDonators';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { supabase } from '@/app/lib/supabase';
 import { getSidebarData } from '@/app/lib/queries';
 import { normalizeRelation } from '@/app/lib/supabase-helpers';
+import { formatDateShort } from '@/app/lib/formatDate';
 
 export const metadata: Metadata = {
-  title: 'Search — Pulchowk Events',
+  title: 'Search',
   description: 'Search events, projects, and community posts across Pulchowk Events.',
   robots: { index: false, follow: true },
 };
@@ -25,485 +25,265 @@ export default async function SearchPage({
   const rawQuery = Array.isArray(params.q) ? params.q[0] : params.q;
   const query = (rawQuery ?? '').trim();
   const hasQuery = query.length > 0;
-
   const safeQuery = query.replace(/[%_\\]/g, '\\$&');
 
-  // Sidebar: cached
-  const { prizePool, donors, products, upcomingEvents } = await getSidebarData();
+  const sidebarData = hasQuery ? null : await getSidebarData();
 
-  // Results: per-query, uncached, but with join normalization
-  const { data: postsRaw } = hasQuery
-    ? await supabase
-        .from('lounge_posts')
-        .select(
-          `
-          id, title, content, created_at,
-          users:author_id (name, image)
-        `
-        )
-        .or(`title.ilike.%${safeQuery}%,content.ilike.%${safeQuery}%`)
-        .order('created_at', { ascending: false })
-        .limit(5)
-    : { data: [] };
+  const [postsRes, eventsRes, productsRes] = hasQuery
+    ? await Promise.all([
+        supabase
+          .from('lounge_posts')
+          .select('id, title, content, created_at, users:author_id (name, image)')
+          .or('title.ilike.%' + safeQuery + '%,content.ilike.%' + safeQuery + '%')
+          .order('created_at', { ascending: false })
+          .limit(5),
+        supabase
+          .from('events')
+          .select(
+            'id, title, description, event_date, created_at, category, image_url, users:created_by (name, image)'
+          )
+          .or('title.ilike.%' + safeQuery + '%,description.ilike.%' + safeQuery + '%')
+          .eq('verified', true)
+          .order('event_date', { ascending: true })
+          .limit(5),
+        supabase
+          .from('products')
+          .select(
+            'id, name, description, url, image_url, created_at, users:posted_by (name, image)'
+          )
+          .or('name.ilike.%' + safeQuery + '%,description.ilike.%' + safeQuery + '%')
+          .eq('approved', true)
+          .order('created_at', { ascending: false })
+          .limit(5),
+      ])
+    : [{ data: [] }, { data: [] }, { data: [] }];
 
-  const { data: eventsRaw } = hasQuery
-    ? await supabase
-        .from('events')
-        .select(
-          `
-          id, title, description, event_date, created_at, category, image_url,
-          users:created_by (name, image)
-        `
-        )
-        .or(`title.ilike.%${safeQuery}%,description.ilike.%${safeQuery}%`)
-        .eq('verified', true)
-        .order('event_date', { ascending: true })
-        .limit(5)
-    : { data: [] };
-
-  const { data: productsRaw } = hasQuery
-    ? await supabase
-        .from('products')
-        .select(
-          `
-          id, name, description, url, image_url, created_at,
-          users:posted_by (name, image)
-        `
-        )
-        .or(`name.ilike.%${safeQuery}%,description.ilike.%${safeQuery}%`)
-        .eq('approved', true)
-        .order('created_at', { ascending: false })
-        .limit(5)
-    : { data: [] };
-
-  // Normalize joins: Supabase types these as arrays; runtime may be either.
-  const posts = (postsRaw || []).map((p: any) => ({
+  const posts = (postsRes.data || []).map((p: any) => ({
     ...p,
     users: normalizeRelation(p.users),
   }));
-  const events = (eventsRaw || []).map((e: any) => ({
+  const events = (eventsRes.data || []).map((e: any) => ({
     ...e,
     users: normalizeRelation(e.users),
   }));
-  const matchingProducts = (productsRaw || []).map((p: any) => ({
+  const matchingProducts = (productsRes.data || []).map((p: any) => ({
     ...p,
     users: normalizeRelation(p.users),
   }));
 
+  const totalResults = posts.length + events.length + matchingProducts.length;
+
   return (
     <Layout>
-      <div className="bg-background min-h-screen">
-        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-          <div className="flex flex-col lg:flex-row lg:gap-6">
-            {/* Left sidebar */}
-            <div className="hidden lg:block lg:w-1/5 space-y-4 flex-shrink-0">
-              <div className="bg-card border border-border rounded-xl p-5 shadow-lg sticky top-24">
-                <div className="flex items-center gap-3 mb-6">
-                  <TrendingUp className="h-6 w-6 text-green-600 dark:text-green-400" />
-                  <h2 className="text-xl font-semibold text-foreground">Community</h2>
-                </div>
-                <div className="space-y-4">
-                  <a
-                    href="https://discord.gg/cQ5gxusATk"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between bg-muted/30 hover:bg-accent transition-colors p-3 rounded-lg"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="bg-indigo-500 rounded-lg p-2">
-                        <Users className="h-5 w-5 text-white" />
-                      </div>
-                      <span className="font-medium text-foreground">Join Discord</span>
-                    </div>
-                    <span className="bg-muted rounded-full px-2.5 py-1 text-xs text-foreground">
-                      1,050
-                    </span>
-                  </a>
-                  <div className="pt-2">
-                    <PrizePoolProgress
-                      currentAmount={prizePool.currentAmount}
-                      targetAmount={prizePool.targetAmount}
-                      totalDonors={prizePool.totalDonors}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+      <div className="w">
+        <PageHeader
+          eyebrow="Search"
+          title={hasQuery ? '"' + query + '"' : 'Search Pulchowk Events.'}
+          description={
+            hasQuery
+              ? totalResults +
+                ' result' +
+                (totalResults === 1 ? '' : 's') +
+                ' across posts, events, and projects.'
+              : 'Find events, projects, and community posts.'
+          }
+        />
 
-            {/* Main */}
-            <div className="w-full lg:mx-auto">
-              <div className="bg-card border border-border rounded-xl shadow-lg overflow-hidden mb-5 p-5">
-                <h1 className="text-2xl font-bold text-foreground mb-6">
-                  {hasQuery ? (
-                    <>
-                      Search results for{' '}
-                      <span className="text-green-600 dark:text-green-400">
-                        &ldquo;{query}&rdquo;
-                      </span>
-                    </>
+        <form action="/search" method="get" className="search-form" role="search">
+          <SearchIcon size={16} className="search-form__icon" aria-hidden="true" />
+          <input
+            type="search"
+            name="q"
+            defaultValue={query}
+            placeholder="Search events, projects, and posts…"
+            className="search-form__input"
+            aria-label="Search query"
+          />
+          <button type="submit" className="btn btn--primary btn--sm">
+            <span className="btn__label">Search</span>
+            <span className="btn__label btn__label--dup" aria-hidden="true">Search</span>
+          </button>
+        </form>
+
+        {!hasQuery && (
+          <div className="search-idle">
+            <p className="search-idle__hint">
+              Start typing above, or explore what&apos;s already here.
+            </p>
+            {sidebarData && (
+              <div className="home-grid">
+                <section className="home-card">
+                  <header className="home-card__head">
+                    <h2 className="home-card__title">Upcoming events</h2>
+                    <Link href="/events" className="home-card__see">See all</Link>
+                  </header>
+                  {sidebarData.upcomingEvents.length > 0 ? (
+                    <ul className="home-list">
+                      {sidebarData.upcomingEvents.map((e: any) => (
+                        <li key={e.id}>
+                          <Link href={'/events/' + e.id} className="home-row">
+                            <span className="home-row__main">{e.title}</span>
+                            <span className="home-row__meta">{formatDateShort(e.event_date)}</span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
                   ) : (
-                    'Search'
+                    <p className="home-empty">No upcoming events.</p>
                   )}
-                </h1>
+                </section>
 
-                {!hasQuery && (
-                  <div className="text-center py-16">
-                    <SearchIcon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">
-                      Enter a search term to find events, projects, and community posts.
-                    </p>
-                  </div>
-                )}
+                <section className="home-card">
+                  <header className="home-card__head">
+                    <h2 className="home-card__title">Recent projects</h2>
+                    <Link href="/product-hunt" className="home-card__see">See all</Link>
+                  </header>
+                  {sidebarData.products.length > 0 ? (
+                    <ul className="home-list">
+                      {sidebarData.products.map((p: any) => (
+                        <li key={p.id}>
+                          <Link href={'/product-hunt/' + p.url} className="home-row">
+                            <span className="home-row__main">{p.name}</span>
+                            <span className="home-row__meta">{formatDateShort(p.created_at)}</span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="home-empty">No projects yet.</p>
+                  )}
+                </section>
 
-                {hasQuery && (
-                  <div className="space-y-8">
-                    {/* Posts */}
-                    <section>
-                      <div className="flex items-center gap-2 mb-4">
-                        <MessageSquare className="w-5 h-5 text-green-600 dark:text-green-500" />
-                        <h2 className="text-xl font-semibold text-foreground">Lounge Posts</h2>
-                        <span className="text-sm text-muted-foreground">({posts.length})</span>
-                      </div>
-                      <div className="space-y-4">
-                        {posts.length ? (
-                          posts.map((post) => (
-                            <Link
-                              key={post.id}
-                              href={`/lounge/${post.id}`}
-                              className="block bg-muted/30 hover:bg-accent rounded-xl p-4 transition-colors"
-                            >
-                              <div className="flex items-start gap-3">
-                                <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-                                  <Image
-                                    src={post.users?.image || '/default-avatar.png'}
-                                    alt={post.users?.name || 'User'}
-                                    fill
-                                    className="object-cover"
-                                  />
-                                </div>
-                                <div>
-                                  <h3 className="font-medium text-foreground">{post.title}</h3>
-                                  <p className="text-sm text-muted-foreground mt-1">
-                                    by {post.users?.name || 'Anonymous'} •{' '}
-                                    {formatDistanceToNow(new Date(post.created_at), {
-                                      addSuffix: true,
-                                    })}
-                                  </p>
-                                </div>
-                              </div>
-                            </Link>
-                          ))
-                        ) : (
-                          <p className="text-muted-foreground">No posts found</p>
-                        )}
-                      </div>
-                    </section>
-
-                    {/* Events */}
-                    <section>
-                      <div className="flex items-center gap-2 mb-4">
-                        <Calendar className="w-5 h-5 text-green-600 dark:text-green-500" />
-                        <h2 className="text-xl font-semibold text-foreground">Events</h2>
-                        <span className="text-sm text-muted-foreground">({events.length})</span>
-                      </div>
-                      <div className="space-y-4">
-                        {events.length ? (
-                          events.map((event) => (
-                            <Link
-                              key={event.id}
-                              href={`/events/${event.id}`}
-                              className="block bg-muted/30 hover:bg-accent rounded-xl overflow-hidden transition-colors"
-                            >
-                              <div className="flex">
-                                <div className="w-24 h-24 relative flex-shrink-0">
-                                  <Image
-                                    src={event.image_url || '/event-placeholder.jpg'}
-                                    alt={event.title || ''}
-                                    fill
-                                    unoptimized
-                                    className="object-cover"
-                                  />
-                                </div>
-                                <div className="p-4">
-                                  <h3 className="font-medium text-foreground">{event.title}</h3>
-                                  <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                                    <Clock className="w-4 h-4" />
-                                    <time>
-                                      {new Date(event.event_date).toLocaleDateString()}
-                                    </time>
-                                  </div>
-                                </div>
-                              </div>
-                            </Link>
-                          ))
-                        ) : (
-                          <p className="text-muted-foreground">No events found</p>
-                        )}
-                      </div>
-                    </section>
-
-                    {/* Products */}
-                    <section>
-                      <div className="flex items-center gap-2 mb-4">
-                        <Box className="w-5 h-5 text-green-600 dark:text-green-500" />
-                        <h2 className="text-xl font-semibold text-foreground">Projects</h2>
-                        <span className="text-sm text-muted-foreground">
-                          ({matchingProducts.length})
-                        </span>
-                      </div>
-                      <div className="space-y-4">
-                        {matchingProducts.length ? (
-                          matchingProducts.map((product) => (
-                            <Link
-                              key={product.id}
-                              href={`/product-hunt/${product.url}`}
-                              className="block bg-muted/30 hover:bg-accent rounded-xl overflow-hidden transition-colors"
-                            >
-                              <div className="flex">
-                                <div className="w-24 h-24 relative flex-shrink-0">
-                                  <Image
-                                    src={product.image_url || '/product-placeholder.jpg'}
-                                    alt={product.name || ''}
-                                    fill
-                                    unoptimized
-                                    className="object-cover"
-                                  />
-                                </div>
-                                <div className="p-4">
-                                  <h3 className="font-medium text-foreground">{product.name}</h3>
-                                  <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                                    {product.description}
-                                  </p>
-                                </div>
-                              </div>
-                            </Link>
-                          ))
-                        ) : (
-                          <p className="text-muted-foreground">No projects found</p>
-                        )}
-                      </div>
-                    </section>
-                  </div>
-                )}
+                <section className="home-card">
+                  <header className="home-card__head">
+                    <h2 className="home-card__title">Top donors</h2>
+                    <Link href="/donate" className="home-card__see">Donate</Link>
+                  </header>
+                  <p className="home-empty">Support student competitions.</p>
+                </section>
               </div>
-
-              {/* Mobile sidebars */}
-              <div className="lg:hidden space-y-4">
-                <div className="bg-card border border-border rounded-xl p-4 shadow-lg">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold text-foreground">Recent Events</h2>
-                    <Link
-                      href="/events"
-                      className="text-green-600 dark:text-green-400 text-sm hover:underline"
-                    >
-                      See All
-                    </Link>
-                  </div>
-                  <div className="space-y-3">
-                    {upcomingEvents.length > 0 ? (
-                      upcomingEvents.map((event) => (
-                        <Link
-                          key={event.id}
-                          href={`/events/${event.id}`}
-                          className="flex items-center gap-3 p-3 bg-muted/30 hover:bg-accent transition-colors rounded-lg"
-                        >
-                          <div className="flex-1">
-                            <p className="font-medium text-sm line-clamp-1 text-foreground">
-                              {event.title}
-                            </p>
-                            <p className="text-muted-foreground text-xs">
-                              {new Date(event.event_date).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                              })}
-                            </p>
-                          </div>
-                        </Link>
-                      ))
-                    ) : (
-                      <p className="text-muted-foreground text-sm py-2">No upcoming events</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="bg-card border border-border rounded-xl p-4 shadow-lg">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <Award className="h-5 w-5 text-green-600 dark:text-green-400" />
-                      <h2 className="text-lg font-semibold text-foreground">Top Donors</h2>
-                    </div>
-                    <Link
-                      href="/donate"
-                      className="text-green-600 dark:text-green-400 text-sm hover:underline"
-                    >
-                      Donate
-                    </Link>
-                  </div>
-                  <TopDonators donators={donors} />
-                </div>
-
-                <div className="bg-card border border-border rounded-xl p-4 shadow-lg">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold text-foreground">Recent Projects</h2>
-                    <Link
-                      href="/product-hunt"
-                      className="text-green-600 dark:text-green-400 text-sm hover:underline"
-                    >
-                      See All
-                    </Link>
-                  </div>
-                  <div className="space-y-3">
-                    {products.length > 0 ? (
-                      products.map((product) => (
-                        <Link
-                          key={product.id}
-                          href={`/product-hunt/${product.url}`}
-                          className="flex items-center gap-3 p-3 bg-muted/30 hover:bg-accent transition-colors rounded-lg"
-                        >
-                          <div className="w-10 h-10 bg-muted rounded-lg overflow-hidden">
-                            {product.image_url ? (
-                              <img
-                                src={product.image_url}
-                                alt={product.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-green-600">
-                                <span className="text-white text-sm font-bold">
-                                  {product.name.charAt(0)}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-medium text-sm line-clamp-1 text-foreground">
-                              {product.name}
-                            </p>
-                            <p className="text-muted-foreground text-xs">
-                              {new Date(product.created_at).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                              })}
-                            </p>
-                          </div>
-                        </Link>
-                      ))
-                    ) : (
-                      <p className="text-muted-foreground text-sm py-2">No recent projects</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right sidebar */}
-            <div className="hidden lg:block lg:w-1/5 space-y-4 flex-shrink-0">
-              <div className="sticky top-24 space-y-4">
-                <div className="bg-card border border-border rounded-xl p-5 shadow-lg">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold text-foreground">Events</h2>
-                    <Link
-                      href="/events"
-                      className="text-green-600 dark:text-green-400 text-sm hover:underline"
-                    >
-                      See All
-                    </Link>
-                  </div>
-                  <div className="space-y-3">
-                    {upcomingEvents.length > 0 ? (
-                      upcomingEvents.map((event) => (
-                        <Link
-                          key={event.id}
-                          href={`/events/${event.id}`}
-                          className="flex items-center gap-3 p-3 bg-muted/30 hover:bg-accent transition-colors rounded-lg"
-                        >
-                          <div className="flex-1">
-                            <p className="font-medium text-sm line-clamp-1 text-foreground">
-                              {event.title}
-                            </p>
-                            <p className="text-muted-foreground text-xs">
-                              {new Date(event.event_date).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                              })}
-                            </p>
-                          </div>
-                        </Link>
-                      ))
-                    ) : (
-                      <p className="text-muted-foreground text-sm py-2">No upcoming events</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="bg-card border border-border rounded-xl p-5 shadow-lg">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold text-foreground">Top Donors</h2>
-                    <Link
-                      href="/donate"
-                      className="text-green-600 dark:text-green-400 text-sm hover:underline"
-                    >
-                      Donate
-                    </Link>
-                  </div>
-                  <TopDonators donators={donors} />
-                </div>
-
-                <div className="bg-card border border-border rounded-xl p-5 shadow-lg">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold text-foreground">Recent Projects</h2>
-                    <Link
-                      href="/product-hunt"
-                      className="text-green-600 dark:text-green-400 text-sm hover:underline"
-                    >
-                      See All
-                    </Link>
-                  </div>
-                  <div className="space-y-3">
-                    {products.length > 0 ? (
-                      products.map((product) => (
-                        <Link
-                          key={product.id}
-                          href={`/product-hunt/${product.url}`}
-                          className="flex items-center gap-3 p-3 bg-muted/30 hover:bg-accent transition-colors rounded-lg"
-                        >
-                          <div className="w-10 h-10 bg-muted rounded-lg overflow-hidden">
-                            {product.image_url ? (
-                              <img
-                                src={product.image_url}
-                                alt={product.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-green-600">
-                                <span className="text-white text-sm font-bold">
-                                  {product.name.charAt(0)}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-medium text-sm line-clamp-1 text-foreground">
-                              {product.name}
-                            </p>
-                            <p className="text-muted-foreground text-xs">
-                              {new Date(product.created_at).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                              })}
-                            </p>
-                          </div>
-                        </Link>
-                      ))
-                    ) : (
-                      <p className="text-muted-foreground text-sm py-2">No recent projects</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
-        </div>
+        )}
+
+        {hasQuery && totalResults === 0 && (
+          <div className="empty-state" style={{ marginTop: 24 }}>
+            <p className="empty-state__title">No results for &ldquo;{query}&rdquo;.</p>
+            <p className="empty-state__desc">
+              Try a shorter query, or search for a specific event or project name.
+            </p>
+          </div>
+        )}
+
+        {hasQuery && posts.length > 0 && (
+          <section className="search-section">
+            <header className="search-section__head">
+              <MessageSquare size={16} className="search-section__icon" />
+              <h2 className="search-section__title">Posts</h2>
+              <span className="search-section__count">{posts.length}</span>
+            </header>
+            <ul className="search-list">
+              {posts.map((post: any) => (
+                <li key={post.id}>
+                  <Link href={'/lounge/' + post.id} className="search-row">
+                    <span className="search-row__avatar">
+                      <Image
+                        src={post.users?.image || '/default-avatar.png'}
+                        alt={post.users?.name || 'User'}
+                        width={32}
+                        height={32}
+                        className="search-row__avatar-img"
+                      />
+                    </span>
+                    <div className="search-row__body">
+                      <p className="search-row__title">{post.title}</p>
+                      <p className="search-row__meta" suppressHydrationWarning>
+                        by {post.users?.name || 'Anonymous'} ·{' '}
+                        {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                      </p>
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {hasQuery && events.length > 0 && (
+          <section className="search-section">
+            <header className="search-section__head">
+              <Calendar size={16} className="search-section__icon" />
+              <h2 className="search-section__title">Events</h2>
+              <span className="search-section__count">{events.length}</span>
+            </header>
+            <ul className="search-list">
+              {events.map((event: any) => (
+                <li key={event.id}>
+                  <Link href={'/events/' + event.id} className="search-row">
+                    <span className="search-row__thumb">
+                      {event.image_url ? (
+                        <Image
+                          src={event.image_url}
+                          alt={event.title || ''}
+                          fill
+                          unoptimized
+                          sizes="48px"
+                          className="search-row__thumb-img"
+                        />
+                      ) : (
+                        <Calendar size={18} />
+                      )}
+                    </span>
+                    <div className="search-row__body">
+                      <p className="search-row__title">{event.title}</p>
+                      <p className="search-row__meta">{formatDateShort(event.event_date)}</p>
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {hasQuery && matchingProducts.length > 0 && (
+          <section className="search-section">
+            <header className="search-section__head">
+              <Box size={16} className="search-section__icon" />
+              <h2 className="search-section__title">Projects</h2>
+              <span className="search-section__count">{matchingProducts.length}</span>
+            </header>
+            <ul className="search-list">
+              {matchingProducts.map((product: any) => (
+                <li key={product.id}>
+                  <Link href={'/product-hunt/' + product.url} className="search-row">
+                    <span className="search-row__thumb">
+                      {product.image_url ? (
+                        <Image
+                          src={product.image_url}
+                          alt={product.name || ''}
+                          fill
+                          unoptimized
+                          sizes="48px"
+                          className="search-row__thumb-img"
+                        />
+                      ) : (
+                        <Box size={18} />
+                      )}
+                    </span>
+                    <div className="search-row__body">
+                      <p className="search-row__title">{product.name}</p>
+                      {product.description && (
+                        <p className="search-row__meta search-row__meta--clamp">
+                          {product.description}
+                        </p>
+                      )}
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </div>
     </Layout>
   );
