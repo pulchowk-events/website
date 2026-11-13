@@ -9,9 +9,17 @@ const DEGREE_OPTIONS = [
   { value: "Bachelor", label: "Bachelor" },
   { value: "Masters", label: "Masters" },
   { value: "PhD", label: "PhD" },
-  { value: "Post Doctorate", label: "Post Doctorate" },
   { value: "Fellowship", label: "Fellowship" },
   { value: "Undergraduate", label: "Undergraduate" },
+  { value: "Post Doctorate", label: "Post Doc" },
+];
+
+const STATUS_OPTIONS = [
+  { value: "any", label: "Any deadline" },
+  { value: "parsed", label: "Has a date" },
+  { value: "estimated-year-only", label: "Year only" },
+  { value: "rolling", label: "Rolling" },
+  { value: "unknown", label: "None listed" },
 ];
 
 const COUNTRY_OPTIONS = [
@@ -33,14 +41,6 @@ const COUNTRY_OPTIONS = [
   { value: "Netherlands", label: "Netherlands" },
 ];
 
-const STATUS_OPTIONS = [
-  { value: "any", label: "Any status" },
-  { value: "parsed", label: "Has a date" },
-  { value: "estimated-year-only", label: "Year only" },
-  { value: "rolling", label: "Rolling" },
-  { value: "unknown", label: "No deadline" },
-];
-
 const SORT_OPTIONS = [
   { value: "new", label: "Newest" },
   { value: "closing", label: "Closing soon" },
@@ -51,6 +51,18 @@ export function ScholarshipFilterBar() {
   const pathname = usePathname();
   const sp = useSearchParams();
   const [qInput, setQInput] = useState(sp.get("q") || "");
+
+  const degree = sp.get("degree") || "any";
+  const country = sp.get("country") || "any";
+  const status = sp.get("status") || "any";
+  const sort = sp.get("sort") || "new";
+
+  const hasFilters =
+    degree !== "any" ||
+    country !== "any" ||
+    status !== "any" ||
+    sort !== "new" ||
+    !!sp.get("q");
 
   const setSingle = (key: string, value: string, defaultValue: string) => {
     const params = new URLSearchParams(sp.toString());
@@ -77,10 +89,13 @@ export function ScholarshipFilterBar() {
     router.push(pathname + "?" + params.toString(), { scroll: false });
   };
 
-  const degree = sp.get("degree") || "any";
-  const country = sp.get("country") || "any";
-  const status = sp.get("status") || "any";
-  const sort = sp.get("sort") || "new";
+  const clearAll = () => {
+    setQInput("");
+    const params = new URLSearchParams();
+    const sortKeep = sp.get("sort");
+    if (sortKeep === "closing") params.set("sort", "closing");
+    router.push(pathname + (params.toString() ? "?" + params.toString() : ""), { scroll: false });
+  };
 
   return (
     <div className="sch-filters">
@@ -100,37 +115,59 @@ export function ScholarshipFilterBar() {
         )}
       </form>
 
-      <select
-        aria-label="Degree level"
-        value={degree}
-        onChange={(e) => setSingle("degree", e.target.value, "any")}
-      >
-        {DEGREE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-      </select>
+      <div className="sch-filters__row sch-filters__row--scroll">
+        {DEGREE_OPTIONS.map((c) => (
+          <button
+            key={c.value}
+            type="button"
+            className={"chip" + (degree === c.value ? " chip--on" : "")}
+            onClick={() => setSingle("degree", c.value, "any")}
+          >
+            {c.label}
+          </button>
+        ))}
+        <span className="sch-filters__divider" aria-hidden="true" />
+        {STATUS_OPTIONS.map((s) => (
+          <button
+            key={s.value}
+            type="button"
+            className={"chip" + (status === s.value ? " chip--on" : "")}
+            onClick={() => setSingle("status", s.value, "any")}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
 
-      <select
-        aria-label="Country"
-        value={country}
-        onChange={(e) => setSingle("country", e.target.value, "any")}
-      >
-        {COUNTRY_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-      </select>
+      <div className="sch-filters__row">
+        <select
+          aria-label="Country"
+          className="select"
+          value={country}
+          onChange={(e) => setSingle("country", e.target.value, "any")}
+        >
+          {COUNTRY_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
 
-      <select
-        aria-label="Deadline status"
-        value={status}
-        onChange={(e) => setSingle("status", e.target.value, "any")}
-      >
-        {STATUS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-      </select>
+        <select
+          aria-label="Sort by"
+          className="select"
+          value={sort}
+          onChange={(e) => setSingle("sort", e.target.value, "new")}
+        >
+          {SORT_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
 
-      <select
-        aria-label="Sort by"
-        value={sort}
-        onChange={(e) => setSingle("sort", e.target.value, "new")}
-      >
-        {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-      </select>
+        {hasFilters && (
+          <button type="button" className="sch-filters__clear" onClick={clearAll}>
+            Clear all
+          </button>
+        )}
+      </div>
     </div>
   );
 }

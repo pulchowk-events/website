@@ -9215,31 +9215,6 @@ input[type="radio"]:disabled {
 .sch-pill--rolling { color: var(--accent); border-color: rgba(62,207,142,.35); }
 .sch-pill--year { color: var(--text-2); }
 
-.sch-filters {
-  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
-  margin: 8px 0 16px;
-}
-.sch-filters__search {
-  display: flex; align-items: center; gap: 6px;
-  height: 32px; padding: 0 10px;
-  background: var(--surface);
-  border: 1px solid var(--border-strong);
-  border-radius: 6px;
-  flex: 1 1 220px; min-width: 160px; max-width: 320px;
-}
-.sch-filters__search input {
-  flex: 1; min-width: 0; border: 0; background: transparent;
-  outline: none; color: var(--text-1); font-size: 13px;
-}
-.sch-filters__search input::placeholder { color: var(--text-3); }
-.sch-filters select {
-  height: 32px; padding: 0 8px;
-  background: var(--surface);
-  color: var(--text-1);
-  border: 1px solid var(--border-strong);
-  border-radius: 6px;
-  font-size: 13px;
-}
 
 .sch-detail { max-width: 720px; margin: 0 auto; }
 .sch-detail__back {
@@ -10614,4 +10589,192 @@ input[type="radio"]:disabled {
 }
 .prow__rank--bronze {
   color: #cd7f32;
+}
+
+.settings__section--danger {
+  border-top: 1px solid rgba(255, 92, 92, 0.2);
+  padding-top: 24px;
+  margin-top: 24px;
+}
+
+/* Scholarship filter bar — spec-compliant chips + selects */
+.sch-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 8px 0 20px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.sch-filters__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-3);
+  max-width: 480px;
+  flex: none;
+  min-width: 0;
+  max-height: 32px;
+}
+.sch-filters__search:focus-within { border-color: var(--accent); }
+.sch-filters__search input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: var(--text-1);
+  font: 400 13px var(--font-geist-sans), system-ui, sans-serif;
+}
+.sch-filters__search button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  border-radius: 4px;
+}
+.sch-filters__search button:hover { background: var(--hover); color: var(--text-1); }
+.sch-filters__row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.sch-filters__row--scroll {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: 0 -4px;
+  padding: 0 4px;
+}
+.sch-filters__row--scroll::-webkit-scrollbar { display: none; }
+.sch-filters__row--scroll .chip { flex: none; }
+.sch-filters__divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+  flex: none;
+  margin: 0 2px;
+}
+.sch-filters__clear {
+  height: 28px;
+  padding: 0 10px;
+  border: 0;
+  background: transparent;
+  color: var(--text-2);
+  font: 500 12px var(--font-geist-sans), system-ui, sans-serif;
+  cursor: pointer;
+  border-radius: var(--radius-control);
+}
+.sch-filters__clear:hover { background: var(--hover); color: var(--text-1); }
+
+@media (max-width: 767px) {
+  .sch-filters__search { max-width: none; }
+  .sch-filters__row:not(.sch-filters__row--scroll) .select {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+/* Custom scrollbar — scoped to body + known scroll containers */
+html,
+body,
+.app__main,
+.side__scroll,
+.rail,
+.jobs-filter.jobs-filter--open,
+.palette__results,
+.notif__list,
+.comment-node__edit,
+.help,
+.prose-page {
+  scrollbar-width: thin;
+  scrollbar-color: #262626 transparent;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+.app__main::-webkit-scrollbar,
+.side__scroll::-webkit-scrollbar,
+.rail::-webkit-scrollbar,
+.jobs-filter.jobs-filter--open::-webkit-scrollbar,
+.palette__results::-webkit-scrollbar,
+.notif__list::-webkit-scrollbar,
+.comment-node__edit::-webkit-scrollbar,
+.help::-webkit-scrollbar,
+.prose-page::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track,
+.app__main::-webkit-scrollbar-track,
+.side__scroll::-webkit-scrollbar-track,
+.rail::-webkit-scrollbar-track,
+.jobs-filter.jobs-filter--open::-webkit-scrollbar-track,
+.palette__results::-webkit-scrollbar-track,
+.notif__list::-webkit-scrollbar-track,
+.comment-node__edit::-webkit-scrollbar-track,
+.help::-webkit-scrollbar-track,
+.prose-page::-webkit-scrollbar-track {
+  background: transparent;
+}
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb,
+.app__main::-webkit-scrollbar-thumb,
+.side__scroll::-webkit-scrollbar-thumb,
+.rail::-webkit-scrollbar-thumb,
+.jobs-filter.jobs-filter--open::-webkit-scrollbar-thumb,
+.palette__results::-webkit-scrollbar-thumb,
+.notif__list::-webkit-scrollbar-thumb,
+.comment-node__edit::-webkit-scrollbar-thumb,
+.help::-webkit-scrollbar-thumb,
+.prose-page::-webkit-scrollbar-thumb {
+  background: #262626;
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover,
+.app__main::-webkit-scrollbar-thumb:hover,
+.side__scroll::-webkit-scrollbar-thumb:hover,
+.rail::-webkit-scrollbar-thumb:hover,
+.jobs-filter.jobs-filter--open::-webkit-scrollbar-thumb:hover,
+.palette__results::-webkit-scrollbar-thumb:hover,
+.notif__list::-webkit-scrollbar-thumb:hover,
+.comment-node__edit::-webkit-scrollbar-thumb:hover,
+.help::-webkit-scrollbar-thumb:hover,
+.prose-page::-webkit-scrollbar-thumb:hover {
+  background: #3a3a3a;
+  background-clip: content-box;
+}
+
+/* Hidden scrollbars on horizontal chip rows (spec pattern) */
+.sch-filters__row--scroll,
+.event-filters__row--scroll,
+.lounge-bar__cats,
+.composer__cats,
+.profile-tabs,
+.search-tabs,
+.jobs-filter__mobile-row--scroll {
+  scrollbar-width: none;
+}
+.sch-filters__row--scroll::-webkit-scrollbar,
+.event-filters__row--scroll::-webkit-scrollbar,
+.lounge-bar__cats::-webkit-scrollbar,
+.composer__cats::-webkit-scrollbar,
+.profile-tabs::-webkit-scrollbar,
+.search-tabs::-webkit-scrollbar,
+.jobs-filter__mobile-row--scroll::-webkit-scrollbar {
+  display: none;
 }
