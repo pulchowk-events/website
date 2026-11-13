@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       images: event.image_url ? [event.image_url] : [SITE_URL + "/events/" + id + "/opengraph-image"],
     },
     twitter: {
-      card: "summary_large_image",
+      card: "summary",
       title: event.title,
       description: description || fallback,
       images: event.image_url ? [event.image_url] : [SITE_URL + "/events/" + id + "/opengraph-image"],
