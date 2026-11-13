@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { Calendar, Clock, MapPin, DollarSign, Building2 } from "lucide-react";
-import { formatWeekdayLong, formatTime, daysUntilNPT } from "@/app/lib/formatDate";
+import { Calendar, MapPin, DollarSign, Building2 } from "lucide-react";
+import { formatWeekdayLong, daysUntilNPT } from "@/app/lib/formatDate";
 import Markdown from "@/app/components/ui/Markdown";
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -100,10 +100,6 @@ export function EventPreview({
                 <div>
                   <dt><Calendar size={12} /> Date</dt>
                   <dd>{formatWeekdayLong(validDate)}</dd>
-                </div>
-                <div>
-                  <dt><Clock size={12} /> Time</dt>
-                  <dd>{formatTime(validDate)}</dd>
                 </div>
               </>
             )}

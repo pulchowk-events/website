@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckCircle, XCircle, ExternalLink, Calendar, Clock, Check } from "lucide-react";
-import { formatDateLong, formatTime } from "@/app/lib/formatDate";
+import { CheckCircle, XCircle, ExternalLink, Calendar, Check } from "lucide-react";
+import { formatDateLong, } from "@/app/lib/formatDate";
 import { toast } from "sonner";
 import Image from "next/image";
 
@@ -203,10 +203,6 @@ export default function AdminPendingEvents() {
                   <span className="admin-pending__meta-item">
                     <Calendar size={14} />
                     {formatDateLong(event.event_date)}
-                  </span>
-                  <span className="admin-pending__meta-item">
-                    <Clock size={14} />
-                    {formatTime(event.event_date)}
                   </span>
                 </div>
 

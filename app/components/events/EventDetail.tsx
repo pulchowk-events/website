@@ -5,12 +5,12 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  ArrowLeft, Calendar, Clock, MapPin, Building2, DollarSign, User,
+  ArrowLeft, Calendar, MapPin, Building2, DollarSign, User,
 } from "lucide-react";
 import Markdown from "@/app/components/ui/Markdown";
 import { EventDetailActions } from "./EventDetailActions";
 import { EventListRow } from "./EventListRow";
-import { formatWeekdayLong, formatTime, daysUntilNPT } from "@/app/lib/formatDate";
+import { formatWeekdayLong, daysUntilNPT } from "@/app/lib/formatDate";
 import { EventComposer } from "./EventComposer";
 
 interface Props {
@@ -173,10 +173,6 @@ export default function EventDetail({ event, isAdmin, isSaved, userId, similarEv
             <div>
               <dt><Calendar size={12} /> Date</dt>
               <dd>{formatWeekdayLong(eventDate)}</dd>
-            </div>
-            <div>
-              <dt><Clock size={12} /> Time</dt>
-              <dd>{formatTime(eventDate)}</dd>
             </div>
             {event.location && (
               <div>

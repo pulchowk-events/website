@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { formatDateShort, formatTime } from "@/app/lib/formatDate";
+import { formatDateShort } from "@/app/lib/formatDate";
 
 interface Props {
   event: {
@@ -24,7 +24,7 @@ export function EventGridCard({ event }: Props) {
       </span>
       <div className="event-grid-card__body">
         <p className="row-title">{event.title}</p>
-        <p className="row-meta">{formatDateShort(event.event_date)} · {formatTime(event.event_date)}</p>
+        <p className="row-meta">{formatDateShort(event.event_date)}</p>
         {event.location && <p className="row-meta">{event.location}</p>}
       </div>
     </Link>
