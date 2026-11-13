@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search, MessageSquare } from "lucide-react";
+import { Search } from "lucide-react";
 
 interface QA {
   q: string;
@@ -15,23 +15,69 @@ interface Group {
 
 const GROUPS: Group[] = [
   {
-    topic: "Posting",
+    topic: "Getting around",
+    items: [
+      {
+        q: "How do I search the whole site?",
+        a: "Press ⌘K (or Ctrl+K on Windows/Linux), or click the search icon in the top bar. The command palette finds posts, events, jobs, projects, and scholarships, plus jumps to any page. Type > to filter to actions only.",
+      },
+      {
+        q: "How do I navigate on mobile?",
+        a: "Use the bottom tab bar for Home, Events, Projects, Scholarships, and Jobs. Lounge and other sections are reachable from the search palette or the Home page. Filters on Jobs open in a full-screen drawer via the Filters button above the results.",
+      },
+      {
+        q: "Where do I find saved items?",
+        a: "Your Saved page is in the sidebar (under You) or in the command palette. Saved events, jobs, posts, projects, and scholarships all live there, filterable by type.",
+      },
+    ],
+  },
+  {
+    topic: "Account",
+    items: [
+      {
+        q: "Do I need an account to browse?",
+        a: "No. Everything is readable without signing in. An account is required to post, comment, vote, save, submit events, or submit projects.",
+      },
+      {
+        q: "How do I sign in?",
+        a: "We support Discord and Google OAuth. Click Sign in anywhere and pick a provider. Your account is created automatically on first sign-in.",
+      },
+      {
+        q: "How do I sign out?",
+        a: "Click your avatar in the top-right, then Sign out in the menu.",
+      },
+      {
+        q: "How do I edit my profile?",
+        a: "Open your profile from the avatar menu, click Edit profile, and change your name or bio. Bio is limited to 160 characters.",
+      },
+      {
+        q: "How do I delete my account?",
+        a: "Email pulchowkevents@gmail.com with the request. We respond within 30 days. Content you have posted is hard-deleted; your donation entries in the public ledger are anonymised to Anonymous so the totals stay accurate.",
+      },
+    ],
+  },
+  {
+    topic: "Posting in the Lounge",
     items: [
       {
         q: "How do I write a post?",
-        a: "Sign in, then click Start a post on the Lounge page. Add a title, pick a category, and write in Markdown with the toolbar above the editor. Use Write/Preview to check your formatting. Cmd/Ctrl+Enter posts it.",
+        a: "Sign in, then click Start a post on the Lounge page. Add a title, pick a category, and write in Markdown with the toolbar above the editor. Use Write/Preview to check formatting. Cmd/Ctrl+Enter posts it.",
       },
       {
         q: "How do I edit or delete my post?",
-        a: "Open your post, click the overflow menu (⋯) in the action bar, and choose Edit or Delete. Edits show an \"edited\" tag. Deleting removes all comments on the post, permanently.",
+        a: "Open your post, click the overflow menu in the action bar, and choose Edit or Delete. Edits show an edited tag. Deleting removes all comments on the post permanently.",
       },
       {
         q: "What is the difference between the Lounge and Projects?",
         a: "The Lounge is for discussions, questions, tips, and announcements. Projects (Product Hunt) is a curated leaderboard of shipped student projects — one entry per project, ranked by community votes.",
       },
       {
-        q: "Can I add images to a post?",
-        a: "Yes — paste a link to an image (or any page) into the Reference link field. If the target page has a preview image, we fetch it. Add an image URL directly to embed it inline.",
+        q: "How does voting work in the Lounge?",
+        a: "Each signed-in user gets one upvote and one downvote per post. Click the same arrow again to remove your vote, or click the opposite arrow to switch. Scores update immediately.",
+      },
+      {
+        q: "How do comments work?",
+        a: "Comments are threaded up to three levels. Click Reply under any comment to respond, and the parent author is auto-mentioned. You can edit or delete your own comments at any time.",
       },
     ],
   },
@@ -44,15 +90,19 @@ const GROUPS: Group[] = [
       },
       {
         q: "How does event review work?",
-        a: "Admins review each submission for accuracy, duplicates, and quality. Spam, misleading listings, and copies of existing events are rejected. Every approved event shows a source tag (user submission or the original scraper).",
+        a: "Admins review each submission for accuracy, duplicates, and quality. Spam, misleading listings, and copies of existing events are rejected. Every approved event shows its source (user submission or the original scraper).",
       },
       {
-        q: "Why does an event show \"via KataJaam\" or similar?",
-        a: "Some events are scraped from partner sources like Khalti, KataJaam, NepVents, and Kgarira, then deduplicated and quality-checked. The source tag identifies where the listing was originally published.",
+        q: "Why does an event show 'via KataJaam' or similar?",
+        a: "Some events are scraped from public sources like Khalti, KataJaam, NepVents, and Kgarira, then deduplicated and quality-checked. The source tag identifies where the listing was originally published.",
       },
       {
         q: "How do I add an event to my calendar?",
         a: "Open the event and click the calendar icon in the action bar. It downloads an .ics file you can import into Google Calendar, Apple Calendar, or Outlook.",
+      },
+      {
+        q: "How do I filter events?",
+        a: "Use the sticky filter bar: category chips, date chips (Today / This week / This weekend / This month), city dropdown, and price dropdown. All filters live in the URL, so you can bookmark a search.",
       },
     ],
   },
@@ -65,11 +115,40 @@ const GROUPS: Group[] = [
       },
       {
         q: "How do I filter jobs?",
-        a: "Use the filter panel on the left of /jobs — Type, Location, Posted within, Source, Salary disclosed, and Closing within 7 days. All filters live in the URL, so you can bookmark a search.",
+        a: "Use the filter panel on the left of /jobs — Type, Location, Posted within, Source, Salary disclosed, and Closing within 7 days. On mobile, tap the Filters button to open the same filters in a full-screen drawer.",
       },
       {
         q: "Can I save a job to apply later?",
         a: "Yes. Click the bookmark icon on any row or in the detail sheet. Saved jobs appear under /saved.",
+      },
+      {
+        q: "Why do some listings have no salary?",
+        a: "Many Nepali employers do not disclose salary. Listings that do show the amount; listings that don't show 'Not disclosed' in muted text. Use the 'Salary disclosed' filter to see only those that do.",
+      },
+    ],
+  },
+  {
+    topic: "Scholarships",
+    items: [
+      {
+        q: "Where do the scholarships come from?",
+        a: "Scholarships are collected automatically from ScholarshipsAds and Erasmus Mundus, plus others over time. Each listing links to the original source for applying.",
+      },
+      {
+        q: "What do the deadline statuses mean?",
+        a: "Parsed: a confirmed deadline date (e.g. 15 Sept 2026). Year-only: the source only publishes a year (e.g. '2027') — the exact date hasn't been announced. Rolling: the program accepts applications continuously. Unknown: no deadline listed (e.g. Erasmus Mundus).",
+      },
+      {
+        q: "Why is the 'closes in N days' counter sometimes missing?",
+        a: "It only shows for parsed deadlines. Year-only and rolling deadlines can't be counted down. The Deadline Pill and Closing Soon panel are the most reliable urgency signals.",
+      },
+      {
+        q: "How do I filter scholarships by level or country?",
+        a: "On /scholarships, use the filter bar: search box (matches title), degree level (Bachelor / Masters / PhD / Fellowship / etc.), country dropdown, deadline status, and sort order (Newest or Closing soon).",
+      },
+      {
+        q: "Can I browse by country or level?",
+        a: "Yes — the taxonomies at the bottom of /scholarships link to /scholarships/country/[country] and /scholarships/level/[level] pages that list all matching scholarships.",
       },
     ],
   },
@@ -82,7 +161,11 @@ const GROUPS: Group[] = [
       },
       {
         q: "How does voting work?",
-        a: "Signed-in users can upvote once per project. Votes can be changed or removed. Rankings are by vote count, filtered by Today / This week / All time.",
+        a: "Signed-in users can upvote or downvote once per project. Click the same arrow again to remove your vote, or the opposite arrow to switch. Rankings are by score (upvotes minus downvotes), filtered by Today / This week / All time.",
+      },
+      {
+        q: "Why can't I vote again immediately?",
+        a: "There is a short cooldown between votes to prevent manipulation. The button shows 'Next vote in Ns' as a tooltip until the cooldown expires.",
       },
       {
         q: "How do I remove my project?",
@@ -91,19 +174,19 @@ const GROUPS: Group[] = [
     ],
   },
   {
-    topic: "Account",
+    topic: "Saving",
     items: [
       {
-        q: "Do I need an account to browse?",
-        a: "No. You can browse events, jobs, projects, and the Lounge without signing in. An account is required to post, vote, save, comment, or submit events and projects.",
+        q: "What can I save?",
+        a: "Posts, events, jobs, projects, and scholarships. Every row has a bookmark icon. Click it once to save, once more to unsave. An Undo toast appears for a few seconds after unsaving.",
       },
       {
-        q: "How do I sign in?",
-        a: "We support Discord and Google OAuth. Click Sign in anywhere and pick a provider. Your account is created on first sign-in.",
+        q: "Do saves sync across devices?",
+        a: "Yes. Saves are stored server-side against your account, so anything you bookmark on mobile appears on desktop.",
       },
       {
-        q: "How do I sign out?",
-        a: "Click your avatar in the top right, then Sign out in the menu.",
+        q: "Can I save without an account?",
+        a: "No. Saves require sign-in. Guests clicking the bookmark icon are prompted to sign in.",
       },
     ],
   },
@@ -112,7 +195,7 @@ const GROUPS: Group[] = [
     items: [
       {
         q: "Where does the money go?",
-        a: "100% of donations fund student competitions and merit-based awards. There is no platform fee — every dollar reaches a student.",
+        a: "Donations first cover the platform's operating costs — hosting, database, and server expenses. Any remaining funds go to student competition prizes and merit-based awards. If additional spending on platform improvements becomes necessary, those costs are publicly disclosed on the Donate page before they are incurred.",
       },
       {
         q: "How are donations verified?",
@@ -121,6 +204,27 @@ const GROUPS: Group[] = [
       {
         q: "Can I hide my name?",
         a: "Yes — uncheck Show my name on the leaderboard before submitting. Your donation still counts toward the prize pool but appears as Anonymous on the public ledger.",
+      },
+      {
+        q: "Can I get a refund?",
+        a: "Yes, within 7 days of donating, provided the prize to which your donation was allocated has not yet been awarded. Email pulchowkevents@gmail.com with your transaction reference. After a prize is awarded, donations are non-refundable.",
+      },
+    ],
+  },
+  {
+    topic: "Moderation",
+    items: [
+      {
+        q: "How do I report something?",
+        a: "Every post, comment, and project has an overflow menu with a Report option. Choose a reason and (optionally) add a note. Reports go to the admin queue.",
+      },
+      {
+        q: "How long does moderation take?",
+        a: "Reports are reviewed within a few days. Illegal content, threats, and CSAM are actioned immediately.",
+      },
+      {
+        q: "Can I appeal a moderation action?",
+        a: "Yes. Open an issue at github.com/pulchowk-events with the relevant post or account reference, and we will review.",
       },
     ],
   },
@@ -184,26 +288,6 @@ export function HelpClient() {
           ))}
         </div>
       )}
-
-      <section className="help__stuck">
-        <div className="help__stuck-icon">
-          <MessageSquare size={18} />
-        </div>
-        <div className="help__stuck-body">
-          <h3 className="help__stuck-title">Still stuck?</h3>
-          <p className="help__stuck-desc">
-            Ask in the Discord community — eleven thousand students and a few admins are around.
-          </p>
-        </div>
-        <a
-          href="https://discord.gg/cQ5gxusATk"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn btn--primary btn--sm"
-        >
-          Ask in Discord
-        </a>
-      </section>
-    </div>
+</div>
   );
 }
