@@ -547,8 +547,14 @@ async function resolveSkillBySlug(skillSlug: string): Promise<string | null> {
   for (const job of data) {
     for (const s of job.skills || []) uniques.add(s);
   }
+  // Exact match on canonical slug
   for (const s of uniques) {
     if (slugify(s) === skillSlug) return s;
+  }
+  // Loose match — strip hyphens and dots so nodejs/node-js/node.js all resolve
+  const loose = skillSlug.replace(/[-.]/g, "").toLowerCase();
+  for (const s of uniques) {
+    if (slugify(s).replace(/-/g, "").toLowerCase() === loose) return s;
   }
   return null;
 }

@@ -1,11 +1,11 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Layout from '@/app/components/layout/Layout';
 import JobCard from '@/app/components/jobs/JobCard';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { getJobsBySkill } from '@/app/lib/queries';
-import { SITE_URL, breadcrumbSchema, deslugify } from '@/app/lib/seo';
+import { SITE_URL, breadcrumbSchema, deslugify, slugify } from '@/app/lib/seo';
 import JsonLd from '@/app/components/seo/JsonLd';
 
 export const revalidate = 60;
@@ -45,7 +45,10 @@ export default async function SkillPage({
 }) {
   const { skill: skillSlug } = await params;
   const { skill, jobs } = await getJobsBySkill(skillSlug);
-  if (!skill || jobs.length < MIN_ITEMS) notFound();
+  if (!skill) notFound();
+  const canonical = slugify(skill);
+  if (canonical !== skillSlug) redirect('/jobs/skills/' + canonical);
+  if (jobs.length < MIN_ITEMS) notFound();
 
   const breadcrumbJsonLd = breadcrumbSchema([
     { name: 'Home', url: SITE_URL },
