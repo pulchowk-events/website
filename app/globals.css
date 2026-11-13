@@ -9958,3 +9958,45 @@ input[type="radio"]:disabled {
   .job-chip--source { display: none; }
   .job-row-new__meta-chips { margin-top: 4px; }
 }
+
+@media (max-width: 1023px) {
+  .jobs-filter.jobs-filter--open .jobs-filter__search {
+    height: 40px;
+    padding: 0 12px;
+    gap: 10px;
+  }
+  .jobs-filter.jobs-filter--open .jobs-filter__search input {
+    font-size: 14px;
+  }
+  .jobs-filter.jobs-filter--open .jobs-filter__search button {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .jobs-filter__search {
+    height: 40px;
+    padding: 0 12px;
+    gap: 10px;
+  }
+  .jobs-filter__search input { font-size: 14px; }
+  .jobs-filter__search button { width: 24px; height: 24px; }
+}
+
+@media (max-width: 1023px) {
+  .jobs-filter .jobs-filter__search {
+    height: 40px !important;
+    min-height: 40px !important;
+    padding: 0 12px !important;
+    gap: 10px !important;
+  }
+  .jobs-filter .jobs-filter__search input {
+    font-size: 14px !important;
+    height: 100% !important;
+  }
+  .jobs-filter .jobs-filter__search button {
+    width: 24px !important;
+    height: 24px !important;
+  }
+}
