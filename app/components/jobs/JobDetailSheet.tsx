@@ -9,6 +9,7 @@ import { SaveButton } from "@/app/components/shell/SaveButton";
 import { ShareMenu } from "@/app/components/shell/ShareMenu";
 import { formatDateShort } from "@/app/lib/formatDate";
 import { formatSalary } from "@/app/lib/formatSalary";
+import StructuredDescription from "@/app/components/ui/StructuredDescription";
 
 interface Job {
   id: string;
@@ -122,7 +123,7 @@ export function JobDetailSheet({ job, saved, onClose }: Props) {
           {job.description && (
             <div className="sheet__desc">
               <p className="sheet__section-label">Description</p>
-              <Markdown content={job.description} />
+              <StructuredDescription content={job.description} />
             </div>
           )}
         </div>

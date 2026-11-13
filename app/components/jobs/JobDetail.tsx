@@ -13,6 +13,7 @@ import SignInModal from "@/app/components/signIn/SignInModal";
 import { formatDateShort } from "@/app/lib/formatDate";
 import { formatSalary } from "@/app/lib/formatSalary";
 import Markdown from "@/app/components/ui/Markdown";
+import StructuredDescription from "@/app/components/ui/StructuredDescription";
 
 interface Job {
   id: string;
@@ -226,7 +227,7 @@ export default function JobDetail({ job, isSaved, similarJobs }: Props) {
       {job.description && (
         <section className="job-detail__section">
           <h2 className="job-detail__section-title">About this role</h2>
-          <Markdown content={job.description} />
+          <StructuredDescription content={job.description} />
         </section>
       )}
 

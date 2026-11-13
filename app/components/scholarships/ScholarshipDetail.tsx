@@ -5,6 +5,8 @@ import { DeadlinePill } from "./DeadlinePill";
 import { SaveButton } from "@/app/components/shell/SaveButton";
 import { formatDateShort } from "@/app/lib/formatDate";
 import type { Scholarship } from "@/app/lib/queries";
+import Markdown from "@/app/components/ui/Markdown";
+import StructuredDescription from "@/app/components/ui/StructuredDescription";
 
 function sourceLabel(source: string | null): string | null {
   if (!source) return null;
@@ -89,7 +91,7 @@ export function ScholarshipDetail({ scholarship, isSaved = false }: Props) {
         <section>
           <h2 className="sch-detail__section-title">About</h2>
           <div className="sch-detail__desc">
-            <p>{scholarship.description}</p>
+            <StructuredDescription content={scholarship.description} />
           </div>
         </section>
       )}

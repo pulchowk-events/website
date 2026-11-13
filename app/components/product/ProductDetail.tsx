@@ -10,6 +10,7 @@ import { formatDateLong } from "@/app/lib/formatDate";
 import { ProjectDetailActions } from "./ProjectDetailActions";
 import { ProductComposer } from "./ProductComposer";
 import { Comments } from "@/app/components/comments/CommentSection";
+import StructuredDescription from "@/app/components/ui/StructuredDescription";
 
 interface Product {
   id: number;
@@ -106,7 +107,7 @@ export function ProductDetail({ product, isSaved, isAdmin, userId, initialEditMo
 
       {product.description && (
         <section className="pd__body">
-          <Markdown content={product.description} />
+          <StructuredDescription content={product.description} />
         </section>
       )}
 

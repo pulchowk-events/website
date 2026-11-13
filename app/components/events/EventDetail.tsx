@@ -12,6 +12,7 @@ import { EventDetailActions } from "./EventDetailActions";
 import { EventListRow } from "./EventListRow";
 import { formatWeekdayLong, daysUntilNPT } from "@/app/lib/formatDate";
 import { EventComposer } from "./EventComposer";
+import StructuredDescription from "@/app/components/ui/StructuredDescription";
 
 interface Props {
   event: {
@@ -217,7 +218,7 @@ export default function EventDetail({ event, isAdmin, isSaved, userId, similarEv
       {event.description && (
         <section className="ev-detail__body">
           <h2 className="ev-detail__body-title">About this event</h2>
-          <Markdown content={event.description} />
+          <StructuredDescription content={event.description} />
         </section>
       )}
 
