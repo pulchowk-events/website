@@ -1295,6 +1295,209 @@ export const getScholarshipsPage = unstable_cache(
   { revalidate: 60, tags: ["scholarships"] },
 );
 
+
+
+
+
+
+// ============================================================================
+// DAILY ACTIVITY QUERY
+// ============================================================================
+
+export interface DailyActivity {
+  date: string;
+  events: number;
+  jobs: number;
+  scholarships: number;
+}
+
+export const getDailyActivity = unstable_cache(
+  async (days = 60): Promise<DailyActivity[]> => {
+    const cutoff = new Date(Date.now() - days * 864e5).toISOString();
+    const [{ data: events }, { data: jobs }, { data: scholarships }] = await Promise.all([
+      supabase
+        .from("events")
+        .select("created_at")
+        .eq("verified", true)
+        .gte("created_at", cutoff),
+      supabase
+        .from("jobs")
+        .select("posted_at")
+        .eq("verified", true)
+        .gte("posted_at", cutoff),
+      supabase
+        .from("scholarships")
+        .select("posted_at")
+        .eq("verified", true)
+        .gte("posted_at", cutoff),
+    ]);
+
+    const buckets = new Map<string, DailyActivity>();
+    const today = new Date();
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(today.getTime() - i * 864e5);
+      const key = d.toISOString().slice(0, 10);
+      buckets.set(key, { date: key, events: 0, jobs: 0, scholarships: 0 });
+    }
+
+    const bumpEvents = (rows: { created_at: string | null }[] | null) => {
+      for (const r of rows || []) {
+        if (!r.created_at) continue;
+        const key = r.created_at.slice(0, 10);
+        const b = buckets.get(key);
+        if (b) b.events += 1;
+      }
+    };
+    const bumpJobs = (rows: { posted_at: string | null }[] | null) => {
+      for (const r of rows || []) {
+        if (!r.posted_at) continue;
+        const key = r.posted_at.slice(0, 10);
+        const b = buckets.get(key);
+        if (b) b.jobs += 1;
+      }
+    };
+    const bumpSch = (rows: { posted_at: string | null }[] | null) => {
+      for (const r of rows || []) {
+        if (!r.posted_at) continue;
+        const key = r.posted_at.slice(0, 10);
+        const b = buckets.get(key);
+        if (b) b.scholarships += 1;
+      }
+    };
+
+    bumpEvents(events as { created_at: string | null }[] | null);
+    bumpJobs(jobs as { posted_at: string | null }[] | null);
+    bumpSch(scholarships as { posted_at: string | null }[] | null);
+
+    return [...buckets.values()];
+  },
+  ["daily-activity"],
+  { revalidate: 60, tags: ["events", "jobs", "scholarships"] },
+);
+
+
+
+
+
+
+// ============================================================================
+// TECH SKILL DEMAND (curated whitelist)
+// ============================================================================
+// Raw skills scraped from job boards are noisy — hundreds of unique strings,
+// most of them one-offs or filler. Instead of "discover" skills from data,
+// we track a curated list of tech skills by matching against known aliases.
+// No spammer can inflate a skill's rank by posting 40 jobs with the same tag,
+// because we only count the skill if it's actually a real tech skill.
+
+export interface TechSkillRow {
+  skill: string;
+  jobs: number;
+  companies: number;
+}
+
+const TECH_SKILL_ALIASES: Record<string, string[]> = {
+  "React": ["react", "react.js", "reactjs", "react js"],
+  "Next.js": ["next.js", "nextjs", "next js"],
+  "Node.js": ["node.js", "nodejs", "node js", "node"],
+  "JavaScript": ["javascript", "js"],
+  "TypeScript": ["typescript", "ts"],
+  "Python": ["python"],
+  "Django": ["django"],
+  "Flask": ["flask"],
+  "PHP": ["php"],
+  "Laravel": ["laravel"],
+  "Java": ["java"],
+  "Kotlin": ["kotlin"],
+  "Swift": ["swift"],
+  "C++": ["c++", "cpp"],
+  "C#": ["c#", "csharp"],
+  "Go": ["golang", " go "],
+  "Rust": ["rust"],
+  "Flutter": ["flutter"],
+  "React Native": ["react native"],
+  "Angular": ["angular"],
+  "Vue": ["vue", "vue.js", "vuejs"],
+  "SQL": ["sql", "mysql", "postgresql", "postgres", "sqlite"],
+  "MongoDB": ["mongodb", "mongo"],
+  "Redis": ["redis"],
+  "GraphQL": ["graphql"],
+  "REST API": ["rest api", "restful", "rest apis", "rest"],
+  "AWS": ["aws", "amazon web services"],
+  "Azure": ["azure"],
+  "GCP": ["gcp", "google cloud"],
+  "Docker": ["docker"],
+  "Kubernetes": ["kubernetes", "k8s"],
+  "Git": ["git", "github", "gitlab"],
+  "Linux": ["linux", "ubuntu"],
+  "Firebase": ["firebase"],
+  "Tailwind": ["tailwind", "tailwindcss", "tailwind css"],
+  "Figma": ["figma"],
+  "TensorFlow": ["tensorflow"],
+  "PyTorch": ["pytorch"],
+  "Pandas": ["pandas"],
+  "Express": ["express", "express.js", "expressjs"],
+};
+
+export const getTechSkillDemand = unstable_cache(
+  async (limit = 8, days = 60): Promise<TechSkillRow[]> => {
+    const cutoff = new Date(Date.now() - days * 864e5).toISOString();
+    const { data } = await supabase
+      .from("jobs")
+      .select("company, skills")
+      .eq("verified", true)
+      .gte("posted_at", cutoff);
+
+    // canonical skill -> { companies: Set, jobs: number }
+    const agg = new Map<string, { companies: Set<string>; jobs: number }>();
+    for (const canonical of Object.keys(TECH_SKILL_ALIASES)) {
+      agg.set(canonical, { companies: new Set(), jobs: 0 });
+    }
+
+    for (const row of data || []) {
+      const company = ((row.company as string | null) || "").trim().toLowerCase();
+      const skills = (row.skills as string[]) || [];
+      const matchedThisJob = new Set<string>();
+
+      for (const raw of skills) {
+        const s = (" " + (raw || "").toLowerCase() + " ").trim();
+        if (!s) continue;
+        for (const [canonical, aliases] of Object.entries(TECH_SKILL_ALIASES)) {
+          if (matchedThisJob.has(canonical)) continue;
+          for (const alias of aliases) {
+            const needle = alias.startsWith(" ") ? alias : ` ${alias} `;
+            if (s.includes(needle) || s === alias) {
+              matchedThisJob.add(canonical);
+              break;
+            }
+          }
+        }
+      }
+
+      for (const canonical of matchedThisJob) {
+        const entry = agg.get(canonical)!;
+        entry.jobs += 1;
+        if (company) entry.companies.add(company);
+      }
+    }
+
+    return [...agg.entries()]
+      .filter(([, e]) => e.jobs > 0)
+      .map(([skill, e]) => ({
+        skill,
+        jobs: e.jobs,
+        companies: e.companies.size,
+      }))
+      .sort((a, b) => {
+        if (b.companies !== a.companies) return b.companies - a.companies;
+        if (b.jobs !== a.jobs) return b.jobs - a.jobs;
+        return a.skill.localeCompare(b.skill);
+      })
+      .slice(0, limit);
+  },
+  ["tech-skill-demand"],
+  { revalidate: 60, tags: ["jobs"] },
+);
+
 export const getScholarships24h = unstable_cache(
   async () => {
     const cutoff = new Date(Date.now() - 864e5).toISOString();
@@ -1415,4 +1618,112 @@ export const getScholarshipsByLevel = unstable_cache(
   },
   ["scholarships-by-level"],
   { revalidate: 60, tags: ["scholarships"] },
+);
+
+
+// ============================================================================
+// CLOSING SOON SCHOLARSHIPS
+// ============================================================================
+
+export interface ClosingSoonRow {
+  id: string;
+  title: string;
+  deadline_display: string | null;
+  deadline_parsed: string;
+  degree_level: string | null;
+}
+
+export const getClosingSoonScholarships = unstable_cache(
+  async (limit = 4): Promise<ClosingSoonRow[]> => {
+    const today = new Date().toISOString().slice(0, 10);
+    const { data } = await supabase
+      .from("scholarships")
+      .select("id, title, deadline_display, deadline_parsed, degree_level")
+      .eq("verified", true)
+      .eq("deadline_status", "parsed")
+      .gte("deadline_parsed", today)
+      .order("deadline_parsed", { ascending: true, nullsFirst: false })
+      .limit(limit);
+    return (data || []) as ClosingSoonRow[];
+  },
+  ["closing-soon"],
+  { revalidate: 60, tags: ["scholarships"] },
+);
+
+// ============================================================================
+// WEEKDAY PATTERN (events + jobs)
+// ============================================================================
+
+export interface WeekdayBucket {
+  dow: number;
+  label: string;
+  events: number;
+  jobs: number;
+}
+
+export interface WeekdayPattern {
+  buckets: WeekdayBucket[];
+  totalEvents: number;
+  totalJobs: number;
+  today: number;
+}
+
+const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function dowNPT(iso: string): number {
+  const d = new Date(iso);
+  const shifted = new Date(d.getTime() + 5 * 3600e3 + 45 * 60e3);
+  return shifted.getUTCDay();
+}
+
+export const getWeekdayPattern = unstable_cache(
+  async (days = 90): Promise<WeekdayPattern> => {
+    const now = new Date();
+    const startISO = now.toISOString();
+    const endISO = new Date(now.getTime() + days * 864e5).toISOString();
+
+    const [{ data: events }, { data: jobs }] = await Promise.all([
+      supabase
+        .from("events")
+        .select("event_date")
+        .eq("verified", true)
+        .gte("event_date", startISO)
+        .lte("event_date", endISO),
+      supabase
+        .from("jobs")
+        .select("posted_at")
+        .eq("verified", true)
+        .gte("posted_at", startISO)
+        .lte("posted_at", endISO),
+    ]);
+
+    const buckets: WeekdayBucket[] = WEEKDAY_LABELS.map((label, dow) => ({
+      dow,
+      label,
+      events: 0,
+      jobs: 0,
+    }));
+
+    for (const row of events || []) {
+      const ed = row.event_date as string | null;
+      if (!ed) continue;
+      buckets[dowNPT(ed)].events += 1;
+    }
+    for (const row of jobs || []) {
+      const pd = row.posted_at as string | null;
+      if (!pd) continue;
+      buckets[dowNPT(pd)].jobs += 1;
+    }
+
+    const todayDow = dowNPT(now.toISOString());
+
+    return {
+      buckets,
+      totalEvents: buckets.reduce((n, b) => n + b.events, 0),
+      totalJobs: buckets.reduce((n, b) => n + b.jobs, 0),
+      today: todayDow,
+    };
+  },
+  ["weekday-pattern"],
+  { revalidate: 60, tags: ["events", "jobs"] },
 );
