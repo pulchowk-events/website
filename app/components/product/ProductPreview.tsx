@@ -14,10 +14,21 @@ interface Props {
   makerName?: string | null;
 }
 
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/```[\s\S]*?```/g, "")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/[*_~#>]+/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function shorten(text: string, max: number): string {
   const trimmed = text.trim();
   if (trimmed.length <= max) return trimmed;
-  return trimmed.slice(0, max).trim() + "…";
+  return trimmed.slice(0, max).trim() + "\u2026";
 }
 
 export function ProductPreview({ name, description, imagePreviewUrl, imageUrl, createdAt, makerName }: Props) {
@@ -25,7 +36,9 @@ export function ProductPreview({ name, description, imagePreviewUrl, imageUrl, c
   const showImage = imagePreviewUrl || imageUrl;
   const maker = makerName || session?.user?.name || "You";
   const launchLine = createdAt ? formatDateLong(createdAt) : "today";
-  const tagline = shorten(description, 160);
+  const stripped = stripMarkdown(description);
+  const truncated = shorten(stripped, 160);
+  const showTagline = truncated.length > 0 && truncated !== stripped;
 
   return (
     <article className="pd pd--preview">
@@ -41,7 +54,7 @@ export function ProductPreview({ name, description, imagePreviewUrl, imageUrl, c
           <h1 className="pd__title">
             {name.trim() || <span style={{ color: "var(--text-3)", fontWeight: 400 }}>Untitled project</span>}
           </h1>
-          {tagline && <p className="pd__tagline">{tagline}</p>}
+          {showTagline && <p className="pd__tagline">{truncated}</p>}
           <p className="pd__meta">
             Launched {launchLine} · by {maker}
           </p>
