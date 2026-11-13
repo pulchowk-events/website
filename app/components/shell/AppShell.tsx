@@ -7,7 +7,6 @@ import { Sidebar, NavCounts } from "./Sidebar";
 import { BottomTabBar } from "./BottomTabBar";
 import { CommandPalette } from "./CommandPalette";
 import { writeLayoutPrefsClient } from "@/app/lib/preferences";
-import Footer from "@/app/components/layout/Footer";
 import { RightRail } from "./RightRail";
 import type { RailBundle } from "@/app/lib/queries";
 
@@ -67,7 +66,7 @@ export function AppShell({ children, counts, isAdmin, isSignedIn, initialCollaps
           onDrawerClose={() => setDrawerOpen(false)}
           onCollapseToggle={toggleCollapsed}
         />
-        <main className="app__main">{children}<Footer /></main>
+        <main className="app__main">{children}</main>
         <RightRail bundle={rail} hiddenWidgets={hiddenWidgets} />
       </div>
       <BottomTabBar />

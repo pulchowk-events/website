@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Calendar, Briefcase, Box, MessageCircle, Bookmark, Heart, HelpCircle, LayoutGrid, MessageSquare, GraduationCap, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
+import { Home, Calendar, Briefcase, Box, MessageCircle, Bookmark, Heart, HelpCircle, LayoutGrid, MessageSquare, GraduationCap, PanelLeftClose, PanelLeftOpen, X, Github, FileText, Shield, Globe } from "lucide-react";
 
 export interface NavCounts {
   events_upcoming: number;
@@ -36,6 +36,13 @@ const YOU = [
 const COMMUNITY = [
   { href: "/donate", label: "Donate", icon: Heart },
   { href: "/help", label: "Help", icon: HelpCircle },
+];
+
+const ABOUT: { href: string; label: string; icon: any; external?: boolean }[] = [
+  { href: "/terms", label: "Terms", icon: FileText },
+  { href: "/privacy", label: "Privacy", icon: Shield },
+  { href: "https://github.com/pulchowk-events", label: "GitHub", icon: Github, external: true },
+  { href: "/landing", label: "Landing", icon: Globe },
 ];
 
 export function Sidebar({ counts, isAdmin, isSignedIn, collapsed, drawerOpen, onDrawerClose, onCollapseToggle }: Props) {
@@ -75,6 +82,28 @@ export function Sidebar({ counts, isAdmin, isSignedIn, collapsed, drawerOpen, on
         <div className="side__group">
           <p className="side__group-label">Community</p>
           {COMMUNITY.map((r) => <Row key={r.href} {...r} />)}
+        </div>
+
+        <div className="side__group">
+          <p className="side__group-label">About</p>
+          {ABOUT.map((r) => {
+            const Icon = r.icon;
+            return r.external ? (
+              <a
+                key={r.href}
+                href={r.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="side__row"
+                onClick={onDrawerClose}
+              >
+                <Icon size={16} className="side__icon" />
+                <span className="side__label">{r.label}</span>
+              </a>
+            ) : (
+              <Row key={r.href} href={r.href} label={r.label} icon={r.icon} />
+            );
+          })}
         </div>
 
         {isAdmin && (

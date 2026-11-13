@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMediaQuery } from "@/app/hooks/useMediaQuery";
 import { useSession } from "next-auth/react";
-import { Home, Calendar, Briefcase, Box, MessageCircle, Bookmark, Heart, HelpCircle, Plus, PanelLeft, FileText, GraduationCap, Settings, LayoutGrid } from "lucide-react";
+import { Home, Calendar, Briefcase, Box, MessageCircle, Bookmark, Heart, HelpCircle, Plus, PanelLeft, FileText, GraduationCap, Settings, LayoutGrid, Shield, Globe } from "lucide-react";
 
 interface Result {
   type: "post" | "event" | "job" | "project" | "scholarship";
@@ -31,9 +32,13 @@ const PAGES = [
   { href: "/donate", label: "Donate", icon: Heart },
   { href: "/help", label: "Help", icon: HelpCircle },
   { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/terms", label: "Terms", icon: FileText },
+  { href: "/privacy", label: "Privacy", icon: Shield },
+  { href: "/landing", label: "Landing", icon: Globe },
 ];
 
 export function CommandPalette({ open, onClose, onToggleSidebar, isAdmin = false }: Props) {
+  const isMobile = useMediaQuery("(max-width: 767px)");
   const router = useRouter();
   const { data: session } = useSession();
   const [q, setQ] = useState("");
@@ -67,7 +72,7 @@ export function CommandPalette({ open, onClose, onToggleSidebar, isAdmin = false
     { label: "Create post", action: () => { onClose(); router.push(session ? "/lounge/new" : "/lounge"); }, icon: Plus },
     { label: "Create event", action: () => { onClose(); router.push("/events/new"); }, icon: Plus },
     { label: "Submit project", action: () => { onClose(); router.push(session ? "/product-hunt?showAddProduct=true" : "/product-hunt"); }, icon: Plus },
-    { label: "Toggle sidebar", action: () => { onClose(); onToggleSidebar(); }, icon: PanelLeft },
+    ...(isMobile ? [] : [{ label: "Toggle sidebar", action: () => { onClose(); onToggleSidebar(); }, icon: PanelLeft }]),
   ];
 
   const pages = isAdmin
