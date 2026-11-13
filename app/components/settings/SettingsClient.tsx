@@ -13,16 +13,37 @@ interface Props {
   email: string | null;
   initialPrefs: LayoutPrefs;
   initialHidden: string[];
+  initialProfilePrivate: boolean;
 }
 
-const WIDGETS = [
-  { key: "prizePool", label: "Prize pool" },
-  { key: "topProjects", label: "Top projects" },
-  { key: "upcomingEvents", label: "Upcoming events" },
-  { key: "newJobs", label: "New jobs" },
-  { key: "trending", label: "Trending posts" },
-  { key: "topDonors", label: "Top donors" },
-  { key: "recentSupporters", label: "Recent supporters" },
+const WIDGET_GROUPS: Array<{
+  group: string;
+  hint: string;
+  items: Array<{ key: string; label: string }>;
+}> = [
+  {
+    group: "Everywhere",
+    hint: "Shown on every page of the site.",
+    items: [{ key: "prizePool", label: "Prize pool" }],
+  },
+  {
+    group: "Browse pages",
+    hint: "Shown on Home, Events, Jobs, Product Hunt, and Lounge — where each widget has data.",
+    items: [
+      { key: "topProjects", label: "Top projects" },
+      { key: "upcomingEvents", label: "Upcoming events" },
+      { key: "newJobs", label: "New jobs" },
+      { key: "trending", label: "Trending posts" },
+    ],
+  },
+  {
+    group: "Donate page",
+    hint: "Only shown on /donate.",
+    items: [
+      { key: "topDonors", label: "Top donors" },
+      { key: "recentSupporters", label: "Recent supporters" },
+    ],
+  },
 ];
 
 async function patchPrefs(body: any) {
@@ -34,12 +55,13 @@ async function patchPrefs(body: any) {
   if (!res.ok) throw new Error("Failed to save");
 }
 
-export function SettingsClient({ userId, email, initialPrefs, initialHidden }: Props) {
+export function SettingsClient({ userId, email, initialPrefs, initialHidden, initialProfilePrivate }: Props) {
   const router = useRouter();
   const [prefs, setPrefs] = useState<LayoutPrefs>(initialPrefs);
   const [hidden, setHidden] = useState<Set<string>>(new Set(initialHidden));
   const [saving, setSaving] = useState<string | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [profilePrivate, setProfilePrivate] = useState(initialProfilePrivate);
 
   const save = async (key: string, nextPrefs: LayoutPrefs, nextHidden: Set<string>) => {
     setSaving(key);
@@ -78,6 +100,24 @@ export function SettingsClient({ userId, email, initialPrefs, initialHidden }: P
     setHidden(next);
     save("widgets", prefs, next);
   };
+
+  const savePrivacy = async (next: boolean) => {
+    setSaving("privacy");
+    setProfilePrivate(next);
+    try {
+      await patchPrefs({ profile_private: next });
+      toast.success(next ? "Profile is now private" : "Profile is now public");
+      router.refresh();
+    } catch {
+      setProfilePrivate(!next);
+      toast.error("Could not save");
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  // local alias so the name doesn't collide with the prop
+  const [profilePrivateState, setProfilePrivate_state] = useState(initialProfilePrivate);
 
   return (
     <div className="settings">
@@ -144,17 +184,29 @@ export function SettingsClient({ userId, email, initialPrefs, initialHidden }: P
           <p className="settings__desc">Hide widgets you don&apos;t want to see.</p>
         </header>
 
-        <div className="settings__checks">
-          {WIDGETS.map((w) => (
-            <label key={w.key} className="settings__check">
-              <input
-                type="checkbox"
-                checked={!hidden.has(w.key)}
-                onChange={() => toggleWidget(w.key)}
-                disabled={saving === "widgets"}
-              />
-              <span>{w.label}</span>
-            </label>
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          {WIDGET_GROUPS.map((g) => (
+            <div key={g.group}>
+              <p style={{ fontSize: 12, fontWeight: 500, color: "var(--text-1)", marginBottom: 2 }}>
+                {g.group}
+              </p>
+              <p style={{ fontSize: 11, color: "var(--text-3)", marginBottom: 8 }}>
+                {g.hint}
+              </p>
+              <div className="settings__checks">
+                {g.items.map((w) => (
+                  <label key={w.key} className="settings__check">
+                    <input
+                      type="checkbox"
+                      checked={!hidden.has(w.key)}
+                      onChange={() => toggleWidget(w.key)}
+                      disabled={saving === "widgets"}
+                    />
+                    <span>{w.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </section>
@@ -164,6 +216,24 @@ export function SettingsClient({ userId, email, initialPrefs, initialHidden }: P
           <h2 className="settings__title">Account</h2>
           <p className="settings__desc">Your sign-in and profile.</p>
         </header>
+
+        <div className="settings__row">
+          <div className="settings__row-label">
+            <p className="settings__row-title">Private profile</p>
+            <p className="settings__row-desc">
+              When enabled, your profile page shows only your name, avatar, and join date. Your individual posts, comments, and products stay visible in their original places — this only hides the aggregated activity view.
+            </p>
+          </div>
+          <label className="settings__toggle">
+            <input
+              type="checkbox"
+              checked={profilePrivate}
+              onChange={(e) => savePrivacy(e.target.checked)}
+              disabled={saving === "privacy"}
+            />
+            <span className="settings__toggle-track" aria-hidden="true" />
+          </label>
+        </div>
 
         <div className="settings__row">
           <div className="settings__row-label">

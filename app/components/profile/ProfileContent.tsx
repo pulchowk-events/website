@@ -12,32 +12,46 @@ interface Props {
   user: {
     id: string;
     name: string | null;
-    email: string | null;
     image: string | null;
     bio: string | null;
     created_at: string | null;
   };
   stats: { posts: number; comments: number; products: number };
   isOwnProfile: boolean;
+  isPrivate?: boolean;
 }
 
 type Tab = "posts" | "comments" | "projects" | "saved";
 
-export default function ProfileContent({ user, stats, isOwnProfile }: Props) {
+export default function ProfileContent({ user, stats, isOwnProfile, isPrivate = false }: Props) {
   const [tab, setTab] = useState<Tab>("posts");
 
   const tabs: { value: Tab; label: string; icon: any; show: boolean }[] = [
     { value: "posts", label: "Posts", icon: User, show: true },
     { value: "comments", label: "Comments", icon: MessageSquare, show: true },
-    { value: "projects", label: "Projects", icon: Package, show: true },
+    { value: "projects", label: "Products", icon: Package, show: true },
     { value: "saved", label: "Saved", icon: Bookmark, show: isOwnProfile },
   ];
 
   const visibleTabs = tabs.filter((t) => t.show);
 
+  if (isPrivate) {
+    return (
+      <div className="profile">
+        <ProfileHeader user={user} stats={stats} isOwnProfile={isOwnProfile} isPrivate={isPrivate} />
+        <div className="prof-private">
+          <p className="prof-private__title">This profile is private</p>
+          <p className="prof-private__desc">
+            {user.name || "This user"} has set their activity to private. Their posts, comments, and products are still visible where they were originally posted.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="profile">
-      <ProfileHeader user={user} stats={stats} isOwnProfile={isOwnProfile} />
+      <ProfileHeader user={user} stats={stats} isOwnProfile={isOwnProfile} isPrivate={isPrivate} />
 
       <nav className="profile-tabs" role="tablist" aria-label="Profile content">
         {visibleTabs.map((t) => {

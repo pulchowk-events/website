@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { SettingsClient } from "@/app/components/settings/SettingsClient";
 import { SavedGuestCard } from "@/app/components/saved/SavedGuestCard";
 import { readLayoutPrefs, getHiddenWidgets } from "@/app/lib/preferences.server";
+import { supabase } from "@/app/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
@@ -26,9 +27,15 @@ export default async function SettingsPage() {
     );
   }
 
-  const [prefs, hidden] = await Promise.all([
+  const [prefs, hidden, profilePrivate] = await Promise.all([
     readLayoutPrefs(),
     getHiddenWidgets(session.user.id),
+    supabase
+      .from("user_preferences")
+      .select("profile_private")
+      .eq("user_id", session.user.id)
+      .single()
+      .then(({ data }) => Boolean(data?.profile_private)),
   ]);
 
   return (
@@ -39,6 +46,7 @@ export default async function SettingsPage() {
         email={session.user.email || null}
         initialPrefs={prefs}
         initialHidden={hidden}
+        initialProfilePrivate={profilePrivate}
       />
     </Layout>
   );

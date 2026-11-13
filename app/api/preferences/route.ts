@@ -17,6 +17,7 @@ export async function PATCH(request: Request) {
   if (body.density === "comfortable" || body.density === "compact") patch.density = body.density;
   if (typeof body.sidebar_collapsed === "boolean") patch.sidebar_collapsed = body.sidebar_collapsed;
   if (Array.isArray(body.hidden_widgets)) patch.hidden_widgets = body.hidden_widgets;
+  if (typeof body.profile_private === "boolean") patch.profile_private = body.profile_private;
 
   const { error } = await supabase
     .from("user_preferences")

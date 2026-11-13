@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { authOptions } from "@/auth";
 import { supabase } from "@/app/lib/supabase";
+import { isAdmin } from "@/app/lib/isAdmin";
 import Layout from "@/app/components/layout/Layout";
 import ProfileContent from "@/app/components/profile/ProfileContent";
 import { SITE_URL } from "@/app/lib/seo";
@@ -41,34 +42,39 @@ export default async function ProfilePage({ params }: Props) {
   const { userId } = await params;
   const session = await getServerSession(authOptions);
 
-  const { data: userData, error: userError } = await supabase
-    .from("users")
-    .select("id, name, email, image, bio, created_at")
-    .eq("id", userId)
-    .single();
+  const [{ data: userData, error: userError }, { data: prefsData }] = await Promise.all([
+    supabase.from("users").select("id, name, image, bio, created_at").eq("id", userId).single(),
+    supabase.from("user_preferences").select("profile_private").eq("user_id", userId).maybeSingle(),
+  ]);
 
   if (userError || !userData) notFound();
 
-  const results = await Promise.all([
-    supabase.from("lounge_posts").select("*", { count: "exact", head: true }).eq("author_id", userId),
-    supabase.from("lounge_comments").select("*", { count: "exact", head: true }).eq("user_id", userId),
-    supabase.from("products").select("*", { count: "exact", head: true }).eq("posted_by", userId),
-  ]);
+  const isOwnProfile = session?.user?.id === userId;
+  const viewerIsAdmin = session?.user?.email ? await isAdmin(session.user.email) : false;
+  const isPrivate = Boolean(prefsData?.profile_private);
+  const hideActivity = isPrivate && !isOwnProfile && !viewerIsAdmin;
 
-  const postsCount = results[0].count || 0;
-  const commentsCount = results[1].count || 0;
-  const productsCount = results[2].count || 0;
+  let stats = { posts: 0, comments: 0, products: 0 };
+  if (!hideActivity) {
+    const [postsRes, commentsRes, productsRes] = await Promise.all([
+      supabase.from("lounge_posts").select("*", { count: "exact", head: true }).eq("author_id", userId),
+      supabase.from("lounge_comments").select("*", { count: "exact", head: true }).eq("user_id", userId),
+      supabase.from("products").select("*", { count: "exact", head: true }).eq("posted_by", userId),
+    ]);
+    stats = {
+      posts: postsRes.count || 0,
+      comments: commentsRes.count || 0,
+      products: productsRes.count || 0,
+    };
+  }
 
   return (
     <Layout railContext="utility">
       <ProfileContent
         user={userData}
-        stats={{
-          posts: postsCount,
-          comments: commentsCount,
-          products: productsCount,
-        }}
-        isOwnProfile={session?.user?.id === userId}
+        stats={stats}
+        isOwnProfile={isOwnProfile}
+        isPrivate={hideActivity}
       />
     </Layout>
   );

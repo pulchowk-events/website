@@ -9,13 +9,13 @@ interface Props {
   user: {
     id: string;
     name: string | null;
-    email: string | null;
     image: string | null;
     bio: string | null;
     created_at: string | null;
   };
   stats: { posts: number; comments: number; products: number };
   isOwnProfile: boolean;
+  isPrivate?: boolean;
 }
 
 function joinedLabel(iso: string | null): string | null {
@@ -28,7 +28,7 @@ function joinedLabel(iso: string | null): string | null {
   }
 }
 
-export function ProfileHeader({ user, stats, isOwnProfile }: Props) {
+export function ProfileHeader({ user, stats, isOwnProfile, isPrivate = false }: Props) {
   const [editOpen, setEditOpen] = useState(false);
   const joined = joinedLabel(user.created_at);
 
@@ -42,16 +42,18 @@ export function ProfileHeader({ user, stats, isOwnProfile }: Props) {
           <div className="prof-head__text">
             <h1 className="prof-head__name">{user.name || "Anonymous"}</h1>
             {joined && <p className="prof-head__joined">Joined {joined}</p>}
-            {user.bio && <p className="prof-head__bio">{user.bio}</p>}
+            {!isPrivate && user.bio && <p className="prof-head__bio">{user.bio}</p>}
           </div>
         </div>
 
         <div className="prof-head__side">
-          <dl className="prof-head__stats">
-            <div><dd>{stats.posts}</dd><dt>Posts</dt></div>
-            <div><dd>{stats.comments}</dd><dt>Comments</dt></div>
-            <div><dd>{stats.products}</dd><dt>Projects</dt></div>
-          </dl>
+          {!isPrivate && (
+            <dl className="prof-head__stats">
+              <div><dd>{stats.posts}</dd><dt>Posts</dt></div>
+              <div><dd>{stats.comments}</dd><dt>Comments</dt></div>
+              <div><dd>{stats.products}</dd><dt>Products</dt></div>
+            </dl>
+          )}
           {isOwnProfile && (
             <button
               type="button"
