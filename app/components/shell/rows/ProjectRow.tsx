@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import { SmartImg } from "@/app/components/ui/SmartImg";
 
 interface ProjectRowProps {
   project: {
@@ -18,11 +18,12 @@ export function ProjectRow({ project, rank }: ProjectRowProps) {
     <Link href={"/product-hunt/" + project.url} className="row project-row">
       {rank !== undefined && <span className="project-row__rank">{rank}</span>}
       <span className="project-row__logo">
-        {project.image_url ? (
-          <Image src={project.image_url} alt="" width={40} height={40} unoptimized />
-        ) : (
-          <span className="project-row__logo-initial">{project.name.charAt(0)}</span>
-        )}
+        <SmartImg
+          src={project.image_url}
+          alt=""
+          seed={String(project.id)}
+          fallback={<span className="project-row__logo-initial">{project.name.charAt(0)}</span>}
+        />
       </span>
       <div className="project-row__body">
         <p className="row-title">{project.name}</p>

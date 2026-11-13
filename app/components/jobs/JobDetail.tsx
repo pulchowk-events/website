@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import { SmartImg } from "@/app/components/ui/SmartImg";
 import Link from "next/link";
 import {
   ArrowLeft, MapPin, Briefcase, DollarSign, Calendar, Users, TrendingUp, Clock,
@@ -145,11 +145,12 @@ export default function JobDetail({ job, isSaved, similarJobs }: Props) {
 
       <header className="job-detail__header">
         <span className="job-detail__logo">
-          {job.image_url ? (
-            <Image src={job.image_url} alt="" width={64} height={64} unoptimized />
-          ) : (
-            <span className="job-detail__logo-initial">{job.company.charAt(0)}</span>
-          )}
+          <SmartImg
+            src={job.image_url}
+            alt=""
+            seed={job.id}
+            fallback={<span className="job-detail__logo-initial">{job.company.charAt(0)}</span>}
+          />
         </span>
         <div className="job-detail__head-meta">
           <h1 className="job-detail__title">{job.title}</h1>
@@ -238,11 +239,12 @@ export default function JobDetail({ job, isSaved, similarJobs }: Props) {
             {similarJobs.map((j) => (
               <Link key={j.id} href={"/jobs/" + j.id} className="row job-row">
                 <span className="job-row__logo">
-                  {j.image_url ? (
-                    <Image src={j.image_url} alt="" width={40} height={40} unoptimized />
-                  ) : (
-                    <span className="job-row__logo-initial">{j.company.charAt(0)}</span>
-                  )}
+                  <SmartImg
+                    src={j.image_url}
+                    alt=""
+                    seed={j.id}
+                    fallback={<span className="job-row__logo-initial">{j.company.charAt(0)}</span>}
+                  />
                 </span>
                 <div className="job-row__body">
                   <p className="row-title">{j.title}</p>

@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { formatTime, daysUntilNPT } from "@/app/lib/formatDate";
+import { SmartImg } from "@/app/components/ui/SmartImg";
+import { daysUntilNPT } from "@/app/lib/formatDate";
 
 interface EventRowProps {
   event: {
@@ -9,6 +10,7 @@ interface EventRowProps {
     category: string | null;
     location?: string | null;
     price?: string | null;
+    image_url?: string | null;
   };
   compact?: boolean;
 }
@@ -41,17 +43,26 @@ export function EventRow({ event, compact = false }: EventRowProps) {
   const status = statusLabel(event.event_date);
   return (
     <Link href={"/events/" + event.id} className={"row event-row" + (compact ? " event-row--compact" : "")}>
-      <span className="event-row__date">
-        <span className="event-row__month">{dp.month}</span>
-        <span className="event-row__day">{dp.day}</span>
-        <span className="event-row__dow">{dp.dow}</span>
-      </span>
+      <SmartImg
+        src={event.image_url}
+        alt=""
+        seed={event.id}
+        className="event-row__poster-img"
+        fallback={
+          <span className="event-row__date">
+            <span className="event-row__month">{dp.month}</span>
+            <span className="event-row__day">{dp.day}</span>
+            <span className="event-row__dow">{dp.dow}</span>
+          </span>
+        }
+      />
       <div className="event-row__body">
         <p className="row-title">{event.title}</p>
-        <div className="row-meta">
-          <span>{formatTime(event.event_date)}</span>
-          {event.location && <><span className="row-dot">·</span><span>{event.location}</span></>}
-        </div>
+        {event.location && (
+          <div className="row-meta">
+            <span>{event.location}</span>
+          </div>
+        )}
         {status && <span className="event-row__status">{status}</span>}
       </div>
     </Link>

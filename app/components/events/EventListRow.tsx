@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { SmartImg } from "@/app/components/ui/SmartImg";
 import { useRouter, usePathname } from "next/navigation";
 import { CalendarPlus } from "lucide-react";
 import { useState } from "react";
-import { formatTime, daysUntilNPT } from "@/app/lib/formatDate";
+import { daysUntilNPT } from "@/app/lib/formatDate";
 import { SaveButton } from "@/app/components/shell/SaveButton";
 import { ShareMenu } from "@/app/components/shell/ShareMenu";
 import { OverflowMenu, type OverflowItem } from "@/app/components/shell/OverflowMenu";
@@ -20,6 +21,7 @@ interface Event {
   organizer?: string | null;
   origin?: string | null;
   created_by?: string | null;
+  image_url?: string | null;
 }
 
 interface Props {
@@ -101,11 +103,19 @@ export function EventListRow({ event, isPast, saved, userId, isAdmin, onEdit, on
     <>
       <div className="event-list-row">
         <Link href={"/events/" + event.id} className="event-list-row__main">
-          <span className="event-list-row__date">
-            <span className="event-list-row__month">{dp.month}</span>
-            <span className="event-list-row__day">{dp.day}</span>
-            <span className="event-list-row__dow">{dp.dow}</span>
-          </span>
+          <SmartImg
+            src={event.image_url}
+            alt=""
+            seed={event.id}
+            className="event-list-row__poster-img"
+            fallback={
+              <span className="event-list-row__date">
+                <span className="event-list-row__month">{dp.month}</span>
+                <span className="event-list-row__day">{dp.day}</span>
+                <span className="event-list-row__dow">{dp.dow}</span>
+              </span>
+            }
+          />
 
           <div className="event-list-row__body">
             <div className="event-list-row__title-row">
@@ -113,10 +123,11 @@ export function EventListRow({ event, isPast, saved, userId, isAdmin, onEdit, on
               {source && <span className="event-list-row__source">via {source}</span>}
             </div>
             <div className="row-meta">
-              <span>{formatTime(event.event_date)}</span>
-              {event.location && <><span className="row-dot">·</span><span>{event.location}</span></>}
-              {event.price && <><span className="row-dot">·</span><span>{event.price}</span></>}
-              {event.organizer && <><span className="row-dot">·</span><span>{event.organizer}</span></>}
+              {event.location && <span>{event.location}</span>}
+              {(event.price || event.organizer) && event.location && <span className="row-dot">·</span>}
+              {event.price && <span>{event.price}</span>}
+              {event.organizer && event.price && <span className="row-dot">·</span>}
+              {event.organizer && <span>{event.organizer}</span>}
             </div>
             {status && <span className={"event-list-row__status event-list-row__status--" + status.tone}>{status.text}</span>}
           </div>

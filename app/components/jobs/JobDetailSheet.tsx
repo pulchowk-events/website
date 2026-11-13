@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import Image from "next/image";
+import { SmartImg } from "@/app/components/ui/SmartImg";
 import Link from "next/link";
 import { X, ExternalLink } from "lucide-react";
 import Markdown from "@/app/components/ui/Markdown";
@@ -86,11 +86,12 @@ export function JobDetailSheet({ job, saved, onClose }: Props) {
         <div className="sheet__body">
           <div className="sheet__company">
             <span className="sheet__logo">
-              {job.image_url ? (
-                <Image src={job.image_url} alt="" width={56} height={56} unoptimized />
-              ) : (
-                <span className="sheet__logo-initial">{job.company.charAt(0)}</span>
-              )}
+              <SmartImg
+                src={job.image_url}
+                alt=""
+                seed={job.id}
+                fallback={<span className="sheet__logo-initial">{job.company.charAt(0)}</span>}
+              />
             </span>
             <div className="sheet__company-meta">
               <h2 className="sheet__title">{job.title}</h2>

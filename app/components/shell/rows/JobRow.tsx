@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import { SmartImg } from "@/app/components/ui/SmartImg";
 import { formatDateShort } from "@/app/lib/formatDate";
 
 interface JobRowProps {
@@ -21,11 +21,12 @@ export function JobRow({ job, compact = false }: JobRowProps) {
     <Link href={"/jobs/" + job.id} className={"row job-row" + (compact ? " job-row--compact" : "")}>
       {!compact && (
         <span className="job-row__logo">
-          {job.image_url ? (
-            <Image src={job.image_url} alt="" width={40} height={40} unoptimized />
-          ) : (
-            <span className="job-row__logo-initial">{job.company.charAt(0)}</span>
-          )}
+          <SmartImg
+            src={job.image_url}
+            alt=""
+            seed={job.id}
+            fallback={<span className="job-row__logo-initial">{job.company.charAt(0)}</span>}
+          />
         </span>
       )}
       <div className="job-row__body">

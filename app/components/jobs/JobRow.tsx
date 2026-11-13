@@ -1,7 +1,6 @@
 "use client";
 
-import Image from "next/image";
-import { useState } from "react";
+import { SmartImg } from "@/app/components/ui/SmartImg";
 import { SaveButton } from "@/app/components/shell/SaveButton";
 import { formatSalary, isSalaryDisclosed } from "@/app/lib/formatSalary";
 
@@ -67,25 +66,16 @@ export function JobRow({ job, saved, selected, onClick }: Props) {
   const source = sourceLabel(job.origin);
   const salaryDisplay = formatSalary(job.salary);
   const salaryDisclosed = isSalaryDisclosed(job.salary);
-  const [imgBroken, setImgBroken] = useState(false);
-  const showLogo = !!job.image_url && !imgBroken;
 
   return (
     <div className={"job-row-new" + (selected ? " job-row-new--selected" : "")} onClick={onClick}>
       <span className="job-row-new__logo">
-        {showLogo ? (
-          <Image
-            src={job.image_url!}
-            alt=""
-            width={40}
-            height={40}
-            unoptimized
-            referrerPolicy="no-referrer"
-            onError={() => setImgBroken(true)}
-          />
-        ) : (
-          <span className="job-row-new__logo-initial">{job.company.charAt(0).toUpperCase()}</span>
-        )}
+        <SmartImg
+          src={job.image_url}
+          alt=""
+          seed={job.id}
+          fallback={<span className="job-row-new__logo-initial">{job.company.charAt(0).toUpperCase()}</span>}
+        />
       </span>
 
       <div className="job-row-new__body">

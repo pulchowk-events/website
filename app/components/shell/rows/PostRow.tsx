@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { SmartImg } from "@/app/components/ui/SmartImg";
 import { CategoryChip } from "../CategoryChip";
 import { formatDistanceToNow } from "date-fns";
 
@@ -54,7 +55,13 @@ export function PostRow({ post, showThumb = true, showExcerpt = true }: PostRowP
           className="row-thumb"
           style={{ display: "block", position: "relative", width: 72, height: 72, overflow: "hidden", flex: "none", borderRadius: 8, background: "var(--surface)" }}
         >
-          <Image src={post.image_url!} alt="" fill sizes="72px" unoptimized style={{ objectFit: "cover" }} />
+          <SmartImg
+            src={post.image_url}
+            alt=""
+            seed={post.id}
+            className="post-row__thumb-img"
+            fallback={<span className="post-row__thumb-initial">{(post.title || "?").charAt(0).toUpperCase()}</span>}
+          />
         </span>
       )}
     </Link>
