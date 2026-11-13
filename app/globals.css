@@ -9516,3 +9516,8 @@ input[type="radio"]:disabled {
 }
 .slug-bar__prefix { color: var(--text-3); flex: none; }
 .slug-bar__value { color: var(--accent); overflow: hidden; text-overflow: ellipsis; }
+
+@media (max-width: 767px) {
+  .composer__hint { display: none; }
+  .palette__footer { display: none; }
+}
