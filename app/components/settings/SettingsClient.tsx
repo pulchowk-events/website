@@ -30,7 +30,7 @@ const WIDGET_GROUPS: Array<{
     group: "Browse pages",
     hint: "Shown on Home, Events, Jobs, Product Hunt, and Lounge — where each widget has data.",
     items: [
-      { key: "topProjects", label: "Top projects" },
+      { key: "topProjects", label: "Top products" },
       { key: "upcomingEvents", label: "Upcoming events" },
       { key: "newJobs", label: "New jobs" },
       { key: "trending", label: "Trending posts" },

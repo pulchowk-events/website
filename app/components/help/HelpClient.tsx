@@ -69,7 +69,7 @@ const GROUPS: Group[] = [
       },
       {
         q: "What is the difference between the Lounge and Projects?",
-        a: "The Lounge is for discussions, questions, tips, and announcements. Projects (Product Hunt) is a curated leaderboard of shipped student projects — one entry per project, ranked by community votes.",
+        a: "The Lounge is for discussions, questions, tips, and announcements. Product Hunt is a curated leaderboard of shipped student projects — one entry per project, ranked by community votes.",
       },
       {
         q: "How does voting work in the Lounge?",
@@ -153,11 +153,11 @@ const GROUPS: Group[] = [
     ],
   },
   {
-    topic: "Projects",
+    topic: "Product Hunt",
     items: [
       {
         q: "How do I submit a project?",
-        a: "Click Submit project on /product-hunt. Add a name, URL slug, description, and an optional live URL and image. Projects go through admin review before appearing on the leaderboard.",
+        a: "Click Submit product on /product-hunt. Add a name, URL slug, description, and an optional live URL and image. Products go through admin review before appearing on the leaderboard.",
       },
       {
         q: "How does voting work?",

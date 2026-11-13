@@ -128,7 +128,7 @@ export default async function SearchPage({
     { value: "posts", label: "Posts", count: counts.posts },
     { value: "events", label: "Events", count: counts.events },
     { value: "jobs", label: "Jobs", count: counts.jobs },
-    { value: "projects", label: "Projects", count: counts.projects },
+    { value: "projects", label: "Products", count: counts.projects },
     { value: "scholarships", label: "Scholarships", count: counts.scholarships },
   ];
 
@@ -161,7 +161,7 @@ export default async function SearchPage({
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
             <Link href="/events" className="btn btn--secondary btn--sm">Browse events</Link>
             <Link href="/jobs" className="btn btn--secondary btn--sm">Browse jobs</Link>
-            <Link href="/product-hunt" className="btn btn--secondary btn--sm">Browse projects</Link>
+            <Link href="/product-hunt" className="btn btn--secondary btn--sm">Browse products</Link>
             <Link href="/scholarships" className="btn btn--secondary btn--sm">Browse scholarships</Link>
           </div>
         </div>

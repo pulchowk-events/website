@@ -37,7 +37,7 @@ export default function UserProducts({ userId, isOwner }: { userId: string; isOw
   if (visible.length === 0) {
     return (
       <div className="empty-row">
-        <p>No projects yet.</p>
+        <p>No products yet.</p>
         {isOwner && (
           <button
             type="button"

@@ -49,7 +49,7 @@ export default function Bento() {
           </div>
           {/* Projects */}
           <div className="cd s4">
-            <h3>Projects</h3>
+            <h3>Products</h3>
             <p>Student launches, ranked by votes.</p>
             <div className="v">
               <div className="rw"><i>▲ 128</i><u className="f" style={{ '--w': '90%' } as React.CSSProperties} /></div>

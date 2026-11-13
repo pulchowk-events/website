@@ -16,7 +16,7 @@ const TABS: { value: Tab; label: string }[] = [
   { value: "posts", label: "Posts" },
   { value: "events", label: "Events" },
   { value: "jobs", label: "Jobs" },
-  { value: "projects", label: "Projects" },
+  { value: "projects", label: "Products" },
   { value: "scholarships", label: "Scholarships" },
 ];
 

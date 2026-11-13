@@ -204,7 +204,7 @@ export function ProductComposer({ userId, productId, initialValues, onSaved, onC
           <div className="composer__foot-actions">
             <button type="button" className="btn btn--secondary btn--sm" onClick={collapse} disabled={submitting}>Cancel</button>
             <button type="submit" className="btn btn--primary btn--sm" disabled={!canSubmit}>
-              {submitting ? "Saving…" : isEdit ? "Save changes" : "Submit project"}
+              {submitting ? "Saving…" : isEdit ? "Save changes" : "Submit product"}
             </button>
           </div>
         </div>

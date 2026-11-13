@@ -12,9 +12,9 @@ interface Project {
 
 export function TopProjectsWidget({ projects }: { projects: Project[] }) {
   return (
-    <RailWidget title="Top projects" action={{ href: "/product-hunt", label: "See all" }}>
+    <RailWidget title="Top products" action={{ href: "/product-hunt", label: "See all" }}>
       {projects.length === 0 ? (
-        <p className="rail-empty">No projects yet.</p>
+        <p className="rail-empty">No products yet.</p>
       ) : (
         <ul className="rail-mini-list">
           {projects.map((p, i) => (
