@@ -5,9 +5,6 @@ import { Providers } from './providers';
 import { VoteProvider } from '@/app/lib/VoteContext';
 import { Toaster } from '@/components/ui/sonner';
 import LoadingBar from '@/app/components/extra/LoadingBar';
-import GlobalLoader from '@/app/components/extra/GlobalLoader';
-import FetchInterceptor from '@/app/components/extra/FetchInterceptor';
-import NavigationLoader from '@/app/components/extra/NavigationLoader';
 import JsonLd from '@/app/components/seo/JsonLd';
 import { SITE_URL, SITE_NAME, DEFAULT_DESCRIPTION } from '@/app/lib/seo';
 import Analytics from '@/app/components/analytics';
@@ -83,9 +80,6 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} ${geistSans.className}`}>
         <JsonLd data={orgJsonLd} />
         <JsonLd data={websiteJsonLd} />
-        <NavigationLoader />
-        <FetchInterceptor />
-        <GlobalLoader />
         <LoadingBar />
         <Providers><VoteProvider>{children}</VoteProvider></Providers>
         <Toaster richColors position="top-right" />
