@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { ProductComposer } from "@/app/components/product/ProductComposer";
 
 export const metadata: Metadata = {
-  title: "New project",
+  title: "New product",
   robots: { index: false, follow: false },
 };
 
@@ -17,7 +17,7 @@ export default async function NewProjectPage() {
 
   return (
     <Layout railContext="projects">
-      <PageHeader title="New project" description="Projects go through review before appearing on the leaderboard." />
+      <PageHeader title="New product" description="Products go through review before appearing on the leaderboard." />
       <ProductComposer userId={session.user.id} fullPage />
     </Layout>
   );

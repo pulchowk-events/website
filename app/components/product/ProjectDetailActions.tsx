@@ -116,7 +116,7 @@ export function ProjectDetailActions({ product, isSaved, isAdmin, onEdit }: Prop
       {canManage && (
         <>
           <button type="button" className="btn btn--secondary" onClick={onEdit}>
-            Edit project
+            Edit product
           </button>
           <RemoveButton productId={product.id} productName={product.name} isOwner={isOwner} />
         </>

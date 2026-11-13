@@ -12,11 +12,11 @@ import { SITE_URL } from "@/app/lib/seo";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Projects",
+  title: "Product Hunt",
   description: "Student-built projects from Nepal. Vote on what your peers shipped.",
   alternates: { canonical: "/product-hunt" },
   openGraph: {
-    title: "Projects — Pulchowk Events",
+    title: "Product Hunt — Pulchowk Events",
     description: "Student-built projects from Nepal.",
     type: "website",
     url: SITE_URL + "/product-hunt",
@@ -47,7 +47,7 @@ export default async function ProductHuntPage({
     <Layout railContext="projects">
       <div id="portal-root" />
 
-      <PageHeader title="Projects" />
+      <PageHeader title="Product Hunt" />
 
       {session?.user?.id && <ProductComposer userId={session.user.id} />}
 
@@ -65,8 +65,8 @@ export default async function ProductHuntPage({
 
       {products.length === 0 ? (
         <div className="empty-row">
-          <p>No projects launched {sort === "today" ? "today" : sort === "week" ? "this week" : "yet"}.</p>
-          <Link href="/product-hunt/new" className="btn btn--primary btn--sm">Submit project</Link>
+          <p>No products launched {sort === "today" ? "today" : sort === "week" ? "this week" : "yet"}.</p>
+          <Link href="/product-hunt/new" className="btn btn--primary btn--sm">Submit product</Link>
         </div>
       ) : (
         <div className="plist">

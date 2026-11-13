@@ -25,7 +25,7 @@ const PAGES = [
   { href: "/", label: "Home", icon: Home },
   { href: "/events", label: "Events", icon: Calendar },
   { href: "/jobs", label: "Jobs", icon: Briefcase },
-  { href: "/product-hunt", label: "Projects", icon: Box },
+  { href: "/product-hunt", label: "Product Hunt", icon: Box },
   { href: "/lounge", label: "Lounge", icon: MessageCircle },
   { href: "/scholarships", label: "Scholarships", icon: GraduationCap },
   { href: "/saved", label: "Saved", icon: Bookmark },
@@ -71,7 +71,7 @@ export function CommandPalette({ open, onClose, onToggleSidebar, isAdmin = false
   const actions = [
     { label: "Create post", action: () => { onClose(); router.push(session ? "/lounge/new" : "/lounge"); }, icon: Plus },
     { label: "Create event", action: () => { onClose(); router.push("/events/new"); }, icon: Plus },
-    { label: "Submit project", action: () => { onClose(); router.push(session ? "/product-hunt?showAddProduct=true" : "/product-hunt"); }, icon: Plus },
+    { label: "Submit product", action: () => { onClose(); router.push(session ? "/product-hunt?showAddProduct=true" : "/product-hunt"); }, icon: Plus },
     ...(isMobile ? [] : [{ label: "Toggle sidebar", action: () => { onClose(); onToggleSidebar(); }, icon: PanelLeft }]),
   ];
 

@@ -7,7 +7,7 @@ import { Home, Calendar, Briefcase, GraduationCap, Box } from "lucide-react";
 const TABS = [
   { href: "/", label: "Home", icon: Home },
   { href: "/events", label: "Events", icon: Calendar },
-  { href: "/product-hunt", label: "Projects", icon: Box },
+  { href: "/product-hunt", label: "Product Hunt", icon: Box },
   { href: "/scholarships", label: "Scholarships", icon: GraduationCap },
   { href: "/jobs", label: "Jobs", icon: Briefcase },
 ];

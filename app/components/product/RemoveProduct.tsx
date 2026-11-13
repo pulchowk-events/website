@@ -61,11 +61,11 @@ export function RemoveButton({ productId, productName, isOwner = false }: Remove
       >
         <span className="btn__label">
           <Trash2 size={14} style={{ marginRight: 8 }} />
-          Remove project
+          Remove product
         </span>
         <span className="btn__label btn__label--dup" aria-hidden="true">
           <Trash2 size={14} style={{ marginRight: 8 }} />
-          Remove project
+          Remove product
         </span>
       </button>
 
@@ -80,7 +80,7 @@ export function RemoveButton({ productId, productName, isOwner = false }: Remove
             onClick={(e) => e.stopPropagation()}
           >
             <header className="modal__head">
-              <h2 className="modal__title">Remove project</h2>
+              <h2 className="modal__title">Remove product</h2>
               <button
                 type="button"
                 onClick={() => setIsConfirmOpen(false)}

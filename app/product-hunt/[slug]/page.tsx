@@ -71,7 +71,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
 
   const breadcrumbJsonLd = breadcrumbSchema([
     { name: "Home", url: SITE_URL },
-    { name: "Projects", url: SITE_URL + "/product-hunt" },
+    { name: "Product Hunt", url: SITE_URL + "/product-hunt" },
     { name: product.name },
   ]);
 

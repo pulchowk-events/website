@@ -24,9 +24,9 @@ const BROWSE = [
   { href: "/", label: "Home", icon: Home },
   { href: "/events", label: "Events", icon: Calendar, countKey: "events_upcoming" as const },
   { href: "/jobs", label: "Jobs", icon: Briefcase, countKey: "jobs_open" as const },
-  { href: "/product-hunt", label: "Projects", icon: Box },
-  { href: "/lounge", label: "Lounge", icon: MessageCircle },
   { href: "/scholarships", label: "Scholarships", icon: GraduationCap },
+  { href: "/product-hunt", label: "Product Hunt", icon: Box },
+  { href: "/lounge", label: "Lounge", icon: MessageCircle },
 ];
 
 const YOU = [
