@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { toast } from "sonner";
 import { writeLayoutPrefsClient, type LayoutPrefs } from "@/app/lib/preferences";
+import DeleteAccountDialog from "./DeleteAccountDialog";
 
 interface Props {
   userId: string;
@@ -21,7 +22,6 @@ const WIDGETS = [
   { key: "newJobs", label: "New jobs" },
   { key: "trending", label: "Trending posts" },
   { key: "topDonors", label: "Top donors" },
-  { key: "recentSupporters", label: "Recent supporters" },
   { key: "recentSupporters", label: "Recent supporters" },
 ];
 
@@ -39,6 +39,7 @@ export function SettingsClient({ userId, email, initialPrefs, initialHidden }: P
   const [prefs, setPrefs] = useState<LayoutPrefs>(initialPrefs);
   const [hidden, setHidden] = useState<Set<string>>(new Set(initialHidden));
   const [saving, setSaving] = useState<string | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const save = async (key: string, nextPrefs: LayoutPrefs, nextHidden: Set<string>) => {
     setSaving(key);
@@ -191,6 +192,32 @@ export function SettingsClient({ userId, email, initialPrefs, initialHidden }: P
           </button>
         </div>
       </section>
+
+      <section className="settings__section settings__section--danger">
+        <header className="settings__head">
+          <h2 className="settings__title" style={{ color: "var(--danger)" }}>Danger zone</h2>
+          <p className="settings__desc">Permanently delete your account and all content you have posted.</p>
+        </header>
+
+        <div className="settings__row">
+          <div className="settings__row-label">
+            <p className="settings__row-title">Delete account</p>
+            <p className="settings__row-desc">
+              Removes your account, posts, comments, events, projects, votes, and saves. Donations are anonymised. Not reversible.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="btn btn--secondary btn--sm"
+            onClick={() => setDeleteOpen(true)}
+            style={{ color: "var(--danger)", borderColor: "rgba(255,92,92,0.35)" }}
+          >
+            Delete account
+          </button>
+        </div>
+      </section>
+
+      <DeleteAccountDialog open={deleteOpen} email={email} onClose={() => setDeleteOpen(false)} />
     </div>
   );
 }

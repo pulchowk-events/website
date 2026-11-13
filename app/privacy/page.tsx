@@ -159,7 +159,7 @@ export default function PrivacyPage() {
         <ul>
           <li><strong>Account</strong> (name, email, provider ID) &mdash; until you delete your account.</li>
           <li><strong>Content you post</strong> &mdash; until you delete it (hard-deleted immediately), or until your account is deleted.</li>
-          <li><strong>Deleted account data</strong> &mdash; hard-deleted after a 30-day grace period (during which you can restore by signing in).</li>
+          <li><strong>Deleted account data</strong> &mdash; account and all content permanently deleted immediately on request. A minimal log (email, display name, provider ID, deletion timestamp, and content counts) is retained for <strong>365 days</strong> for legal and abuse-prevention purposes, then permanently deleted.</li>
           <li><strong>Backups</strong> &mdash; up to 30 days after deletion.</li>
           <li><strong>Server logs</strong> (Netlify) &mdash; 30 days.</li>
           <li><strong>Google Analytics</strong> &mdash; 14 months.</li>
@@ -173,7 +173,7 @@ export default function PrivacyPage() {
           <li><strong>Access</strong> your data. Request via email at <a href="mailto:pulchowkevents@gmail.com">pulchowkevents@gmail.com</a>.</li>
           <li><strong>Export</strong> your data in JSON format.</li>
           <li><strong>Correct</strong> your name and bio at any time in Settings.</li>
-          <li><strong>Delete</strong> your account and content at any time in Settings.</li>
+          <li><strong>Delete</strong> your account and content at any time in Settings (Danger zone → Delete account). Deletion is immediate and irreversible.</li>
           <li><strong>Object</strong> to analytics by blocking cookies.</li>
           <li><strong>Complain</strong> to us first, and to the relevant authority if unresolved.</li>
         </ul>
