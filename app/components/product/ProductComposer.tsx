@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import { toast } from "sonner";
 import { MarkdownEditor } from "@/app/components/ui/MarkdownEditor";
+import { ImageDropZone } from "@/app/components/ui/ImageDropZone";
 import { ProductPreview } from "./ProductPreview";
 import SignInModal from "@/app/components/signIn/SignInModal";
 
@@ -161,7 +162,10 @@ export function ProductComposer({ userId, productId, initialValues, onSaved, onC
               {urlError ? (
                 <p className="field__error">{urlError}</p>
               ) : (
-                <p className="field__hint">Lives at <span style={{ fontFamily: "var(--font-geist-mono), monospace" }}>/product-hunt/{url || "your-slug"}</span></p>
+                <div className="slug-bar">
+                  <span className="slug-bar__prefix">pulchowkevents.com/product-hunt/</span>
+                  <span className="slug-bar__value">{url || "your-slug"}</span>
+                </div>
               )}
             </div>
 
@@ -172,8 +176,13 @@ export function ProductComposer({ userId, productId, initialValues, onSaved, onC
 
             <div className="field">
               <label htmlFor="pc-image" className="field__label">Image <span style={{ color: "var(--text-3)", fontWeight: 400 }}>(optional)</span></label>
-              <input id="pc-image" type="file" accept="image/*" onChange={(e) => setImage(e.target.files?.[0] || null)} className="input input--file" disabled={submitting} />
-              {image ? <p className="field__hint">Selected: {image.name}</p> : initialValues?.image_url ? <p className="field__hint">Current image will be kept.</p> : null}
+              <ImageDropZone
+                id="pc-image"
+                file={image}
+                existingUrl={initialValues?.image_url}
+                onChange={setImage}
+                disabled={submitting}
+              />
             </div>
           </>
         ) : (

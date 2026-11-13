@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import { toast } from "sonner";
 import { MarkdownEditor } from "@/app/components/ui/MarkdownEditor";
+import { DatePicker } from "@/app/components/ui/DatePicker";
+import { ImageDropZone } from "@/app/components/ui/ImageDropZone";
 import { EventPreview } from "./EventPreview";
 import SignInModal from "@/app/components/signIn/SignInModal";
 
@@ -240,13 +242,10 @@ export function EventComposer({ userId, eventId, initialValues, onSaved, onCance
                 <label htmlFor="ev-date" className="field__label">
                   Date and time (Nepal) <span className="field__label-req">*</span>
                 </label>
-                <input
+                <DatePicker
                   id="ev-date"
-                  type="datetime-local"
                   value={eventDate}
-                  onChange={(e) => setEventDate(e.target.value)}
-                  className="input"
-                  required
+                  onChange={setEventDate}
                   disabled={submitting}
                 />
               </div>
@@ -271,19 +270,13 @@ export function EventComposer({ userId, eventId, initialValues, onSaved, onCance
                 <label htmlFor="ev-image" className="field__label">
                   Image <span style={{ color: "var(--text-3)", fontWeight: 400 }}>(optional)</span>
                 </label>
-                <input
+                <ImageDropZone
                   id="ev-image"
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setImage(e.target.files?.[0] || null)}
-                  className="input input--file"
+                  file={image}
+                  existingUrl={initialValues?.image_url}
+                  onChange={setImage}
                   disabled={submitting}
                 />
-                {image ? (
-                  <p className="field__hint">Selected: {image.name}</p>
-                ) : initialValues?.image_url ? (
-                  <p className="field__hint">Current image will be kept.</p>
-                ) : null}
               </div>
             </div>
 
