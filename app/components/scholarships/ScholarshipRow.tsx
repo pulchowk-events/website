@@ -16,9 +16,10 @@ function sourceLabel(source: string | null): string | null {
 interface Props {
   scholarship: Scholarship;
   saved?: boolean;
+  showSave?: boolean;
 }
 
-export function ScholarshipRow({ scholarship, saved = false }: Props) {
+export function ScholarshipRow({ scholarship, saved = false, showSave = true }: Props) {
   const provider = scholarship.provider || sourceLabel(scholarship.source);
   const initial = (provider || scholarship.title).charAt(0).toUpperCase();
 
@@ -54,9 +55,11 @@ export function ScholarshipRow({ scholarship, saved = false }: Props) {
           />
         </div>
       </Link>
-      <div className="sch-row__actions">
-        <SaveButton itemType="scholarship" itemId={scholarship.id} initialSaved={saved} compact />
-      </div>
+      {showSave && (
+        <div className="sch-row__actions">
+          <SaveButton itemType="scholarship" itemId={scholarship.id} initialSaved={saved} compact />
+        </div>
+      )}
     </div>
   );
 }

@@ -1330,3 +1330,97 @@ export const getScholarshipById = unstable_cache(
   ["scholarship-by-id"],
   { revalidate: 60, tags: ["scholarships"] },
 );
+
+// --- Scholarship pSEO queries ---
+import {
+  SCHOLARSHIP_COUNTRIES,
+  SCHOLARSHIP_LEVELS,
+} from "@/app/lib/scholarshipSeo";
+
+export const getActiveScholarshipCountries = unstable_cache(
+  async () => {
+    const { data } = await supabase
+      .from("scholarships")
+      .select("tags")
+      .eq("verified", true);
+    const counts = new Map<string, number>();
+    for (const s of data || []) {
+      for (const t of (s.tags as string[]) || []) {
+        if (SCHOLARSHIP_COUNTRIES.includes(t)) {
+          counts.set(t, (counts.get(t) || 0) + 1);
+        }
+      }
+    }
+    return Array.from(counts.entries())
+      .filter(([, c]) => c >= 3)
+      .map(([name, count]) => ({
+        name,
+        slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
+        count,
+      }))
+      .sort((a, b) => b.count - a.count);
+  },
+  ["scholarship-countries"],
+  { revalidate: 60, tags: ["scholarships"] },
+);
+
+export const getScholarshipsByCountry = unstable_cache(
+  async (countrySlug: string) => {
+    const country = SCHOLARSHIP_COUNTRIES.find(
+      (c) => c.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") === countrySlug,
+    );
+    if (!country) return { country: null, scholarships: [] };
+    const { data } = await supabase
+      .from("scholarships")
+      .select("*")
+      .eq("verified", true)
+      .contains("tags", [country])
+      .order("posted_at", { ascending: false })
+      .limit(100);
+    return { country, scholarships: (data || []) as Scholarship[] };
+  },
+  ["scholarships-by-country"],
+  { revalidate: 60, tags: ["scholarships"] },
+);
+
+export const getActiveScholarshipLevels = unstable_cache(
+  async () => {
+    const { data } = await supabase
+      .from("scholarships")
+      .select("degree_level")
+      .eq("verified", true);
+    const counts = new Map<string, number>();
+    for (const s of data || []) {
+      const dl = (s.degree_level as string | null) || "";
+      const dlLower = dl.toLowerCase();
+      for (const lvl of SCHOLARSHIP_LEVELS) {
+        const needle = lvl.pattern.replace(/%/g, "").toLowerCase();
+        if (dlLower.includes(needle)) {
+          counts.set(lvl.slug, (counts.get(lvl.slug) || 0) + 1);
+        }
+      }
+    }
+    return SCHOLARSHIP_LEVELS
+      .filter((l) => (counts.get(l.slug) || 0) >= 3)
+      .map((l) => ({ ...l, count: counts.get(l.slug) || 0 }));
+  },
+  ["scholarship-levels"],
+  { revalidate: 60, tags: ["scholarships"] },
+);
+
+export const getScholarshipsByLevel = unstable_cache(
+  async (levelSlug: string) => {
+    const level = SCHOLARSHIP_LEVELS.find((l) => l.slug === levelSlug);
+    if (!level) return { level: null, scholarships: [] };
+    const { data } = await supabase
+      .from("scholarships")
+      .select("*")
+      .eq("verified", true)
+      .ilike("degree_level", level.pattern)
+      .order("posted_at", { ascending: false })
+      .limit(100);
+    return { level, scholarships: (data || []) as Scholarship[] };
+  },
+  ["scholarships-by-level"],
+  { revalidate: 60, tags: ["scholarships"] },
+);

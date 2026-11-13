@@ -3,6 +3,10 @@ import { createServerSupabaseClient } from "@/app/lib/supabase-server";
 import { SITE_URL } from "@/app/lib/seo";
 import { JOB_ROLES, slugify, formatMonthSlug } from "@/app/lib/seo";
 import {
+  getActiveScholarshipCountries,
+  getActiveScholarshipLevels,
+} from "@/app/lib/queries";
+import {
   getActiveJobTaxonomies,
   getActiveEventTaxonomies,
 } from "@/app/lib/queries";
@@ -88,7 +92,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .eq("verified", true),
   ]);
 
-  const [{ data: scholarships }, { count: scholarshipsCount }] = await Promise.all([
+  const [{ data: scholarships }, { count: scholarshipsCount }, scholarshipCountries, scholarshipLevels] = await Promise.all([
     supabase
       .from("scholarships")
       .select("id, posted_at")
@@ -98,6 +102,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .from("scholarships")
       .select("*", { count: "exact", head: true })
       .eq("verified", true),
+    getActiveScholarshipCountries(),
+    getActiveScholarshipLevels(),
   ]);
 
   const entries: MetadataRoute.Sitemap = [];
@@ -390,6 +396,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: s.posted_at ? new Date(s.posted_at) : now,
         changeFrequency: "weekly",
         priority: 0.7,
+      }),
+    );
+  }
+
+  for (const c of scholarshipCountries) {
+    entries.push(
+      url(`${SITE_URL}/scholarships/country/${c.slug}`, {
+        lastModified: now,
+        changeFrequency: "weekly",
+        priority: 0.6,
+      }),
+    );
+  }
+  for (const l of scholarshipLevels) {
+    entries.push(
+      url(`${SITE_URL}/scholarships/level/${l.slug}`, {
+        lastModified: now,
+        changeFrequency: "weekly",
+        priority: 0.6,
       }),
     );
   }

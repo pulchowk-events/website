@@ -1,11 +1,17 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 import Layout from "@/app/components/layout/Layout";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ScholarshipFilterBar } from "@/app/components/scholarships/ScholarshipFilterBar";
 import { ScholarshipsClient } from "@/app/components/scholarships/ScholarshipsClient";
-import { getScholarshipsPage, getSavedIds } from "@/app/lib/queries";
+import {
+  getScholarshipsPage,
+  getSavedIds,
+  getActiveScholarshipCountries,
+  getActiveScholarshipLevels,
+} from "@/app/lib/queries";
 
 export const revalidate = 60;
 
@@ -52,12 +58,15 @@ export default async function ScholarshipsPage({ searchParams }: { searchParams:
   const params = parseParams(sp);
   const session = await getServerSession(authOptions);
 
-  const [result, saves] = await Promise.all([
+  const [result, saves, countries, levels] = await Promise.all([
     getScholarshipsPage({ ...params, pageSize: PAGE_SIZE }),
     getSavedIds(session?.user?.id, "scholarship"),
+    getActiveScholarshipCountries(),
+    getActiveScholarshipLevels(),
   ]);
 
   const totalPages = Math.max(1, Math.ceil(result.totalCount / PAGE_SIZE));
+  const hasTaxonomies = countries.length > 0 || levels.length > 0;
 
   return (
     <Layout railContext="utility">
@@ -69,6 +78,35 @@ export default async function ScholarshipsPage({ searchParams }: { searchParams:
         page={params.page}
         totalPages={totalPages}
       />
+
+      {hasTaxonomies && result.scholarships.length > 0 && (
+        <section className="event-taxonomies">
+          {countries.length > 0 && (
+            <div>
+              <p className="event-taxonomies__label">By country</p>
+              <div className="event-taxonomies__list">
+                {countries.map((c) => (
+                  <Link key={c.slug} href={"/scholarships/country/" + c.slug} className="chip">
+                    {c.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+          {levels.length > 0 && (
+            <div>
+              <p className="event-taxonomies__label">By level</p>
+              <div className="event-taxonomies__list">
+                {levels.map((l) => (
+                  <Link key={l.slug} href={"/scholarships/level/" + l.slug} className="chip">
+                    {l.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
     </Layout>
   );
 }
