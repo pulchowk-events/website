@@ -47,8 +47,10 @@ export default function LoadingBar() {
       NProgress.start();
     };
 
-    // Back / forward browser buttons
+    // Back / forward browser buttons. Skip hash-only navigations
+    // (in-page anchors, #fragment back/forward) — those are not page loads.
     const handlePopState = () => {
+      if (window.location.pathname === pathname) return;
       NProgress.start();
     };
 

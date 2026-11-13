@@ -32,6 +32,14 @@ function NavigationLoaderInner() {
         anchor.hasAttribute('download')
       ) return;
 
+      // Skip same-page hash navigations like "/#site" or "/landing#plugins"
+      // — the pathname doesn't change, so hideLoader() will never fire,
+      // and the safety timer ends up leaving the loader on screen.
+      try {
+        const target = new URL(href, window.location.href);
+        if (target.pathname === pathname && target.hash) return;
+      } catch {}
+
       // Skip if navigating to the exact URL we're already on
       const currentUrl = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
       if (href === currentUrl || href === pathname) return;
@@ -39,7 +47,14 @@ function NavigationLoaderInner() {
       showLoader();
     };
 
-    const handlePopState = () => showLoader();
+    // Skip hash-only history changes. Clicking an in-page anchor pushes
+    // a history entry; browsers can fire popstate on back/forward through
+    // those entries, which would trigger the loader with no pathname change
+    // to clear it.
+    const handlePopState = () => {
+      if (window.location.pathname === pathname) return;
+      showLoader();
+    };
 
     document.addEventListener('click', handleClick);
     window.addEventListener('popstate', handlePopState);
