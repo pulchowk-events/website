@@ -35,7 +35,7 @@ export async function generateMetadata({
       type: 'website',
       url: SITE_URL + '/events/location/' + citySlug,
     },
-    twitter: { card: 'summary_large_image', title, description },
+    twitter: { card: 'summary', title, description },
   };
 }
 

@@ -538,6 +538,13 @@ export const getJobsByCompany = unstable_cache(
 
 // --- /jobs/skills/[skill] ---
 async function resolveSkillBySlug(skillSlug: string): Promise<string | null> {
+  // 1. Whitelist match — the canonical name is the source of truth
+  // (so "git" resolves to "Git" even if only "GitHub" appears in data)
+  for (const canonical of Object.keys(TECH_SKILL_ALIASES)) {
+    if (slugify(canonical) === skillSlug) return canonical;
+  }
+
+  // 2. Data match — for non-whitelisted skills stored as free text
   const { data } = await supabase
     .from("jobs")
     .select("skills")
@@ -547,11 +554,9 @@ async function resolveSkillBySlug(skillSlug: string): Promise<string | null> {
   for (const job of data) {
     for (const s of job.skills || []) uniques.add(s);
   }
-  // Exact match on canonical slug
   for (const s of uniques) {
     if (slugify(s) === skillSlug) return s;
   }
-  // Loose match — strip hyphens and dots so nodejs/node-js/node.js all resolve
   const loose = skillSlug.replace(/[-.]/g, "").toLowerCase();
   for (const s of uniques) {
     if (slugify(s).replace(/-/g, "").toLowerCase() === loose) return s;
@@ -564,15 +569,50 @@ export const getJobsBySkill = unstable_cache(
     const skill = await resolveSkillBySlug(skillSlug);
     if (!skill) return { skill: null, jobs: [] };
 
-    const { data } = await supabase
+    // Build the full alias set for this canonical skill.
+    // 1. From the whitelist (whitelisted skills like "Git" map to git/github/gitlab)
+    // 2. From the data (catches casing variants like "Node.Js" vs "Node.js")
+    const canonicalSlug = slugify(skill);
+    const aliases = new Set<string>();
+    for (const [canonical, list] of Object.entries(TECH_SKILL_ALIASES)) {
+      if (slugify(canonical) === canonicalSlug) {
+        aliases.add(canonical);
+        for (const a of list) aliases.add(a);
+        break;
+      }
+    }
+    const { data: allRows } = await supabase
+      .from("jobs")
+      .select("skills")
+      .eq("verified", true);
+    for (const row of allRows || []) {
+      for (const s of row.skills || []) {
+        if (slugify(s) === canonicalSlug) aliases.add(s);
+      }
+    }
+
+    const aliasSet = new Set(
+      [...aliases].map((a) => a.toLowerCase().trim()).filter(Boolean),
+    );
+    if (aliasSet.size === 0) return { skill, jobs: [] };
+
+    // Fetch all verified jobs and filter client-side. At ~74 jobs this is
+    // cheaper than round-tripping every alias variant through PostgREST.
+    // Revisit if the jobs table crosses ~5k rows.
+    const { data: allJobs } = await supabase
       .from("jobs")
       .select("*")
       .eq("verified", true)
-      .contains("skills", [skill])
-      .order("posted_at", { ascending: false })
-      .limit(100);
+      .order("posted_at", { ascending: false });
 
-    return { skill, jobs: data || [] };
+    const matches = (allJobs || []).filter((job) => {
+      for (const s of job.skills || []) {
+        if (aliasSet.has((s || "").toLowerCase().trim())) return true;
+      }
+      return false;
+    });
+
+    return { skill, jobs: matches.slice(0, 100) };
   },
   ["jobs-by-skill"],
   { revalidate: 60, tags: ["jobs"] },
@@ -1570,17 +1610,30 @@ export const getScholarshipsByCountry = unstable_cache(
     const country = SCHOLARSHIP_COUNTRIES.find(
       (c) => c.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") === countrySlug,
     );
-    if (!country) return { country: null, scholarships: [] };
-    const { data } = await supabase
+    if (!country) {
+      console.log(`[country-page] no whitelist match for "${countrySlug}"`);
+      return { country: null, scholarships: [] };
+    }
+
+    // Use .filter("cs", ...) which emits tags @> '["Germany"]'::jsonb explicitly.
+    // .contains() has known serialization quirks with Supabase's jsonb helpers
+    // depending on how the column was created.
+    const { data, error } = await supabase
       .from("scholarships")
       .select("*")
       .eq("verified", true)
-      .contains("tags", [country])
+      .filter("tags", "cs", JSON.stringify([country]))
       .order("posted_at", { ascending: false })
       .limit(100);
+
+    if (error) {
+      console.error(`[country-page] query error for ${country}:`, error);
+    }
+    console.log(`[country-page] ${country} (${countrySlug}): ${(data || []).length} results`);
+
     return { country, scholarships: (data || []) as Scholarship[] };
   },
-  ["scholarships-by-country"],
+  ["scholarships-by-country-v2"],
   { revalidate: 60, tags: ["scholarships"] },
 );
 

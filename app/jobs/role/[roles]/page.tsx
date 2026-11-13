@@ -26,12 +26,15 @@ export async function generateMetadata({
   const roleDef = JOB_ROLES.find((r) => r.slug === roleSlug);
   if (!roleDef) return { title: 'Role Not Found' };
 
+  const { jobs } = await getJobsByRole(roleSlug);
   const title = roleDef.label + ' Jobs in Nepal';
   const description =
     'Browse ' + roleDef.label + ' roles across Nepal. Curated from top job boards and updated daily.';
+  const sparse = jobs.length < MIN_ITEMS;
   return {
     title,
     description,
+    ...(sparse && { robots: { index: false, follow: true } }),
     alternates: { canonical: '/jobs/role/' + roleSlug },
     openGraph: {
       title,
@@ -39,7 +42,7 @@ export async function generateMetadata({
       type: 'website',
       url: SITE_URL + '/jobs/role/' + roleSlug,
     },
-    twitter: { card: 'summary_large_image', title, description },
+    twitter: { card: 'summary', title, description },
   };
 }
 
@@ -50,7 +53,8 @@ export default async function RolePage({
 }) {
   const { roles: roleSlug } = await params;
   const { role, jobs } = await getJobsByRole(roleSlug);
-  if (!role || jobs.length < MIN_ITEMS) notFound();
+  if (!role) notFound();
+  // Sparse roles render an empty state with noindex — no 404.
 
   const breadcrumbJsonLd = breadcrumbSchema([
     { name: 'Home', url: SITE_URL },
@@ -74,11 +78,20 @@ export default async function RolePage({
           description="Curated from Nepal's top job boards, updated daily."
         />
 
-        <div className="jobs-list">
-          {jobs.map((job) => (
-            <JobCard key={job.id} job={job} />
-          ))}
-        </div>
+        {jobs.length === 0 ? (
+          <div className="empty-row" style={{ marginTop: 16 }}>
+            <p>No {role.label} jobs are live right now.</p>
+            <Link href="/jobs" className="btn btn--secondary btn--sm">
+              Browse all jobs
+            </Link>
+          </div>
+        ) : (
+          <div className="jobs-list">
+            {jobs.map((job) => (
+              <JobCard key={job.id} job={job} />
+            ))}
+          </div>
+        )}
 
         <div style={{ marginTop: 32 }}>
           <Link href="/jobs" className="btn btn--secondary">

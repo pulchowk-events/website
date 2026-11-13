@@ -34,7 +34,7 @@ export async function generateMetadata({
       type: 'website',
       url: SITE_URL + '/jobs/company/' + companySlug,
     },
-    twitter: { card: 'summary_large_image', title, description },
+    twitter: { card: 'summary', title, description },
   };
 }
 

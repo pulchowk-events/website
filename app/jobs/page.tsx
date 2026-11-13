@@ -15,6 +15,52 @@ import {
 } from "@/app/lib/queries";
 import { JOB_ROLES } from "@/app/lib/seo";
 
+// Display labels for slugs that don't format cleanly via split-capitalize.
+const SKILL_DISPLAY_LABELS: Record<string, string> = {
+  "node-js": "Node.js",
+  "next-js": "Next.js",
+  "react-native": "React Native",
+  "rest-api": "REST API",
+  "cpp": "C++",
+  "csharp": "C#",
+  "sql": "SQL",
+  "php": "PHP",
+  "aws": "AWS",
+  "gcp": "GCP",
+  "mongodb": "MongoDB",
+  "github": "GitHub",
+  "graphql": "GraphQL",
+  "typescript": "TypeScript",
+  "javascript": "JavaScript",
+  "kubernetes": "Kubernetes",
+  "tailwind": "Tailwind",
+  "figma": "Figma",
+  "docker": "Docker",
+  "git": "Git",
+  "python": "Python",
+  "django": "Django",
+  "flask": "Flask",
+  "laravel": "Laravel",
+  "angular": "Angular",
+  "vue": "Vue",
+  "react": "React",
+  "java": "Java",
+  "kotlin": "Kotlin",
+  "swift": "Swift",
+  "rust": "Rust",
+  "go": "Go",
+  "flutter": "Flutter",
+  "express": "Express",
+  "redis": "Redis",
+  "azure": "Azure",
+  "firebase": "Firebase",
+  "tensorflow": "TensorFlow",
+  "pytorch": "PyTorch",
+  "pandas": "Pandas",
+};
+
+
+
 export const revalidate = 60;
 
 const PAGE_SIZE = 20;
@@ -132,7 +178,8 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
               <div className="event-taxonomies__list">
                 {taxonomies.skills.map((s) => (
                   <Link key={s} href={"/jobs/skills/" + s} className="chip">
-                    {s.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}
+                    {SKILL_DISPLAY_LABELS[s] ||
+                      s.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}
                   </Link>
                 ))}
               </div>

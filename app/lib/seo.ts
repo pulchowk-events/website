@@ -61,46 +61,6 @@ export const JOB_ROLES = [
     patterns: ["full stack", "fullstack", "full-stack"],
   },
   {
-    slug: "react",
-    label: "React",
-    patterns: ["react developer", "react engineer", "reactjs", "react.js"],
-  },
-  {
-    slug: "node-js",
-    label: "Node.js",
-    patterns: ["node developer", "nodejs", "node.js", "node engineer"],
-  },
-  {
-    slug: "python",
-    label: "Python",
-    patterns: ["python developer", "python engineer"],
-  },
-  {
-    slug: "java",
-    label: "Java",
-    patterns: ["java developer", "java engineer"],
-  },
-  {
-    slug: "php",
-    label: "PHP",
-    patterns: ["php developer", "php engineer", "laravel developer"],
-  },
-  {
-    slug: "flutter",
-    label: "Flutter",
-    patterns: ["flutter developer", "flutter engineer"],
-  },
-  {
-    slug: "android",
-    label: "Android",
-    patterns: ["android developer", "android engineer"],
-  },
-  {
-    slug: "ios",
-    label: "iOS",
-    patterns: ["ios developer", "ios engineer", "swift developer"],
-  },
-  {
     slug: "devops",
     label: "DevOps",
     patterns: ["devops", "dev ops", "site reliability engineer", "sre"],
@@ -163,6 +123,8 @@ export const EVENT_CITIES = [
 export function slugify(text: string): string {
   return text
     .toLowerCase()
+    .replace(/\+\+/g, "pp")
+    .replace(/#/g, "sharp")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")

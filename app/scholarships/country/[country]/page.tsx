@@ -29,7 +29,7 @@ export async function generateMetadata({
     description,
     alternates: { canonical: "/scholarships/country/" + countrySlug },
     openGraph: { title, description, type: "website", url: SITE_URL + "/scholarships/country/" + countrySlug },
-    twitter: { card: "summary_large_image", title, description },
+    twitter: { card: "summary", title, description },
   };
 }
 

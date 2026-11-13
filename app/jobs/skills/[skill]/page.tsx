@@ -19,14 +19,16 @@ export async function generateMetadata({
   params: Promise<{ skill: string }>;
 }): Promise<Metadata> {
   const { skill: skillSlug } = await params;
-  const { skill } = await getJobsBySkill(skillSlug);
+  const { skill, jobs } = await getJobsBySkill(skillSlug);
   const label = skill || deslugify(skillSlug);
   const title = label + ' Jobs in Nepal';
   const description =
     'Browse ' + label + ' roles across Nepal. Curated from top job boards and updated daily.';
+  const sparse = jobs.length < MIN_ITEMS;
   return {
     title,
     description,
+    ...(sparse && { robots: { index: false, follow: true } }),
     alternates: { canonical: '/jobs/skills/' + skillSlug },
     openGraph: {
       title,
@@ -34,7 +36,7 @@ export async function generateMetadata({
       type: 'website',
       url: SITE_URL + '/jobs/skills/' + skillSlug,
     },
-    twitter: { card: 'summary_large_image', title, description },
+    twitter: { card: 'summary', title, description },
   };
 }
 
@@ -48,7 +50,8 @@ export default async function SkillPage({
   if (!skill) notFound();
   const canonical = slugify(skill);
   if (canonical !== skillSlug) redirect('/jobs/skills/' + canonical);
-  if (jobs.length < MIN_ITEMS) notFound();
+  // Sparse skills render an empty state with noindex — no 404.
+  // Thin pages stay reachable but stay out of search.
 
   const breadcrumbJsonLd = breadcrumbSchema([
     { name: 'Home', url: SITE_URL },
@@ -72,11 +75,20 @@ export default async function SkillPage({
           description={'Roles requiring ' + skill + ', curated from Nepal\'s top job boards.'}
         />
 
-        <div className="jobs-list">
-          {jobs.map((job) => (
-            <JobCard key={job.id} job={job} />
-          ))}
-        </div>
+        {jobs.length === 0 ? (
+          <div className="empty-row" style={{ marginTop: 16 }}>
+            <p>No {skill} jobs are live right now.</p>
+            <Link href="/jobs" className="btn btn--secondary btn--sm">
+              Browse all jobs
+            </Link>
+          </div>
+        ) : (
+          <div className="jobs-list">
+            {jobs.map((job) => (
+              <JobCard key={job.id} job={job} />
+            ))}
+          </div>
+        )}
 
         <div style={{ marginTop: 32 }}>
           <Link href="/jobs" className="btn btn--secondary">
