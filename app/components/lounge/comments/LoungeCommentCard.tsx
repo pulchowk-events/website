@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import { User, Edit2, X, Trash2, CornerDownRight, ChevronDown, ChevronRight } from "lucide-react";
+import { Edit2, X, Trash2, CornerDownRight, ChevronDown, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { CommentComposer } from "./CommentComposer";
+import { Avatar } from "@/app/components/ui/Avatar";
 
 export interface CommentNode {
   id: string;
@@ -83,11 +83,7 @@ export function LoungeCommentCard({ comment, postId, session, onPosted, onUpdate
       <div className="comment-node__inner">
         <Link href={"/profile/" + comment.user_id} className="comment-node__avatar-link">
           <span className="comment-node__avatar">
-            {comment.profiles?.image ? (
-              <Image src={comment.profiles.image} alt={author} width={24} height={24} />
-            ) : (
-              <User size={12} />
-            )}
+            <Avatar src={comment.profiles?.image} name={author} size={24} />
           </span>
         </Link>
 

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { MessageSquare, Share2, MoreHorizontal } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
@@ -10,6 +9,8 @@ import { PostVoteButton } from "./PostVoteButton";
 import { CategoryChip } from "@/app/components/shell/CategoryChip";
 import { SaveButton } from "@/app/components/shell/SaveButton";
 import { formatDistanceToNow } from "date-fns";
+import { Avatar } from "@/app/components/ui/Avatar";
+import { SmartImg } from "@/app/components/ui/SmartImg";
 
 interface Post {
   id: string;
@@ -94,11 +95,9 @@ export function LoungePostRow({ post, myVote, saved, density, isOwner, isAdmin, 
           <p className="row-title">{post.title}</p>
           {excerpt && <p className="row-excerpt">{excerpt}</p>}
           <div className="row-meta">
-            {post.users?.image && (
-              <span className="row-avatar">
-                <Image src={post.users.image} alt="" width={16} height={16} />
-              </span>
-            )}
+            <span className="row-avatar">
+              <Avatar src={post.users?.image} name={post.users?.name} size={16} />
+            </span>
             <span>{post.users?.name || "Anonymous"}</span>
             <span className="row-dot">·</span>
             <span suppressHydrationWarning>
@@ -112,7 +111,7 @@ export function LoungePostRow({ post, myVote, saved, density, isOwner, isAdmin, 
         </div>
         {hasImage && (
           <span className="lprow__thumb">
-            <Image src={post.image_url!} alt="" fill sizes="72px" unoptimized />
+            <SmartImg src={post.image_url} alt="" seed={post.id} className="post-row__thumb-img" fallback={<span className="post-row__thumb-initial">{(post.title || "?").charAt(0).toUpperCase()}</span>} />
           </span>
         )}
       </Link>

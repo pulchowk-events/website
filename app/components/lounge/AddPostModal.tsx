@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { toast } from 'sonner';
 import { PostCategory, categoryDisplayMap, categoryIcons } from '@/types/posts';
 import NeedDonationModal from './NeedDonationModal';
+import { Avatar } from "@/app/components/ui/Avatar";
 
 interface AddPostModalProps {
   onClose: () => void;
@@ -78,11 +79,10 @@ export default function AddPostModal({ onClose }: AddPostModalProps) {
           <div className="modal__body">
             <div className="composer__author">
               <span className="composer__avatar">
-                <Image
-                  src={session?.user?.image || '/default-avatar.png'}
-                  alt={session?.user?.name || 'User'}
-                  fill
-                  sizes="40px"
+                <Avatar
+                  src={session?.user?.image}
+                  name={session?.user?.name}
+                  size={40}
                   className="composer__avatar-img"
                 />
               </span>

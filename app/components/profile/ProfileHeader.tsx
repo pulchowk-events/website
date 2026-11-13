@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import { Avatar } from "@/app/components/ui/Avatar";
 import { Edit } from "lucide-react";
 import { EditProfileDialog } from "./EditProfileDialog";
 
@@ -37,13 +37,7 @@ export function ProfileHeader({ user, stats, isOwnProfile }: Props) {
       <header className="prof-head">
         <div className="prof-head__identity">
           <span className="prof-head__avatar">
-            <Image
-              src={user.image || "/default-avatar.png"}
-              alt={user.name || "Profile"}
-              width={64}
-              height={64}
-              className="prof-head__avatar-img"
-            />
+            <Avatar src={user.image} name={user.name} size={64} />
           </span>
           <div className="prof-head__text">
             <h1 className="prof-head__name">{user.name || "Anonymous"}</h1>

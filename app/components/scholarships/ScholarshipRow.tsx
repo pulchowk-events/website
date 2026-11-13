@@ -31,20 +31,21 @@ export function ScholarshipRow({ scholarship, saved = false, showSave = true }: 
         </span>
         <div className="sch-row__body">
           <p className="row-title sch-row__title">{scholarship.title}</p>
-          <div className="row-meta">
-            {provider && <span>{provider}</span>}
+          <div className="sch-row__chips">
+            {provider && <span className="sch-chip sch-chip--provider">{provider}</span>}
             {scholarship.degree_level && (
-              <>
-                <span className="row-dot">{"\u00b7"}</span>
-                <span>{scholarship.degree_level}</span>
-              </>
+              <span className="sch-chip sch-chip--degree">{scholarship.degree_level}</span>
             )}
             {scholarship.field_of_study && (
-              <>
-                <span className="row-dot">{"\u00b7"}</span>
-                <span>{scholarship.field_of_study}</span>
-              </>
+              <span className="sch-chip sch-chip--field">{scholarship.field_of_study}</span>
             )}
+            <span className="sch-row__deadline-inline">
+              <DeadlinePill
+                status={scholarship.deadline_status}
+                display={scholarship.deadline_display}
+                parsed={scholarship.deadline_parsed}
+              />
+            </span>
           </div>
         </div>
         <div className="sch-row__deadline">

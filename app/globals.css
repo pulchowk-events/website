@@ -10000,3 +10000,48 @@ input[type="radio"]:disabled {
     height: 24px !important;
   }
 }
+
+/* Scholarship row chips */
+.sch-row__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+  min-width: 0;
+}
+.sch-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 4px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--border);
+  font-size: 11px;
+  line-height: 1;
+  color: var(--text-2);
+  white-space: nowrap;
+  flex: none;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sch-chip--provider { color: var(--text-1); font-weight: 500; }
+.sch-chip--degree {
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1px rgba(62, 207, 142, 0.3);
+}
+.sch-chip--field { color: var(--text-3); }
+
+/* Deadline shown inline in chips on mobile, hidden column */
+.sch-row__deadline-inline { display: none; }
+
+@media (max-width: 767px) {
+  .sch-row { padding: 10px 8px; gap: 10px; align-items: flex-start; }
+  .sch-row__logo { margin-top: 2px; }
+  .sch-row__title { -webkit-line-clamp: 3; }
+  .sch-chip--field { display: none; }
+  .sch-row__deadline { display: none; }
+  .sch-row__deadline-inline { display: inline-flex; }
+  .sch-row__actions { align-self: flex-start; margin-top: 2px; }
+}

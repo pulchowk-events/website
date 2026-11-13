@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { Avatar } from "@/app/components/ui/Avatar";
 
 interface Donator {
   id: number;
@@ -47,19 +48,12 @@ export default function TopDonators({ donators, limit = 5 }: TopDonatorsProps) {
           <span className="top-donators__rank">{index + 1}</span>
 
           <span className="top-donators__avatar">
-            {donator.avatar_url ? (
-              <Image
-                src={donator.avatar_url}
-                alt={donator.name}
-                width={32}
-                height={32}
-                className="top-donators__avatar-img"
-              />
-            ) : (
-              <span className="top-donators__initial">
-                {donator.name.charAt(0).toUpperCase()}
-              </span>
-            )}
+            <Avatar
+              src={donator.avatar_url}
+              name={donator.name}
+              size={32}
+              className="top-donators__avatar-img"
+            />
           </span>
 
           <span className="top-donators__name">{donator.name}</span>

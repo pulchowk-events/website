@@ -1,6 +1,6 @@
 import Link from "next/link";
-import Image from "next/image";
 import { SmartImg } from "@/app/components/ui/SmartImg";
+import { Avatar } from "@/app/components/ui/Avatar";
 import { CategoryChip } from "../CategoryChip";
 import { formatDistanceToNow } from "date-fns";
 
@@ -41,7 +41,7 @@ export function PostRow({ post, showThumb = true, showExcerpt = true }: PostRowP
         {excerpt && <p className="row-excerpt">{excerpt}</p>}
         <div className="row-meta">
           <span className="row-avatar">
-            <Image src={post.users?.image || "/default-avatar.png"} alt="" width={16} height={16} />
+            <Avatar src={post.users?.image} name={post.users?.name} size={16} />
           </span>
           <span>{post.users?.name || "Anonymous"}</span>
           <span className="row-dot">·</span>

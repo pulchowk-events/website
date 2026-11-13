@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import Image from 'next/image';
 import Link from 'next/link';
-import { User, Edit2, X, Trash2 } from 'lucide-react';
+import { Edit2, X, Trash2 } from 'lucide-react';
+import { Avatar } from '@/app/components/ui/Avatar';
 import { toast } from 'sonner';
 
 interface Profile {
@@ -111,17 +111,7 @@ export function CommentCard({ comment, isOwner, onDelete, onUpdate }: CommentCar
         aria-label={userData?.name || 'User'}
       >
         <span className="comment-card__avatar">
-          {userData?.image ? (
-            <Image
-              src={userData.image}
-              alt={userData.name || 'User'}
-              width={36}
-              height={36}
-              className="comment-card__avatar-img"
-            />
-          ) : (
-            <User size={18} />
-          )}
+          <Avatar src={userData?.image} name={userData?.name} size={36} className="comment-card__avatar-img" />
         </span>
       </Link>
 

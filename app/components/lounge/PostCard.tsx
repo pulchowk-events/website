@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { PostCategory, categoryDisplayMap, categoryIcons } from '@/types/posts';
 import { ArrowRight } from 'lucide-react';
+import { Avatar } from "@/app/components/ui/Avatar";
 
 interface Post {
   id: string;
@@ -81,13 +82,7 @@ export default function PostCard({ post }: { post: Post }) {
             aria-label={post.users.name}
           >
             <span className="post-card__avatar">
-              <Image
-                src={post.users.image || '/default-avatar.png'}
-                alt={post.users.name}
-                fill
-                sizes="28px"
-                className="post-card__avatar-img"
-              />
+              <Avatar src={post.users?.image} name={post.users?.name} size={24} />
             </span>
           </Link>
 

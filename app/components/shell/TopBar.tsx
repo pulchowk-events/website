@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useSession, signOut } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Menu, Search, Plus, ChevronDown, User, Bookmark, Settings, LogOut, HelpCircle } from "lucide-react";
 import NotificationDropdown from "@/app/components/layout/NotificationDropdown";
 import SignInModal from "@/app/components/signIn/SignInModal";
+import { Avatar } from "@/app/components/ui/Avatar";
 
 interface Props {
   onMenuToggle: () => void;
@@ -90,11 +90,10 @@ export function TopBar({ onMenuToggle, onPaletteOpen }: Props) {
               <NotificationDropdown />
               <div className="topbar__avatar-wrap" ref={avatarRef}>
                 <button type="button" className="topbar__avatar" onClick={() => setAvatarOpen((v) => !v)} aria-label="Account">
-                  <Image
-                    src={session.user.image || "/default-avatar.png"}
-                    alt={session.user.name || "User"}
-                    width={28}
-                    height={28}
+                  <Avatar
+                    src={session.user.image}
+                    name={session.user.name}
+                    size={28}
                     className="topbar__avatar-img"
                   />
                 </button>

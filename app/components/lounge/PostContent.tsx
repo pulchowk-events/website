@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { Avatar } from "@/app/components/ui/Avatar";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -162,12 +163,7 @@ export default function PostContent({ post, isAdmin, isAuthor, isSaved, myVote, 
           <div className="post-detail__meta">
             <Link href={"/profile/" + post.users.id} className="post-detail__avatar-link">
               <span className="post-detail__avatar">
-                <Image
-                  src={post.users.image || "/default-avatar.png"}
-                  alt={author}
-                  width={24}
-                  height={24}
-                />
+                <Avatar src={post.users.image} name={post.users.name} size={24} />
               </span>
             </Link>
             <Link href={"/profile/" + post.users.id} className="post-detail__author">{author}</Link>

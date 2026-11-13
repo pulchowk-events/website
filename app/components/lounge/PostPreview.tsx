@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
 import { ExternalLink } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { PostCategory, categoryDisplayMap, categoryIcons } from "@/types/posts";
 import Markdown from "@/app/components/ui/Markdown";
+import { Avatar } from "@/app/components/ui/Avatar";
 
 interface Props {
   title: string;
@@ -46,7 +46,7 @@ export function PostPreview({ title, content, category, redirectUrl, createdAt }
         <div className="post-detail__meta">
           <span className="post-detail__avatar-link">
             <span className="post-detail__avatar">
-              <Image src={authorImage} alt={authorName} width={24} height={24} />
+              <Avatar src={session?.user?.image} name={authorName} size={24} />
             </span>
           </span>
           <span className="post-detail__author">{authorName}</span>

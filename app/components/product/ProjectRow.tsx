@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ExternalLink } from "lucide-react";
 import { ProjectVoteButton } from "./ProjectVoteButton";
+import { Avatar } from "@/app/components/ui/Avatar";
 
 interface Project {
   id: number;
@@ -32,11 +33,9 @@ export function ProjectRow({ project, rank }: { project: Project; rank: number }
           {project.description && <p className="prow__tagline">{project.description}</p>}
           {project.users?.name && (
             <div className="row-meta">
-              {project.users.image && (
-                <span className="row-avatar">
-                  <Image src={project.users.image} alt="" width={16} height={16} />
-                </span>
-              )}
+              <span className="row-avatar">
+                <Avatar src={project.users.image} name={project.users.name} size={16} />
+              </span>
               <span>{project.users.name}</span>
             </div>
           )}
