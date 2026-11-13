@@ -1295,6 +1295,20 @@ export const getScholarshipsPage = unstable_cache(
   { revalidate: 60, tags: ["scholarships"] },
 );
 
+export const getScholarships24h = unstable_cache(
+  async () => {
+    const cutoff = new Date(Date.now() - 864e5).toISOString();
+    const { count } = await supabase
+      .from("scholarships")
+      .select("*", { count: "exact", head: true })
+      .eq("verified", true)
+      .gte("posted_at", cutoff);
+    return count || 0;
+  },
+  ["scholarships-24h"],
+  { revalidate: 60, tags: ["scholarships"] },
+);
+
 export const getScholarshipById = unstable_cache(
   async (id: string) => {
     const { data } = await supabase

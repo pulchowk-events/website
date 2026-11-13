@@ -42,16 +42,12 @@ export default async function ProductHuntPage({
     sp.sort === "today" || sp.sort === "week" ? sp.sort : "all";
 
   const products = await getApprovedProducts(sort);
-  const isSparse = products.length < 5;
 
   return (
     <Layout railContext="projects">
       <div id="portal-root" />
 
-      <PageHeader
-        title="Projects"
-        actions={<Link href="/product-hunt/new" className="btn btn--primary btn--sm">Submit project</Link>}
-      />
+      <PageHeader title="Projects" />
 
       {session?.user?.id && <ProductComposer userId={session.user.id} />}
 
@@ -77,12 +73,6 @@ export default async function ProductHuntPage({
           {products.map((p: any, i: number) => (
             <ProjectRow key={p.id} project={p} rank={i + 1} />
           ))}
-          {isSparse && (
-            <div className="plist__sparse">
-              <p>Launch yours</p>
-              <Link href="/product-hunt/new" className="btn btn--primary btn--sm">Submit project</Link>
-            </div>
-          )}
         </div>
       )}
     </Layout>

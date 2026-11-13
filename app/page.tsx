@@ -7,6 +7,7 @@ import { PostRow } from "@/app/components/shell/rows/PostRow";
 import {
   getHomeStats,
   getLoungePosts,
+  getScholarships24h,
 } from "@/app/lib/queries";
 
 export const revalidate = 60;
@@ -22,9 +23,10 @@ export default async function Home() {
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
 
-  const [stats, posts] = await Promise.all([
+  const [stats, posts, scholarships24h] = await Promise.all([
     getHomeStats(userId),
     getLoungePosts(5),
+    getScholarships24h(),
   ]);
 
   const firstName = session?.user?.name?.split(" ")[0];
@@ -42,14 +44,6 @@ export default async function Home() {
             timeZone: "Asia/Kathmandu",
           })
         }
-        actions={
-          !session ? (
-            <>
-              <Link href="/auth/signin" className="btn btn--secondary btn--sm">Sign in</Link>
-              <a href="https://discord.gg/cQ5gxusATk" target="_blank" rel="noopener noreferrer" className="btn btn--primary btn--sm">Join Discord</a>
-            </>
-          ) : undefined
-        }
       />
 
       <div className="stat-tiles">
@@ -65,9 +59,9 @@ export default async function Home() {
           <span className="stat-tile__label">{session ? "Your saved" : "Projects launched"}</span>
           <span className="stat-tile__value">{session ? stats.saved_count : stats.projects_total}</span>
         </Link>
-        <Link href="/lounge" className="stat-tile">
-          <span className="stat-tile__label">Posts today</span>
-          <span className="stat-tile__value">{stats.posts_today}</span>
+        <Link href="/scholarships" className="stat-tile">
+          <span className="stat-tile__label">New scholarships</span>
+          <span className="stat-tile__value">{scholarships24h}</span>
         </Link>
       </div>
 
