@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { TopBar } from "./TopBar";
 import { Sidebar, NavCounts } from "./Sidebar";
 import { BottomTabBar } from "./BottomTabBar";
-import { FloatingCreate } from "./FloatingCreate";
 import { CommandPalette } from "./CommandPalette";
 import { writeLayoutPrefsClient } from "@/app/lib/preferences";
 import Footer from "@/app/components/layout/Footer";
@@ -72,7 +71,6 @@ export function AppShell({ children, counts, isAdmin, isSignedIn, initialCollaps
         <RightRail bundle={rail} hiddenWidgets={hiddenWidgets} />
       </div>
       <BottomTabBar />
-      <FloatingCreate />
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} onToggleSidebar={toggleCollapsed} />
     </div>
   );
