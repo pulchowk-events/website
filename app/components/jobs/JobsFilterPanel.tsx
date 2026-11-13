@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { Search, X } from "lucide-react";
+import { Search, X, SlidersHorizontal } from "lucide-react";
 import type { JobFacets } from "@/app/lib/queries";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -45,6 +45,7 @@ export function JobsFilterPanel({ facets }: Props) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [qInput, setQInput] = useState(searchParams.get("q") || "");
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const getList = (key: string): string[] => {
     const v = searchParams.get(key);
@@ -104,9 +105,50 @@ export function JobsFilterPanel({ facets }: Props) {
     salary ||
     closing ||
     !!searchParams.get("q");
+  const activeCount =
+    activeTypes.length +
+    activeLocs.length +
+    activeSources.length +
+    (posted !== "any" ? 1 : 0) +
+    (salary ? 1 : 0) +
+    (closing ? 1 : 0) +
+    (searchParams.get("q") ? 1 : 0);
 
   return (
-    <aside className="jobs-filter" aria-label="Filters">
+    <>
+      <button
+        type="button"
+        className="jobs-filter__mobile-toggle"
+        onClick={() => setMobileOpen(true)}
+        aria-label="Open filters"
+      >
+        <SlidersHorizontal size={14} />
+        <span>Filters</span>
+        {activeCount > 0 && <span className="jobs-filter__mobile-badge">{activeCount}</span>}
+      </button>
+
+      {mobileOpen && (
+        <div
+          className="jobs-filter__backdrop"
+          onClick={() => setMobileOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside
+        className={"jobs-filter" + (mobileOpen ? " jobs-filter--open" : "")}
+        aria-label="Filters"
+      >
+        <div className="jobs-filter__mobile-head">
+          <span className="jobs-filter__mobile-title">Filters</span>
+          <button
+            type="button"
+            className="jobs-filter__mobile-done"
+            onClick={() => setMobileOpen(false)}
+          >
+            Done
+          </button>
+        </div>
       <form onSubmit={submitSearch} className="jobs-filter__search">
         <Search size={14} />
         <input
@@ -216,6 +258,7 @@ export function JobsFilterPanel({ facets }: Props) {
         />
       </FilterGroup>
     </aside>
+    </>
   );
 }
 

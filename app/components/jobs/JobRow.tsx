@@ -80,12 +80,11 @@ export function JobRow({ job, saved, selected, onClick }: Props) {
 
       <div className="job-row-new__body">
         <p className="row-title">{job.title}</p>
-        <div className="row-meta">
-          <span>{job.company}</span>
-          {job.location && <><span className="row-dot">·</span><span>{job.location}</span></>}
-          {type && type !== "Full-time" && <><span className="row-dot">·</span><span className="job-row-new__badge">{type}</span></>}
-          {job.attendance_mode && <><span className="row-dot">·</span><span>{job.attendance_mode}</span></>}
-          {source && <><span className="row-dot">·</span><span className="job-row-new__source">{source}</span></>}
+        <div className="job-row-new__meta-chips">
+          <span className="job-chip job-chip--company">{job.company}</span>
+          {job.location && <span className="job-chip job-chip--location">{job.location}</span>}
+          {type && type !== "Full-time" && <span className="job-chip job-chip--type">{type}</span>}
+          {job.attendance_mode && <span className="job-chip job-chip--mode">{job.attendance_mode}</span>}
         </div>
       </div>
 
