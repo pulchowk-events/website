@@ -91,7 +91,7 @@ export function ProductDetail({ product, isSaved, isAdmin, userId, initialEditMo
         <div className="pd__head-body">
           <h1 className="pd__title">{product.name}</h1>
           {tagline && <p className="pd__tagline">{tagline}</p>}
-          <p className="pd__meta">
+          <p className="pd__meta" suppressHydrationWarning>
             Launched {formatDateLong(product.created_at)}
             {product.users?.name && <> · by {product.users.name}</>}
           </p>

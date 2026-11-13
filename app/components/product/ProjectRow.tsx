@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Crown } from "lucide-react";
 import { ProjectVoteButton } from "./ProjectVoteButton";
 import { Avatar } from "@/app/components/ui/Avatar";
 
@@ -18,7 +18,10 @@ interface Project {
 export function ProjectRow({ project, rank }: { project: Project; rank: number }) {
   return (
     <div className="prow">
-      <span className="prow__rank">{rank}</span>
+      <span className={"prow__rank" + (rank === 1 ? " prow__rank--gold" : rank === 2 ? " prow__rank--silver" : rank === 3 ? " prow__rank--bronze" : "")}>
+        {rank === 1 && <Crown size={11} className="prow__crown" aria-label="Top product" />}
+        {rank}
+      </span>
       <ProjectVoteButton productId={project.id} initialVotes={project.votes || 0} />
       <Link href={"/product-hunt/" + project.url} className="prow__link">
         <span className="prow__logo">
@@ -47,8 +50,8 @@ export function ProjectRow({ project, rank }: { project: Project; rank: number }
           target="_blank"
           rel="noopener noreferrer"
           className="prow__ext"
-          aria-label="Visit project"
-          title="Visit project"
+          aria-label="Visit product"
+          title="Visit product"
         >
           <ExternalLink size={14} />
         </a>
