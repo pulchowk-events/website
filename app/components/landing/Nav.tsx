@@ -39,8 +39,9 @@ export default function Nav({ onSignIn }: NavProps) {
           {links.map((l) => <a key={l.href} href={l.href}>{l.label}</a>)}
         </div>
         <div className="r">
-          <Btn glass onClick={onSignIn}>Sign In</Btn>
-          <Btn href="https://discord.gg/cQ5gxusATk" target="_blank" rel="noopener">Join Discord</Btn>
+          <Btn onClick={onSignIn}>Sign In</Btn>
+          <Btn glass href="/">Visit Site</Btn>
+          <Btn glass href="https://discord.gg/cQ5gxusATk" target="_blank" rel="noopener">Join Discord</Btn>
           <button className="mb" aria-label="Menu" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
             <span /><span />
           </button>
@@ -51,8 +52,9 @@ export default function Nav({ onSignIn }: NavProps) {
           <a key={l.href} href={l.href} onClick={() => setOpen(false)}>{l.label}</a>
         ))}
         <div className="mb2">
-          <Btn glass onClick={() => { setOpen(false); onSignIn(); }}>Sign In</Btn>
-          <Btn href="https://discord.gg/cQ5gxusATk" target="_blank" rel="noopener">Join Discord</Btn>
+          <Btn onClick={() => { setOpen(false); onSignIn(); }}>Sign In</Btn>
+          <Btn glass href="/" onClick={() => setOpen(false)}>Visit Site</Btn>
+          <Btn glass href="https://discord.gg/cQ5gxusATk" target="_blank" rel="noopener">Join Discord</Btn>
         </div>
       </div>
     </nav>

@@ -44,6 +44,7 @@ export default function Hero({ onSignIn }: HeroProps) {
           <p className="s">Events, jobs and scholarships from all over Nepal, together in one place.</p>
           <div className="bt">
             <Btn onClick={onSignIn}>Sign In</Btn>
+            <Btn glass href="/">Visit Site</Btn>
             <Btn glass href="https://discord.gg/cQ5gxusATk" target="_blank" rel="noopener">Join Discord</Btn>
           </div>
         </div>
