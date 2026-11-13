@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   Bell, CheckCheck, MessageCircle, AtSign, Heart, Megaphone, CornerDownRight,
@@ -9,6 +8,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import useNotifications from "@/app/hooks/useNotifications";
+import { Avatar } from "@/app/components/ui/Avatar";
 
 type Tab = "all" | "mentions" | "system";
 
@@ -178,11 +178,10 @@ export default function NotificationDropdown({ isMobile = false }: Props) {
                     <span className="notif__dot" aria-hidden="true" />
                     <span className="notif__icon">
                       {source?.image ? (
-                        <Image
+                        <Avatar
                           src={source.image}
-                          alt=""
-                          width={24}
-                          height={24}
+                          name={source.name ?? ""}
+                          size={24}
                           className="notif__avatar-img"
                         />
                       ) : (

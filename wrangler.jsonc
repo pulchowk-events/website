@@ -25,12 +25,12 @@
 		"binding": "IMAGES"
 	},
 		"vars": {
-		"NEXT_PUBLIC_SUPABASE_URL": "https://anzrkakfmuohsyootoij.supabase.co",
+		"NEXT_PUBLIC_SUPABASE_URL": "https://anzrkakfmuohsyootolj.supabase.co",
 		"NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFuenJrYWtmbXVvaHN5b290b2xqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ3OTMzODMsImV4cCI6MjA2MDM2OTM4M30.sLvFziigF8tQhcpmyj3bgPv2mtH2xBUkAXfAaJHxmkI",
 		"DISCORD_CLIENT_ID": "1362016358698844281",
 		"GOOGLE_CLIENT_ID": "1022768796202-s4p14rn0ijgrsdpj3tgj29ttmcqrbpeu.apps.googleusercontent.com",
 		"AUTH_TRUST_HOST": "true",
-		"NEXTAUTH_URL": "https://placeholder.workers.dev",
-		"NEXT_PUBLIC_SITE_URL": "https://placeholder.workers.dev"
+		"NEXTAUTH_URL": "https://pulchowkevents.pulchowkevents.workers.dev",
+		"NEXT_PUBLIC_SITE_URL": "https://pulchowkevents.pulchowkevents.workers.dev"
 	}
 }
