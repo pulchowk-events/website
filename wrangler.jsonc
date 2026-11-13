@@ -1,7 +1,7 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"main": ".open-next/worker.js",
-	"name": "pulchowk-events",
+	"name": "pulchowkevents",
 	"compatibility_date": "2026-11-13",
 	"compatibility_flags": [
 		"nodejs_compat",
@@ -16,12 +16,21 @@
 			// Self-reference service binding, the service name must match the worker name
 			// see https://opennext.js.org/cloudflare/caching
 			"binding": "WORKER_SELF_REFERENCE",
-			"service": "pulchowk-events"
+			"service": "pulchowkevents"
 		}
 	],
 	"images": {
 		// Enable image optimization
 		// see https://opennext.js.org/cloudflare/howtos/image
 		"binding": "IMAGES"
+	},
+		"vars": {
+		"NEXT_PUBLIC_SUPABASE_URL": "https://anzrkakfmuohsyootoij.supabase.co",
+		"NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFuenJrYWtmbXVvaHN5b290b2xqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ3OTMzODMsImV4cCI6MjA2MDM2OTM4M30.sLvFziigF8tQhcpmyj3bgPv2mtH2xBUkAXfAaJHxmkI",
+		"DISCORD_CLIENT_ID": "1362016358698844281",
+		"GOOGLE_CLIENT_ID": "1022768796202-s4p14rn0ijgrsdpj3tgj29ttmcqrbpeu.apps.googleusercontent.com",
+		"AUTH_TRUST_HOST": "true",
+		"NEXTAUTH_URL": "https://placeholder.workers.dev",
+		"NEXT_PUBLIC_SITE_URL": "https://placeholder.workers.dev"
 	}
 }
