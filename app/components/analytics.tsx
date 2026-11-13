@@ -2,7 +2,7 @@
 
 import Script from 'next/script';
 import { usePathname } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 declare global {
   interface Window {
@@ -13,15 +13,26 @@ declare global {
 
 export default function Analytics({ measurementId }: { measurementId: string }) {
   const pathname = usePathname();
+  const initialLoad = useRef(true);
 
-  // Fire a page_view on every route change. GA4's built-in config only
-  // fires once on initial load — for SPA navigations (which all of this
-  // site uses) we have to fire it manually.
   useEffect(() => {
-    if (typeof window === 'undefined' || typeof window.gtag !== 'function') return;
-    const url = pathname + window.location.search;
-    window.gtag('config', measurementId, { page_path: url });
-  }, [pathname, measurementId]);
+    if (initialLoad.current) {
+      // First mount: gtag(\'config\') below sends the initial page_view.
+      initialLoad.current = false;
+      return;
+    }
+    const send = () => {
+      if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+        window.gtag('event', 'page_view', {
+          page_path: pathname + window.location.search,
+          page_location: window.location.href,
+        });
+      } else {
+        setTimeout(send, 100);
+      }
+    };
+    send();
+  }, [pathname]);
 
   return (
     <>
@@ -34,7 +45,7 @@ export default function Analytics({ measurementId }: { measurementId: string }) 
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', '${measurementId}', { send_page_view: false });
+          gtag('config', '${measurementId}');
         `}
       </Script>
     </>
