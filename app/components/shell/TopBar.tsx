@@ -52,10 +52,14 @@ export function TopBar({ onMenuToggle, onPaletteOpen }: Props) {
           Pulchowk Events
         </Link>
 
-        <button type="button" className="topbar__search" onClick={onPaletteOpen}>
-          <Search size={14} />
-          <span className="topbar__search-label">Search posts, events, jobs, projects</span>
-          <kbd className="topbar__kbd">⌘K</kbd>
+        <button
+          type="button"
+          className="topbar__icon-btn topbar__search-mobile"
+          onClick={onPaletteOpen}
+          aria-label="Search"
+          title="Search"
+        >
+          <Search size={16} />
         </button>
 
         <div className="topbar__actions">
@@ -74,6 +78,15 @@ export function TopBar({ onMenuToggle, onPaletteOpen }: Props) {
                   </div>
                 )}
               </div>
+              <button
+                type="button"
+                className="topbar__icon-btn topbar__search-desktop"
+                onClick={onPaletteOpen}
+                aria-label="Search"
+                title="Search"
+              >
+                <Search size={16} />
+              </button>
               <NotificationDropdown />
               <div className="topbar__avatar-wrap" ref={avatarRef}>
                 <button type="button" className="topbar__avatar" onClick={() => setAvatarOpen((v) => !v)} aria-label="Account">
@@ -116,6 +129,15 @@ export function TopBar({ onMenuToggle, onPaletteOpen }: Props) {
             </>
           ) : (
             <>
+              <button
+                type="button"
+                className="topbar__icon-btn topbar__search-desktop"
+                onClick={onPaletteOpen}
+                aria-label="Search"
+                title="Search"
+              >
+                <Search size={16} />
+              </button>
               <button type="button" className="btn btn--secondary btn--sm" onClick={() => setSignInOpen(true)}>Sign in</button>
               <a href="https://discord.gg/cQ5gxusATk" target="_blank" rel="noopener noreferrer" className="btn btn--primary btn--sm">Join Discord</a>
             </>

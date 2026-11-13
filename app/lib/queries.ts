@@ -93,7 +93,7 @@ export const getUpcomingEvents = unstable_cache(
       .from("events")
       .select(
         `
-        id, title, event_date, category,
+        id, title, event_date, category, location, price, image_url,
         author:created_by (name, image)
       `,
       )
@@ -160,7 +160,7 @@ export const getRecentProducts = unstable_cache(
   async (limit = 3) => {
     const { data } = await supabase
       .from("products")
-      .select("id, name, image_url, created_at, url")
+      .select("id, name, image_url, created_at, url, description")
       .eq("approved", true)
       .order("created_at", { ascending: false })
       .limit(limit);
@@ -826,47 +826,17 @@ export type RailContext =
   | "donate"
   | "utility";
 
-export type RailBundle =
-  | {
-      context: "home";
-      community: { discordUrl: string };
-      prizePool: Awaited<ReturnType<typeof getPrizePool>>;
-      topDonors: Awaited<ReturnType<typeof getTopDonators>>;
-    }
-  | {
-      context: "lounge";
-      trending: Awaited<ReturnType<typeof getTrendingPosts>>;
-      upcomingEvents: Awaited<ReturnType<typeof getUpcomingEvents>>;
-      prizePool: Awaited<ReturnType<typeof getPrizePool>>;
-    }
-  | {
-      context: "events";
-      calendarEvents: Awaited<ReturnType<typeof getCurrentMonthEvents>>;
-      jobs: Awaited<ReturnType<typeof getRecentJobs>>;
-      prizePool: Awaited<ReturnType<typeof getPrizePool>>;
-    }
-  | {
-      context: "jobs";
-      savedJobs: Awaited<ReturnType<typeof getSavedJobs>> | null;
-      upcomingEvents: Awaited<ReturnType<typeof getUpcomingEvents>>;
-      prizePool: Awaited<ReturnType<typeof getPrizePool>>;
-    }
-  | {
-      context: "projects";
-      recentPosts: Awaited<ReturnType<typeof getLoungePosts>>;
-      upcomingEvents: Awaited<ReturnType<typeof getUpcomingEvents>>;
-      prizePool: Awaited<ReturnType<typeof getPrizePool>>;
-    }
-  | {
-      context: "donate";
-      topDonors: Awaited<ReturnType<typeof getTopDonators>>;
-      recentSupporters: Awaited<ReturnType<typeof getRecentSupporters>>;
-    }
-  | {
-      context: "utility";
-      community: { discordUrl: string };
-      prizePool: Awaited<ReturnType<typeof getPrizePool>>;
-    };
+export type RailBundle = {
+  context: RailContext;
+  prizePool?: Awaited<ReturnType<typeof getPrizePool>>;
+  topProjects?: Awaited<ReturnType<typeof getRecentProducts>>;
+  upcomingEvents?: Awaited<ReturnType<typeof getUpcomingEvents>>;
+  newJobs?: Awaited<ReturnType<typeof getRecentJobs>>;
+  trending?: Awaited<ReturnType<typeof getTrendingPosts>>;
+  topDonors?: Awaited<ReturnType<typeof getTopDonators>>;
+  recentSupporters?: Awaited<ReturnType<typeof getRecentSupporters>>;
+};
+
 
 export async function getRailData(
   context: RailContext,
@@ -876,41 +846,47 @@ export async function getRailData(
     case "home":
       return {
         context: "home",
-        community: { discordUrl: DISCORD_URL },
         prizePool: await getPrizePool(),
-        topDonors: await getTopDonators(5),
-      };
-    case "lounge":
-      return {
-        context: "lounge",
-        trending: await getTrendingPosts(5),
+        topProjects: await getRecentProducts(3),
         upcomingEvents: await getUpcomingEvents(3),
-        prizePool: await getPrizePool(),
+        newJobs: await getRecentJobs(3),
       };
     case "events":
       return {
         context: "events",
-        calendarEvents: await getCurrentMonthEvents(),
-        jobs: await getRecentJobs(3),
         prizePool: await getPrizePool(),
+        topProjects: await getRecentProducts(3),
+        trending: await getTrendingPosts(3),
+        newJobs: await getRecentJobs(3),
       };
     case "jobs":
       return {
         context: "jobs",
-        savedJobs: userId ? await getSavedJobs(userId, 5) : null,
-        upcomingEvents: await getUpcomingEvents(3),
         prizePool: await getPrizePool(),
+        topProjects: await getRecentProducts(3),
+        trending: await getTrendingPosts(3),
+        upcomingEvents: await getUpcomingEvents(3),
       };
     case "projects":
       return {
         context: "projects",
-        recentPosts: await getLoungePosts(3),
-        upcomingEvents: await getUpcomingEvents(3),
         prizePool: await getPrizePool(),
+        trending: await getTrendingPosts(3),
+        upcomingEvents: await getUpcomingEvents(3),
+        newJobs: await getRecentJobs(3),
+      };
+    case "lounge":
+      return {
+        context: "lounge",
+        prizePool: await getPrizePool(),
+        topProjects: await getRecentProducts(3),
+        upcomingEvents: await getUpcomingEvents(3),
+        newJobs: await getRecentJobs(3),
       };
     case "donate":
       return {
         context: "donate",
+        prizePool: await getPrizePool(),
         topDonors: await getTopDonators(10),
         recentSupporters: await getRecentSupporters(5),
       };
@@ -918,8 +894,10 @@ export async function getRailData(
     default:
       return {
         context: "utility",
-        community: { discordUrl: DISCORD_URL },
         prizePool: await getPrizePool(),
+        topProjects: await getRecentProducts(3),
+        upcomingEvents: await getUpcomingEvents(3),
+        newJobs: await getRecentJobs(3),
       };
   }
 }

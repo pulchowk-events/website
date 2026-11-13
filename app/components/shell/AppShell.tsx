@@ -71,7 +71,7 @@ export function AppShell({ children, counts, isAdmin, isSignedIn, initialCollaps
         <RightRail bundle={rail} hiddenWidgets={hiddenWidgets} />
       </div>
       <BottomTabBar />
-      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} onToggleSidebar={toggleCollapsed} />
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} onToggleSidebar={toggleCollapsed} isAdmin={isAdmin} />
     </div>
   );
 }

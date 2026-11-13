@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Home, Calendar, Briefcase, Box, MessageCircle, Bookmark, Heart, HelpCircle, Plus, PanelLeft, FileText, GraduationCap } from "lucide-react";
+import { Home, Calendar, Briefcase, Box, MessageCircle, Bookmark, Heart, HelpCircle, Plus, PanelLeft, FileText, GraduationCap, Settings, LayoutGrid } from "lucide-react";
 
 interface Result {
   type: "post" | "event" | "job" | "project" | "scholarship";
@@ -17,6 +17,7 @@ interface Props {
   open: boolean;
   onClose: () => void;
   onToggleSidebar: () => void;
+  isAdmin?: boolean;
 }
 
 const PAGES = [
@@ -29,9 +30,10 @@ const PAGES = [
   { href: "/saved", label: "Saved", icon: Bookmark },
   { href: "/donate", label: "Donate", icon: Heart },
   { href: "/help", label: "Help", icon: HelpCircle },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
-export function CommandPalette({ open, onClose, onToggleSidebar }: Props) {
+export function CommandPalette({ open, onClose, onToggleSidebar, isAdmin = false }: Props) {
   const router = useRouter();
   const { data: session } = useSession();
   const [q, setQ] = useState("");
@@ -68,7 +70,10 @@ export function CommandPalette({ open, onClose, onToggleSidebar }: Props) {
     { label: "Toggle sidebar", action: () => { onClose(); onToggleSidebar(); }, icon: PanelLeft },
   ];
 
-  const filteredPages = PAGES.filter((p) => !q || p.label.toLowerCase().includes(q.toLowerCase()));
+  const pages = isAdmin
+    ? [...PAGES, { href: "/admin", label: "Admin Dashboard", icon: LayoutGrid }]
+    : PAGES;
+  const filteredPages = pages.filter((p) => !q || p.label.toLowerCase().includes(q.toLowerCase()));
 
   const trimmedQ = q.trim();
   const showSearchAll = trimmedQ.length > 0;
@@ -100,7 +105,7 @@ export function CommandPalette({ open, onClose, onToggleSidebar }: Props) {
         <input
           ref={inputRef}
           className="palette__input"
-          placeholder="Search or type a command…"
+          placeholder="Search or jump to…"
           value={q}
           onChange={(e) => { setQ(e.target.value); setActive(0); }}
         />

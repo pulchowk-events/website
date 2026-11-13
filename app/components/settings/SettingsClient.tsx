@@ -15,11 +15,13 @@ interface Props {
 }
 
 const WIDGETS = [
-  { key: "community", label: "Community (Join Discord)" },
   { key: "prizePool", label: "Prize pool" },
-  { key: "topDonors", label: "Top donors" },
-  { key: "trending", label: "Trending posts" },
+  { key: "topProjects", label: "Top projects" },
   { key: "upcomingEvents", label: "Upcoming events" },
+  { key: "newJobs", label: "New jobs" },
+  { key: "trending", label: "Trending posts" },
+  { key: "topDonors", label: "Top donors" },
+  { key: "recentSupporters", label: "Recent supporters" },
   { key: "recentSupporters", label: "Recent supporters" },
 ];
 
