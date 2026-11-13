@@ -161,7 +161,10 @@ export function LoungeCommentCard({ comment, postId, session, onPosted, onUpdate
                 parentAuthor={author}
                 compact
                 session={session}
-                onPosted={onPosted}
+                onPosted={(c, pid) => {
+                  onPosted(c, pid);
+                  setReplying(false);
+                }}
                 onCancel={() => setReplying(false)}
               />
             </div>
