@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from '@/app/lib/supabase-server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/auth';
 import { insertNotification } from '@/lib/notifications';
+import { revalidateTag } from 'next/cache';
 
 
 // Interface for Vote
@@ -119,12 +120,13 @@ export async function POST(
       }
     }
 
-    // Insert the vote
-    const { error: voteError } = await supabase.from('votes').insert({
-      user_id: session.user.id,
-      product_id: productIdNum,
-      type,
-    });
+    // Upsert the vote — one row per (user, product)
+    const { error: voteError } = await supabase
+      .from('votes')
+      .upsert(
+        { user_id: session.user.id, product_id: productIdNum, type },
+        { onConflict: 'user_id,product_id' }
+      );
 
     if (voteError) throw voteError;
 
@@ -152,32 +154,24 @@ export async function POST(
       }
     }
 
-    // Increment vote count - first try RPC for efficiency, fall back to manual count if RPC unavailable
-    try {
-      await supabase.rpc('increment_vote_count', { pid: productIdNum, type });
-    } catch (rpcError) {
-      console.log('RPC function not available, falling back to manual vote counting');
-      
-      // Count votes directly if RPC fails
-      const { data: voteCount } = await supabase
-        .from('votes')
-        .select('type')
-        .eq('product_id', productIdNum);
-      
-      if (voteCount) {
-        const upvotes = voteCount.filter(v => v.type === 'upvote').length;
-        const downvotes = voteCount.filter(v => v.type === 'downvote').length;
-        
-        // Update the products table directly
-        await supabase
-          .from('products')
-          .update({ 
-            upvote_count: upvotes, 
-            downvote_count: downvotes 
-          })
-          .eq('id', productIdNum);
-      }
-    }
+    // Recompute score from the votes table and write to products.votes.
+    // Always do this — no RPC, no fallback. Deterministic and cheap.
+    const { data: allVotes } = await supabase
+      .from('votes')
+      .select('type')
+      .eq('product_id', productIdNum);
+
+    const upvotesCount = (allVotes || []).filter(v => v.type === 'upvote').length;
+    const downvotesCount = (allVotes || []).filter(v => v.type === 'downvote').length;
+    const score = upvotesCount - downvotesCount;
+
+    await supabase
+      .from('products')
+      .update({ votes: score })
+      .eq('id', productIdNum);
+
+    // Bust the products cache so rankings re-sort on next request
+    revalidateTag("products", "max");
 
     // Update last_voted_at timestamp (skip for admins if desired)
     if (!isAdmin) {

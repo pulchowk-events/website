@@ -4,6 +4,7 @@ import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/auth";
 import { getServerSession } from "next-auth/next";
+import { revalidateTag } from 'next/cache';
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
@@ -74,9 +75,9 @@ export async function POST(request: Request) {
       try {
         // Basic size validation
         const imageSizeMB = imageFile.size / (1024 * 1024);
-        if (imageSizeMB > 1) {
+        if (imageSizeMB > 0.1) {
           return NextResponse.json(
-            { error: "Image must be less than 1MB" },
+            { error: "Image must be less than 100KB — resize first" },
             { status: 400 },
           );
         }
@@ -130,6 +131,9 @@ export async function POST(request: Request) {
         { status: 500 },
       );
     }
+
+    revalidateTag("products", "max");
+
 
     return NextResponse.json(
       {

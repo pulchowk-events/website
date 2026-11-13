@@ -98,6 +98,8 @@ export function ProductComposer({ userId, productId, initialValues, onSaved, onC
       if (isEdit) toast.success("Project updated");
       else toast.success(data.message || "Project submitted for review");
 
+      // Clear local file so subsequent edits start fresh
+      setImage(null);
       if (onSaved) onSaved();
       else if (isEdit) router.refresh();
       else if (fullPage) router.push("/product-hunt");
@@ -182,6 +184,7 @@ export function ProductComposer({ userId, productId, initialValues, onSaved, onC
                 existingUrl={initialValues?.image_url}
                 onChange={setImage}
                 disabled={submitting}
+                maxBytes={90 * 1024}
               />
             </div>
           </>

@@ -276,6 +276,7 @@ export function EventComposer({ userId, eventId, initialValues, onSaved, onCance
                   existingUrl={initialValues?.image_url}
                   onChange={setImage}
                   disabled={submitting}
+                  maxBytes={900 * 1024}
                 />
               </div>
             </div>

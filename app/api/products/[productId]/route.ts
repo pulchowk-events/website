@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { authOptions } from '@/auth';
 import { supabase } from '@/app/lib/supabase';
 import { isAdmin } from '@/app/lib/isAdmin';
+import { revalidateTag } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -71,8 +72,8 @@ export async function PUT(
     if (imageFile) {
       try {
         const imageSizeMB = imageFile.size / (1024 * 1024);
-        if (imageSizeMB > 1) {
-          return NextResponse.json({ error: 'Image must be less than 1MB' }, { status: 400 });
+        if (imageSizeMB > 0.1) {
+          return NextResponse.json({ error: 'Image must be less than 100KB — resize first' }, { status: 400 });
         }
         const fileExtension = imageFile.name.split('.').pop();
         const fileName = 'product-' + numericProductId + '-' + Date.now() + '.' + fileExtension;
@@ -101,7 +102,8 @@ export async function PUT(
         imagePath = publicUrl.publicUrl;
       } catch (uploadError) {
         console.error('Image upload failed:', uploadError);
-        return NextResponse.json({ error: 'Failed to upload image' }, { status: 500 });
+        const detail = uploadError instanceof Error ? uploadError.message : (uploadError as { message?: string })?.message;
+        return NextResponse.json({ error: 'Failed to upload image', details: detail }, { status: 500 });
       }
     }
 
@@ -119,6 +121,8 @@ export async function PUT(
     if (updateError) {
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
+
+    revalidateTag("products", "max");
 
     return NextResponse.json(
       { success: true, data: { name, url, image_url: imagePath } },

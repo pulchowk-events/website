@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { ArrowBigUp, ArrowBigDown } from "lucide-react";
 import { useVotes } from "@/app/lib/VoteContext";
@@ -13,8 +13,15 @@ interface Props {
 
 export function ProjectVoteButton({ productId, initialVotes }: Props) {
   const { data: session } = useSession();
-  const { productVotes, userVotes, canVote, isAdmin, timeRemaining, handleVote, loadingStates } = useVotes();
+  const { productVotes, userVotes, canVote, isAdmin, timeRemaining, handleVote, loadingStates, refreshVotes } = useVotes();
   const [signInOpen, setSignInOpen] = useState(false);
+  const fetchedRef = useRef(false);
+
+  useEffect(() => {
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
+    refreshVotes(productId);
+  }, [productId, refreshVotes]);
 
   const ctx = productVotes[productId];
   const score = ctx ? ctx.upvotes - ctx.downvotes : initialVotes;
