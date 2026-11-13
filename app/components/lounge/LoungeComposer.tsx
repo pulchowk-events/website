@@ -9,7 +9,7 @@ import { MarkdownEditor } from "@/app/components/ui/MarkdownEditor";
 import { PostPreview } from "./PostPreview";
 import { readDraft, clearDraft, useDraftAutosave } from "./useDraft";
 import SignInModal from "@/app/components/signIn/SignInModal";
-import { PostCategory, categoryDisplayMap, categoryIcons } from "@/types/posts";
+import { PostCategory, categoryDisplayMap } from "@/types/posts";
 
 interface Props {
   userId?: string;
@@ -228,7 +228,12 @@ export function LoungeComposer({ userId, postId, initialValues, onSaved, onCance
                   className={"chip" + (category === value ? " chip--on" : "")}
                   onClick={() => setCategory(value)}
                 >
-                  {categoryIcons[value]} {label}
+                  <span
+                    className="cat-chip__dot"
+                    aria-hidden="true"
+                    style={{ background: "var(--cat-" + value.replace(/_/g, "-") + ")" }}
+                  />
+                  {label}
                 </button>
               ))}
             </div>
