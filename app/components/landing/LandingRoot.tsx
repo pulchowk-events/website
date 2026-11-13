@@ -89,7 +89,7 @@ export default function LandingRoot() {
         <FinalCTA onSignIn={() => setSignInOpen(true)} />
       </main>
       <Footer />
-      <SignInModal isOpen={signInOpen} onClose={() => setSignInOpen(false)} />
+      <SignInModal isOpen={signInOpen} onClose={() => setSignInOpen(false)} callbackUrl="/" />
     </div>
   );
 }

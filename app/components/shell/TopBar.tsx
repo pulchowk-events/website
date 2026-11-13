@@ -137,8 +137,8 @@ export function TopBar({ onMenuToggle, onPaletteOpen }: Props) {
               >
                 <Search size={16} />
               </button>
-              <button type="button" className="btn btn--secondary btn--sm" onClick={() => setSignInOpen(true)}>Sign in</button>
-              <a href="https://discord.gg/cQ5gxusATk" target="_blank" rel="noopener noreferrer" className="btn btn--primary btn--sm">Join Discord</a>
+              <button type="button" className="btn btn--primary btn--sm" onClick={() => setSignInOpen(true)}>Sign in</button>
+              <a href="https://discord.gg/cQ5gxusATk" target="_blank" rel="noopener noreferrer" className="btn btn--secondary btn--sm">Join Discord</a>
             </>
           )}
         </div>

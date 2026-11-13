@@ -8,16 +8,21 @@ import { SignInContent } from "./SignInContent";
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  callbackUrl?: string;
 }
 
-export default function SignInModal({ isOpen, onClose }: Props) {
+export default function SignInModal({ isOpen, onClose, callbackUrl: overrideCallbackUrl }: Props) {
   const [callbackUrl, setCallbackUrl] = useState("/");
 
   useEffect(() => {
+    if (overrideCallbackUrl) {
+      setCallbackUrl(overrideCallbackUrl);
+      return;
+    }
     if (typeof window !== "undefined") {
       setCallbackUrl(window.location.pathname + window.location.search);
     }
-  }, [isOpen]);
+  }, [isOpen, overrideCallbackUrl]);
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={(v) => !v && onClose()}>
