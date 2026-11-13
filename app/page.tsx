@@ -22,9 +22,16 @@ import { AnimatedNumber } from "@/app/components/ui/AnimatedNumber";
 export const revalidate = 60;
 
 function greeting(): string {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 18) return "Good afternoon";
+  // Site canonical timezone is Nepal (per design system). Server runs UTC.
+  const nptHour = Number(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "Asia/Kathmandu",
+      hour: "2-digit",
+      hourCycle: "h23",
+    }).format(new Date()),
+  );
+  if (nptHour < 12) return "Good morning";
+  if (nptHour < 18) return "Good afternoon";
   return "Good evening";
 }
 
