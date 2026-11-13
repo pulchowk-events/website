@@ -224,7 +224,7 @@ export const getPrizePool = unstable_cache(
   async () => {
     const { data: prizePool } = await supabase
       .from("prize_pool")
-      .select("current_amount, target_amount")
+      .select("target_amount")
       .single();
 
     const { data: verifiedDonations } = await supabase
