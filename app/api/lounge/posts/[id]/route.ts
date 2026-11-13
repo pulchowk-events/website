@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { authOptions } from "@/auth";
 import { supabase } from "@/app/lib/supabase";
 import { extractOgImage } from "@/app/lib/og-scraper";
+import { revalidateTag } from "next/cache";
 
 export async function PUT(
   request: Request,
@@ -88,6 +89,8 @@ export async function PUT(
       );
     }
 
+    revalidateTag("lounge", "max");
+
     return NextResponse.json({
       success: true,
       message: "Post updated successfully",
@@ -166,6 +169,8 @@ export async function DELETE(
         { status: 500 },
       );
     }
+
+    revalidateTag("lounge", "max");
 
     return NextResponse.json({
       success: true,

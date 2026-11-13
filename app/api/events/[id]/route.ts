@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { authOptions } from '@/auth';
 import { getServerSession } from 'next-auth/next';
 import { isAdmin } from '@/app/lib/isAdmin';
+import { revalidateTag } from "next/cache";
 
 export async function PUT(
   request: Request,
@@ -109,6 +110,7 @@ export async function PUT(
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
 
+    revalidateTag("events", "max");
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Server error:', error);

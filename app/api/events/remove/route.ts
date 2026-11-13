@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { authOptions } from '@/auth'
 import { getServerSession } from 'next-auth/next'
+import { revalidateTag } from "next/cache";
 
 export async function DELETE(request: Request) {
   const session = await getServerSession(authOptions)
@@ -53,6 +54,7 @@ export async function DELETE(request: Request) {
 
     if (deleteError) throw deleteError
 
+    revalidateTag("events", "max");
     return NextResponse.json({ success: true }, { status: 200 })
   } catch (error) {
     console.error('Delete error:', error)

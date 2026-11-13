@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 import { supabase } from "@/app/lib/supabase";
+import { revalidateTag } from "next/cache";
 
 export const dynamic = "force-dynamic";
 
@@ -42,5 +43,6 @@ export async function PUT(request: Request) {
     .eq("id", postId)
     .single();
 
-  return NextResponse.json({ score: data?.score ?? 0, value });
+  revalidateTag("lounge", "max");
+    return NextResponse.json({ score: data?.score ?? 0, value });
 }

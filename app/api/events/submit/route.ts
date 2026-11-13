@@ -3,6 +3,7 @@ import { cookies, headers } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { authOptions } from '@/auth'
 import { getServerSession } from 'next-auth/next'
+import { revalidateTag } from "next/cache";
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions)
@@ -98,6 +99,8 @@ export async function POST(request: Request) {
       console.error('Database insert error:', insertError)
       throw insertError
     }
+
+    revalidateTag("events", "max");
 
     return NextResponse.json(
       {

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 import { supabase } from "@/app/lib/supabase";
+import { revalidateTag } from "next/cache";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +38,8 @@ export async function PUT(
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  return NextResponse.json({ ok: true });
+  revalidateTag("lounge", "max");
+    return NextResponse.json({ ok: true });
 }
 
 export async function DELETE(
@@ -62,5 +64,6 @@ export async function DELETE(
   const { error } = await supabase.from("lounge_comments").delete().eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  return NextResponse.json({ ok: true });
+  revalidateTag("lounge", "max");
+    return NextResponse.json({ ok: true });
 }

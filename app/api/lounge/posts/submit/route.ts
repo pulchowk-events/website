@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 import { supabase } from "@/app/lib/supabase";
 import { extractOgImage } from "@/app/lib/og-scraper";
+import { revalidateTag } from "next/cache";
 
 export async function POST(request: Request) {
   try {
@@ -98,6 +99,8 @@ export async function POST(request: Request) {
         { status: 500 },
       );
     }
+
+    revalidateTag("lounge", "max");
 
     return NextResponse.json({
       success: true,

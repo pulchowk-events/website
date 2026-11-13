@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 import { authOptions } from '@/auth';
 import { supabase } from '@/app/lib/supabase';
+import { revalidateTag } from "next/cache";
 
 export const dynamic = 'force-dynamic';
 
@@ -107,6 +108,7 @@ export async function POST(request: Request) {
       );
     }
 
+    revalidateTag("products", "max");
     return NextResponse.json({ success: true }, { status: 200 });
 
   } catch (error) {

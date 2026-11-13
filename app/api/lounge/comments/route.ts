@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 import { supabase } from "@/app/lib/supabase";
+import { revalidateTag } from "next/cache";
 
 export const dynamic = "force-dynamic";
 
@@ -97,5 +98,6 @@ export async function POST(request: Request) {
     },
   };
 
-  return NextResponse.json(enriched, { status: 201 });
+  revalidateTag("lounge", "max");
+    return NextResponse.json(enriched, { status: 201 });
 }
