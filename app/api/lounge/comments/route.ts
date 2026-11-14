@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 import { supabase } from "@/app/lib/supabase";
 import { revalidateTag } from "next/cache";
+import { insertNotification } from "@/lib/notifications";
 
 export const dynamic = "force-dynamic";
 
@@ -98,6 +99,51 @@ export async function POST(request: Request) {
     },
   };
 
+  // Notify relevant user. Best-effort — never block comment creation.
+  try {
+    if (parentId) {
+      // Reply: notify the comment author the user replied to.
+      // NOTE: use `parentId`, NOT `effectiveParentId`. The user clicked
+      // Reply on a specific comment; notify that author even if threading
+      // visually collapses to a grandparent.
+      const { data: parentComment } = await supabase
+        .from("lounge_comments")
+        .select("user_id")
+        .eq("id", parentId)
+        .single();
+
+      if (parentComment && parentComment.user_id !== session.user.id) {
+        await insertNotification(supabase, {
+          user_id: parentComment.user_id,
+          type: "post_comment",
+          title: `${session.user.name} replied to your comment`,
+          link: `/lounge/${postId}`,
+          source_user_id: session.user.id,
+        });
+      }
+    } else {
+      // Top-level comment: notify the post author.
+      const { data: post } = await supabase
+        .from("lounge_posts")
+        .select("author_id, title")
+        .eq("id", postId)
+        .single();
+
+      if (post && post.author_id !== session.user.id) {
+        await insertNotification(supabase, {
+          user_id: post.author_id,
+          type: "post_comment",
+          title: `${session.user.name} commented on your post "${post.title}"`,
+          link: `/lounge/${postId}`,
+          source_user_id: session.user.id,
+        });
+      }
+    }
+  } catch (notifErr) {
+    // Don't fail the comment if notification fails.
+    console.error("[lounge-comments] notification failed:", notifErr);
+  }
+
   revalidateTag("lounge", "max");
-    return NextResponse.json(enriched, { status: 201 });
+  return NextResponse.json(enriched, { status: 201 });
 }

@@ -43,13 +43,18 @@ export async function POST(request: Request) {
         .single();
 
       if (product) {
-        await insertNotification(supabase, {
-          user_id: product.posted_by,
-          type: 'product_comment',
-          title: `${session.user.name} commented on your product "${product.name}"`,
-          link: `/product-hunt/${product.url}`,
-          source_user_id: session.user.id
-        });
+        try {
+          await insertNotification(supabase, {
+            user_id: product.posted_by,
+            type: 'product_comment',
+            title: `${session.user.name} commented on your product "${product.name}"`,
+            link: `/product-hunt/${product.url}`,
+            source_user_id: session.user.id
+          });
+        } catch (notificationError) {
+          console.error('Error creating notification:', notificationError);
+          // Don't throw - we don't want to fail the comment if notification fails
+        }
       }
     }
 
