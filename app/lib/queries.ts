@@ -2019,3 +2019,61 @@ export const getIndexableClubs = unstable_cache(
   ["club-indexable-v1"],
   { revalidate: 60, tags: ["clubs"] },
 );
+
+// ---- home stories: clubs with a post in the last CLUB_STORY_WINDOW_DAYS days ----
+
+export interface HomeClubStories {
+  clubs: ClubInfo[];
+  stories: Record<string, ClubStory[]>;
+}
+
+const HOME_STORY_CLUBS = 12;
+
+export const getHomeClubStories = unstable_cache(
+  async (): Promise<HomeClubStories> => {
+    // Time math lives here (cached query), never in a component (react-hooks/purity).
+    const cutoff = new Date(Date.now() - CLUB_STORY_WINDOW_DAYS * 24 * 60 * 60 * 1000).toISOString();
+    const { data, error } = await supabase
+      .from("club_posts")
+      .select(
+        "id, club_username, caption, post_url, image_url, is_event, post_type, posted_at, club:club_username!inner (username, display_name, avatar_url, enabled)",
+      )
+      .eq("club.enabled", true)
+      .gte("posted_at", cutoff)
+      .order("posted_at", { ascending: false })
+      .limit(STORIES_FETCH_LIMIT);
+    if (error) console.error("getHomeClubStories error:", error);
+
+    const clubs: ClubInfo[] = [];
+    const stories: Record<string, ClubStory[]> = {};
+    for (const r of (data || []) as any[]) {
+      const u = r.club_username as string;
+      if (!stories[u]) {
+        if (clubs.length >= HOME_STORY_CLUBS) continue;
+        const c: any = normalizeRelation(r.club);
+        stories[u] = [];
+        clubs.push({
+          username: u,
+          display_name: c && c.display_name ? c.display_name : null,
+          avatar_url: c && c.avatar_url ? c.avatar_url : null,
+        });
+      }
+      const arr = stories[u];
+      if (arr.length >= STORIES_PER_CLUB) continue;
+      arr.push({
+        id: r.id,
+        club_username: u,
+        caption: r.caption ?? null,
+        post_url: r.post_url,
+        image_url: r.image_url ?? null,
+        is_event: !!r.is_event,
+        post_type: r.post_type ?? null,
+        posted_at: r.posted_at,
+      });
+    }
+    for (const u of Object.keys(stories)) stories[u].reverse();
+    return { clubs, stories };
+  },
+  ["club-home-stories-v1"],
+  { revalidate: 60, tags: ["clubs"] },
+);

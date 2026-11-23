@@ -11625,3 +11625,7 @@ body::-webkit-scrollbar-thumb:hover,
 }
 .club-card__who:hover .club-card__name { text-decoration: underline; }
 .club-card__who:focus-visible { outline: 2px solid #51aeff; outline-offset: 2px; border-radius: 6px; }
+
+/* clubs-home-stories */
+.home-stories { margin-bottom: 8px; }
+.home-stories .club-rail { padding-bottom: 8px; }
