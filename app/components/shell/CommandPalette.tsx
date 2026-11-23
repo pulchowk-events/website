@@ -4,10 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMediaQuery } from "@/app/hooks/useMediaQuery";
 import { useSession } from "next-auth/react";
-import { Home, Calendar, Briefcase, Box, MessageCircle, Bookmark, Heart, HelpCircle, Plus, PanelLeft, FileText, GraduationCap, Settings, LayoutGrid, Shield, Globe } from "lucide-react";
+import { Home, Calendar, Briefcase, Box, MessageCircle, Bookmark, Heart, HelpCircle, Plus, PanelLeft, FileText, GraduationCap, Settings, LayoutGrid, Shield, Globe, Users } from "lucide-react";
 
 interface Result {
-  type: "post" | "event" | "job" | "project" | "scholarship";
+  type: "post" | "event" | "job" | "project" | "scholarship" | "club";
   id: string;
   title: string;
   meta?: string;
@@ -24,6 +24,7 @@ interface Props {
 const PAGES = [
   { href: "/", label: "Home", icon: Home },
   { href: "/events", label: "Events", icon: Calendar },
+  { href: "/clubs", label: "Clubs", icon: Users },
   { href: "/jobs", label: "Jobs", icon: Briefcase },
   { href: "/product-hunt", label: "Product Hunt", icon: Box },
   { href: "/lounge", label: "Lounge", icon: MessageCircle },
@@ -48,14 +49,24 @@ export function CommandPalette({ open, onClose, onToggleSidebar, isAdmin = false
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Reset when the palette opens: adjust state during render, not in an effect
+  // (react-hooks/set-state-in-effect).
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) { setQ(""); setResults([]); setActive(0); }
+  }
+
   useEffect(() => {
-    if (open) { setQ(""); setResults([]); setActive(0); setTimeout(() => inputRef.current?.focus(), 0); }
+    if (!open) return;
+    const id = setTimeout(() => inputRef.current?.focus(), 0);
+    return () => clearTimeout(id);
   }, [open]);
 
   useEffect(() => {
     if (!open) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (q.trim().length === 0) { setResults([]); return; }
+    if (q.trim().length === 0) return;
     debounceRef.current = setTimeout(async () => {
       setLoading(true);
       try {
@@ -83,10 +94,12 @@ export function CommandPalette({ open, onClose, onToggleSidebar, isAdmin = false
   const trimmedQ = q.trim();
   const showSearchAll = trimmedQ.length > 0;
 
+  const shownResults = q.trim().length === 0 ? [] : results;
+
   const combined = [
     ...filteredPages.map((p) => ({ kind: "page" as const, label: p.label, icon: p.icon, onClick: () => { onClose(); router.push(p.href); } })),
     ...actions.filter((a) => !q || a.label.toLowerCase().includes(q.toLowerCase())).map((a) => ({ kind: "action" as const, label: a.label, icon: a.icon, onClick: a.action })),
-    ...results.map((r) => ({ kind: "result" as const, label: r.title, meta: r.meta, onClick: () => { onClose(); router.push(r.href); } })),
+    ...shownResults.map((r) => ({ kind: "result" as const, label: r.title, meta: r.meta, onClick: () => { onClose(); router.push(r.href); } })),
     ...(showSearchAll ? [{ kind: "search" as const, label: "See all results for \"" + trimmedQ + "\"", meta: undefined, onClick: () => { onClose(); router.push("/search?q=" + encodeURIComponent(trimmedQ)); } }] : []),
   ];
 

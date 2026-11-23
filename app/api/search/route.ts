@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/app/lib/supabase";
+import { slugOf } from "@/app/lib/clubs";
 
 export const dynamic = "force-dynamic";
 
 interface Result {
-  type: "post" | "event" | "job" | "project" | "scholarship";
+  type: "post" | "event" | "job" | "project" | "scholarship" | "club";
   id: string;
   title: string;
   meta?: string;
@@ -20,12 +21,13 @@ export async function GET(request: Request) {
   const safe = q.replace(/[%_\\]/g, "\\$&");
   const ilike = "%" + safe + "%";
 
-  const [posts, events, jobs, products, scholarships] = await Promise.all([
+  const [posts, events, jobs, products, scholarships, clubs] = await Promise.all([
     supabase.from("lounge_posts").select("id, title").ilike("title", ilike).limit(limit),
     supabase.from("events").select("id, title, event_date").eq("verified", true).ilike("title", ilike).limit(limit),
     supabase.from("jobs").select("id, title, company").eq("verified", true).or("title.ilike." + ilike + ",company.ilike." + ilike).limit(limit),
     supabase.from("products").select("id, name, url").eq("approved", true).ilike("name", ilike).limit(limit),
     supabase.from("scholarships").select("id, title, provider").eq("verified", true).ilike("title", ilike).limit(limit),
+    supabase.from("clubs").select("username, display_name").eq("enabled", true).or("display_name.ilike." + ilike + ",username.ilike." + ilike).limit(limit),
   ]);
 
   const results: Result[] = [];
@@ -34,6 +36,8 @@ export async function GET(request: Request) {
   (jobs.data || []).forEach((j: any) => results.push({ type: "job", id: j.id, title: j.title, meta: j.company, href: "/jobs/" + j.id }));
   (products.data || []).forEach((p: any) => results.push({ type: "project", id: String(p.id), title: p.name, href: "/product-hunt/" + p.url }));
   (scholarships.data || []).forEach((s: any) => results.push({ type: "scholarship", id: s.id, title: s.title, meta: s.provider, href: "/scholarships/" + s.id }));
+
+  (clubs.data || []).forEach((c: any) => results.push({ type: "club", id: c.username, title: c.display_name || c.username, meta: "Club", href: "/clubs/" + slugOf(c.username) }));
 
   return NextResponse.json({ results });
 }
