@@ -1,6 +1,7 @@
 import { unstable_cache } from "next/cache";
 import { supabase } from "@/app/lib/supabase";
 import { normalizeRelation } from "@/app/lib/supabase-helpers";
+import { CLUB_MIN_INDEXED_POSTS, CLUB_STORY_WINDOW_DAYS } from "@/app/lib/clubs";
 
 // ============================================================================
 // EVENT QUERIES
@@ -1938,5 +1939,83 @@ export const getClubStories = unstable_cache(
     return out;
   },
   ["club-stories-v1"],
+  { revalidate: 60, tags: ["clubs"] },
+);
+
+// ---- club page + sitemap (slug pages) ----
+
+export interface ClubDetail {
+  club: ClubInfo;
+  postCount: number;
+  latestPostedAt: string | null;
+  recent: boolean;
+}
+
+export const getClubDetail = unstable_cache(
+  async (username: string): Promise<ClubDetail | null> => {
+    const { data: club, error } = await supabase
+      .from("clubs")
+      .select("username, display_name, avatar_url")
+      .eq("username", username)
+      .eq("enabled", true)
+      .maybeSingle();
+    if (error) console.error("getClubDetail error:", error);
+    if (!club) return null;
+
+    const { count, error: cErr } = await supabase
+      .from("club_posts")
+      .select("id", { count: "exact", head: true })
+      .eq("club_username", username);
+    if (cErr) console.error("getClubDetail count error:", cErr);
+
+    const { data: latest } = await supabase
+      .from("club_posts")
+      .select("posted_at")
+      .eq("club_username", username)
+      .order("posted_at", { ascending: false })
+      .limit(1);
+
+    const latestAt: string | null = latest && latest[0] ? (latest[0] as any).posted_at : null;
+    const latestMs = latestAt ? Date.parse(latestAt) : NaN;
+    const recent =
+      Number.isFinite(latestMs) &&
+      Date.now() - latestMs < CLUB_STORY_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+
+    return {
+      club: club as ClubInfo,
+      postCount: count || 0,
+      latestPostedAt: latestAt,
+      recent,
+    };
+  },
+  ["club-detail-v2"],
+  { revalidate: 60, tags: ["clubs"] },
+);
+
+export interface IndexableClub {
+  username: string;
+  postCount: number;
+  latestPostedAt: string;
+}
+
+export const getIndexableClubs = unstable_cache(
+  async (): Promise<IndexableClub[]> => {
+    const { data, error } = await supabase
+      .from("club_posts")
+      .select("club_username, posted_at, club:club_username!inner (enabled)")
+      .eq("club.enabled", true)
+      .order("posted_at", { ascending: false })
+      .limit(5000);
+    if (error) console.error("getIndexableClubs error:", error);
+    const byClub = new Map<string, IndexableClub>();
+    for (const r of (data || []) as any[]) {
+      const u = r.club_username as string;
+      const cur = byClub.get(u);
+      if (cur) cur.postCount += 1;
+      else byClub.set(u, { username: u, postCount: 1, latestPostedAt: r.posted_at as string });
+    }
+    return [...byClub.values()].filter((c) => c.postCount >= CLUB_MIN_INDEXED_POSTS);
+  },
+  ["club-indexable-v1"],
   { revalidate: 60, tags: ["clubs"] },
 );

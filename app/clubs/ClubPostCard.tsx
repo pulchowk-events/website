@@ -1,4 +1,6 @@
 import type { CSSProperties } from "react";
+import Link from "next/link";
+import { slugOf } from "@/app/lib/clubs";
 import { Avatar } from "@/app/components/ui/Avatar";
 import { formatDateShort } from "@/app/lib/formatDate";
 import type { ClubPost } from "@/app/lib/queries";
@@ -36,7 +38,15 @@ function InstagramGlyph() {
   );
 }
 
-export default function ClubPostCard({ post, index }: { post: ClubPost; index: number }) {
+export default function ClubPostCard({
+  post,
+  index,
+  linkClub = true,
+}: {
+  post: ClubPost;
+  index: number;
+  linkClub?: boolean;
+}) {
   const name = post.club?.display_name || post.club?.username || post.club_username;
   const caption = snippet(post.caption) || "(no caption)";
   const hasImage = !!post.image_url;
@@ -69,8 +79,17 @@ export default function ClubPostCard({ post, index }: { post: ClubPost; index: n
         )}
 
         <header className="club-card__head">
-          <Avatar src={post.club?.avatar_url} name={name} size={24} />
-          <span className="club-card__name">{name}</span>
+          {linkClub ? (
+            <Link href={"/clubs/" + slugOf(post.club?.username || post.club_username)} className="club-card__who">
+              <Avatar src={post.club?.avatar_url} name={name} size={24} />
+              <span className="club-card__name">{name}</span>
+            </Link>
+          ) : (
+            <>
+              <Avatar src={post.club?.avatar_url} name={name} size={24} />
+              <span className="club-card__name">{name}</span>
+            </>
+          )}
           {safeUrl && (
             <a
               href={safeUrl}

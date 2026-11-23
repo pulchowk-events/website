@@ -1,6 +1,8 @@
 import { MetadataRoute } from "next";
 import { createServerSupabaseClient } from "@/app/lib/supabase-server";
 import { SITE_URL } from "@/app/lib/seo";
+import { getIndexableClubs } from "@/app/lib/queries";
+import { slugOf } from "@/app/lib/clubs";
 import { JOB_ROLES, slugify, formatMonthSlug } from "@/app/lib/seo";
 import {
   getActiveScholarshipCountries,
@@ -263,8 +265,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "Bhaktapur",
     "Pokhara",
     "Remote",
-    { url: `${SITE_URL}/terms`, lastModified: new Date(), changeFrequency: "yearly" as const, priority: 0.3 },
-    { url: `${SITE_URL}/privacy`, lastModified: new Date(), changeFrequency: "yearly" as const, priority: 0.3 },
   ];
   for (const t of JOB_TYPES) {
     entries.push(
@@ -418,6 +418,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }),
     );
   }
+
+  // Clubs
+  entries.push(
+    url(`${SITE_URL}/clubs`, {
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.7,
+    }),
+  );
+  const indexableClubs = await getIndexableClubs();
+  for (const c of indexableClubs) {
+    entries.push(
+      url(`${SITE_URL}/clubs/${slugOf(c.username)}`, {
+        lastModified: new Date(c.latestPostedAt),
+        changeFrequency: "daily",
+        priority: 0.5,
+      }),
+    );
+  }
+
+  // Legal pages (previously mis-placed inside JOB_LOCATIONS, which printed [object Object])
+  entries.push(
+    url(`${SITE_URL}/terms`, { lastModified: now, changeFrequency: "yearly", priority: 0.3 }),
+    url(`${SITE_URL}/privacy`, { lastModified: now, changeFrequency: "yearly", priority: 0.3 }),
+  );
 
   return entries;
 }
