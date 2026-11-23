@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Layout from "@/app/components/layout/Layout";
-import { PageHeader } from "@/components/ui/PageHeader";
 import { getClubs, getClubFeed, getClubPostTypes, getClubStories } from "@/app/lib/queries";
 import ClubPostCard from "./ClubPostCard";
 import StoryRail from "./StoryRail";
@@ -102,10 +101,7 @@ export default async function ClubsPage({
   return (
     <Layout>
       <div className="club-feed">
-        <PageHeader
-          title="Clubs"
-          description="Latest Instagram posts from campus clubs, newest first. Posts link to the original on Instagram."
-        />
+        <h1 className="sr-only">Clubs</h1>
 
         {clubs.length > 0 && (
           <StoryRail
@@ -118,7 +114,7 @@ export default async function ClubsPage({
         )}
 
         <div className="event-filters">
-          <div className="event-filters__row club-filters-top">
+          <div className="event-filters__row event-filters__row--scroll club-filters-top">
             <div className="seg club-seg" role="group" aria-label="Post filter">
               <Link
                 href={hrefFor({ ...cur, events: false })}
@@ -138,21 +134,17 @@ export default async function ClubsPage({
                 Clear all
               </Link>
             )}
+            {types.length > 0 && <span className="event-filters__divider" aria-hidden="true" />}
+            {types.map((t) => (
+              <Link
+                key={t}
+                href={hrefFor({ ...cur, type: type === t ? "" : t })}
+                className={"chip" + (type === t ? " chip--on" : "")}
+              >
+                {t}
+              </Link>
+            ))}
           </div>
-
-          {types.length > 0 && (
-            <div className="event-filters__row event-filters__row--scroll">
-              {types.map((t) => (
-                <Link
-                  key={t}
-                  href={hrefFor({ ...cur, type: type === t ? "" : t })}
-                  className={"chip" + (type === t ? " chip--on" : "")}
-                >
-                  {t}
-                </Link>
-              ))}
-            </div>
-          )}
         </div>
 
         {posts.length === 0 ? (

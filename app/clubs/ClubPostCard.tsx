@@ -81,12 +81,12 @@ export default function ClubPostCard({
         <header className="club-card__head">
           {linkClub ? (
             <Link href={"/clubs/" + slugOf(post.club?.username || post.club_username)} className="club-card__who">
-              <Avatar src={post.club?.avatar_url} name={name} size={24} />
+              <Avatar src={post.club?.avatar_url} name={name} size={28} />
               <span className="club-card__name">{name}</span>
             </Link>
           ) : (
             <>
-              <Avatar src={post.club?.avatar_url} name={name} size={24} />
+              <Avatar src={post.club?.avatar_url} name={name} size={28} />
               <span className="club-card__name">{name}</span>
             </>
           )}
@@ -102,8 +102,8 @@ export default function ClubPostCard({
               <InstagramGlyph />
             </a>
           )}
-          <time className="club-card__time" dateTime={post.posted_at}>
-            {formatDateShort(post.posted_at)}
+          <time className="club-card__time" dateTime={post.posted_at} title={formatDateShort(post.posted_at)}>
+            {post.ago || formatDateShort(post.posted_at)}
           </time>
         </header>
 
