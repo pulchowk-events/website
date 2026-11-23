@@ -77,8 +77,13 @@ export default async function Home() {
         }
       />
 
+      <section className="campus-now" aria-label="Campus now">
       {homeStories.clubs.length > 0 && (
         <div className="home-stories">
+          <div className="campus-now__head">
+            <span className="campus-now__title"><i className="campus-now__dot" aria-hidden="true" />Campus now</span>
+            <Link href="/clubs" className="home-section__see">All clubs</Link>
+          </div>
           <StoryRail
             clubs={homeStories.clubs}
             stories={homeStories.stories}
@@ -107,6 +112,7 @@ export default async function Home() {
           <span className="stat-tile__value"><AnimatedNumber value={scholarships24h} /></span>
         </Link>
       </div>
+      </section>
 
       <div className="insight-grid">
         <div className="insight-col insight-col--wide">
