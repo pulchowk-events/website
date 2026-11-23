@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { getClubs, getClubFeed, getClubPostTypes, getClubStories } from "@/app/lib/queries";
 import ClubPostCard from "./ClubPostCard";
 import StoryRail from "./StoryRail";
+import { slugOf } from "@/app/lib/clubs";
 
 export const revalidate = 60;
 
@@ -95,7 +96,7 @@ export default async function ClubsPage({
   const viewAllHrefs: Record<string, string> = {};
   for (const c of clubs) {
     toggleHrefs[c.username] = hrefFor({ ...cur, club: toggleClub(c.username) });
-    viewAllHrefs[c.username] = hrefFor({ club: [c.username], events: false, type: "" });
+    viewAllHrefs[c.username] = "/clubs/" + slugOf(c.username);
   }
 
   return (
