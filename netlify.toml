@@ -4,3 +4,10 @@
     Cache-Control = "no-cache, no-store, must-revalidate"
     Pragma = "no-cache"
     Expires = "0"
+
+# Old Netlify site: send every URL to the Cloudflare deployment, same path.
+[[redirects]]
+  from = "/*"
+  to = "https://pulchowkevents.pulchowkevents.workers.dev/:splat"
+  status = 301
+  force = true
