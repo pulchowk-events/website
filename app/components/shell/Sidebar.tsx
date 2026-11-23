@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Calendar, Briefcase, Box, MessageCircle, Bookmark, Heart, HelpCircle, LayoutGrid, MessageSquare, GraduationCap, PanelLeftClose, PanelLeftOpen, X, Github, FileText, Shield, Globe } from "lucide-react";
+import { Home, Calendar, Briefcase, Box, MessageCircle, Bookmark, Heart, HelpCircle, LayoutGrid, MessageSquare, GraduationCap, PanelLeftClose, PanelLeftOpen, X, Github, FileText, Shield, Globe, Users } from "lucide-react";
 
 export interface NavCounts {
   events_upcoming: number;
@@ -23,6 +23,7 @@ interface Props {
 const BROWSE = [
   { href: "/", label: "Home", icon: Home },
   { href: "/events", label: "Events", icon: Calendar, countKey: "events_upcoming" as const },
+  { href: "/clubs", label: "Clubs", icon: Users },
   { href: "/jobs", label: "Jobs", icon: Briefcase, countKey: "jobs_open" as const },
   { href: "/scholarships", label: "Scholarships", icon: GraduationCap },
   { href: "/product-hunt", label: "Product Hunt", icon: Box },
@@ -45,19 +46,31 @@ const ABOUT: { href: string; label: string; icon: any; external?: boolean }[] = 
   { href: "/landing", label: "Landing", icon: Globe },
 ];
 
+interface SideRowProps {
+  href: string;
+  label: string;
+  icon: any;
+  active: boolean;
+  onNavigate: () => void;
+}
+
+// Module-level component (react-hooks/static-components forbids defining it inside Sidebar).
+function Row({ href, label, icon: Icon, active, onNavigate }: SideRowProps) {
+  return (
+    <Link href={href} className="side__row" aria-current={active ? "page" : undefined} onClick={onNavigate}>
+      <Icon size={16} className="side__icon" />
+      <span className="side__label">{label}</span>
+    </Link>
+  );
+}
+
 export function Sidebar({ counts, isAdmin, isSignedIn, collapsed, drawerOpen, onDrawerClose, onCollapseToggle }: Props) {
   const pathname = usePathname();
   const isActive = (href: string) => href === "/" ? pathname === "/" : pathname === href || pathname?.startsWith(href + "/");
 
-  const Row = ({ href, label, icon: Icon, countKey }: { href: string; label: string; icon: any; countKey?: keyof NavCounts }) => {
-    const count = countKey ? counts[countKey] : 0;
-    return (
-      <Link href={href} className="side__row" aria-current={isActive(href) ? "page" : undefined} onClick={onDrawerClose}>
-        <Icon size={16} className="side__icon" />
-        <span className="side__label">{label}</span>
-      </Link>
-    );
-  };
+  const renderRow = (r: { href: string; label: string; icon: any }) => (
+    <Row key={r.href} href={r.href} label={r.label} icon={r.icon} active={!!isActive(r.href)} onNavigate={onDrawerClose} />
+  );
 
   const inner = (
     <>
@@ -69,19 +82,19 @@ export function Sidebar({ counts, isAdmin, isSignedIn, collapsed, drawerOpen, on
       <div className="side__scroll">
         <div className="side__group">
           <p className="side__group-label">Browse</p>
-          {BROWSE.map((r) => <Row key={r.href} {...r} />)}
+          {BROWSE.map((r) => renderRow(r))}
         </div>
 
         {isSignedIn && (
           <div className="side__group">
             <p className="side__group-label">You</p>
-            {YOU.map((r) => <Row key={r.href} {...r} />)}
+            {YOU.map((r) => renderRow(r))}
           </div>
         )}
 
         <div className="side__group">
           <p className="side__group-label">Community</p>
-          {COMMUNITY.map((r) => <Row key={r.href} {...r} />)}
+          {COMMUNITY.map((r) => renderRow(r))}
         </div>
 
         <div className="side__group">
@@ -101,7 +114,7 @@ export function Sidebar({ counts, isAdmin, isSignedIn, collapsed, drawerOpen, on
                 <span className="side__label">{r.label}</span>
               </a>
             ) : (
-              <Row key={r.href} href={r.href} label={r.label} icon={r.icon} />
+              renderRow(r)
             );
           })}
         </div>
@@ -109,7 +122,7 @@ export function Sidebar({ counts, isAdmin, isSignedIn, collapsed, drawerOpen, on
         {isAdmin && (
           <div className="side__group">
             <p className="side__group-label">Admin</p>
-            <Row href="/admin" label="Dashboard" icon={LayoutGrid} />
+            {renderRow({ href: "/admin", label: "Dashboard", icon: LayoutGrid })}
           </div>
         )}
       </div>
