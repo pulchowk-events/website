@@ -8314,6 +8314,17 @@ details.admin-panel[open] > summary { border-bottom: 1px solid var(--border); }
   transition: border-color var(--t-fast);
 }
 .search-form-lg:focus-within { border-color: var(--accent); }
+
+/* clubs-nav-search: club rows in search results */
+.row.club-row,
+.row.clubpost-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 12px;
+}
+.club-row__body,
+.clubpost-row__body { min-width: 0; }
 .search-form-lg input {
   flex: 1; min-width: 0;
   background: transparent; border: 0; outline: none;
