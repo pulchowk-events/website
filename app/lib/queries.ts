@@ -1786,3 +1786,157 @@ export const getWeekdayPattern = unstable_cache(
   ["weekday-pattern"],
   { revalidate: 60, tags: ["events", "jobs"] },
 );
+
+
+// ============================================================================
+// CLUBS (Instagram club feed)
+// ============================================================================
+
+export interface ClubInfo {
+  username: string;
+  display_name: string | null;
+  avatar_url: string | null;
+}
+
+export interface ClubPost {
+  id: string;
+  shortcode: string;
+  club_username: string;
+  caption: string | null;
+  post_url: string;
+  image_url: string | null;
+  is_event: boolean;
+  post_type: string | null;
+  posted_at: string;
+  club: ClubInfo | null;
+}
+
+export interface ClubFeedParams {
+  clubs: string[];
+  eventsOnly: boolean;
+  type: string;
+  before: string;
+  pageSize: number;
+}
+
+export const getClubs = unstable_cache(
+  async (): Promise<ClubInfo[]> => {
+    const { data, error } = await supabase
+      .from("clubs")
+      .select("username, display_name, avatar_url")
+      .eq("enabled", true)
+      .order("display_name", { ascending: true });
+    if (error) console.error("getClubs error:", error);
+    return (data || []) as ClubInfo[];
+  },
+  ["clubs-list-v1"],
+  { revalidate: 60, tags: ["clubs"] },
+);
+
+export const getClubPostTypes = unstable_cache(
+  async (): Promise<string[]> => {
+    const { data, error } = await supabase
+      .from("club_posts")
+      .select("post_type, club:club_username!inner (enabled)")
+      .eq("club.enabled", true)
+      .not("post_type", "is", null)
+      .limit(2000);
+    if (error) console.error("getClubPostTypes error:", error);
+    const counts = new Map<string, number>();
+    for (const r of data || []) {
+      const t = ((r as any).post_type as string | null) || "";
+      if (t) counts.set(t, (counts.get(t) || 0) + 1);
+    }
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([t]) => t);
+  },
+  ["club-post-types-v1"],
+  { revalidate: 60, tags: ["clubs"] },
+);
+
+export const getClubFeed = unstable_cache(
+  async (f: ClubFeedParams) => {
+    let q = supabase
+      .from("club_posts")
+      .select(
+        "id, shortcode, club_username, caption, post_url, image_url, is_event, post_type, posted_at, club:club_username!inner (username, display_name, avatar_url, enabled)",
+      )
+      .eq("club.enabled", true)
+      .order("posted_at", { ascending: false })
+      .limit(f.pageSize + 1);
+
+    if (f.clubs.length > 0) q = q.in("club_username", f.clubs);
+    if (f.eventsOnly) q = q.eq("is_event", true);
+    if (f.type) q = q.eq("post_type", f.type);
+    if (f.before) q = q.lt("posted_at", f.before);
+
+    const { data, error } = await q;
+    if (error) console.error("getClubFeed error:", error);
+
+    const rows: ClubPost[] = (data || []).map((p: any) => ({
+      ...p,
+      club: normalizeRelation(p.club),
+    }));
+    const hasMore = rows.length > f.pageSize;
+    const posts = rows.slice(0, f.pageSize);
+    return {
+      posts,
+      hasMore,
+      nextBefore: hasMore && posts.length > 0 ? posts[posts.length - 1].posted_at : null,
+    };
+  },
+  ["club-feed-v1"],
+  { revalidate: 60, tags: ["clubs"] },
+);
+
+// ---- club stories (3b): newest posts per club, oldest-first within a club ----
+
+export interface ClubStory {
+  id: string;
+  club_username: string;
+  caption: string | null;
+  post_url: string;
+  image_url: string | null;
+  is_event: boolean;
+  post_type: string | null;
+  posted_at: string;
+}
+
+const STORIES_PER_CLUB = 6;
+const STORIES_FETCH_LIMIT = 300;
+
+export const getClubStories = unstable_cache(
+  async (): Promise<Record<string, ClubStory[]>> => {
+    const { data, error } = await supabase
+      .from("club_posts")
+      .select(
+        "id, club_username, caption, post_url, image_url, is_event, post_type, posted_at, club:club_username!inner (enabled)",
+      )
+      .eq("club.enabled", true)
+      .order("posted_at", { ascending: false })
+      .limit(STORIES_FETCH_LIMIT);
+    if (error) console.error("getClubStories error:", error);
+
+    const out: Record<string, ClubStory[]> = {};
+    for (const r of (data || []) as any[]) {
+      const u = r.club_username as string;
+      const arr = out[u] || (out[u] = []);
+      if (arr.length >= STORIES_PER_CLUB) continue;
+      arr.push({
+        id: r.id,
+        club_username: u,
+        caption: r.caption ?? null,
+        post_url: r.post_url,
+        image_url: r.image_url ?? null,
+        is_event: !!r.is_event,
+        post_type: r.post_type ?? null,
+        posted_at: r.posted_at,
+      });
+    }
+    for (const u of Object.keys(out)) out[u].reverse();
+    return out;
+  },
+  ["club-stories-v1"],
+  { revalidate: 60, tags: ["clubs"] },
+);
