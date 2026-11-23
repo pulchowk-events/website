@@ -1797,6 +1797,7 @@ export interface ClubInfo {
   username: string;
   display_name: string | null;
   avatar_url: string | null;
+  stale?: boolean;
 }
 
 export interface ClubPost {
@@ -2023,7 +2024,7 @@ export const getIndexableClubs = unstable_cache(
   { revalidate: 60, tags: ["clubs"] },
 );
 
-// ---- home stories: clubs with a post in the last CLUB_STORY_WINDOW_DAYS days ----
+// ---- home stories: fresh clubs (post inside CLUB_STORY_WINDOW_DAYS) first, stale ones fill up to HOME_STORY_MIN_CLUBS ----
 
 export interface HomeClubStories {
   clubs: ClubInfo[];
@@ -2031,18 +2032,18 @@ export interface HomeClubStories {
 }
 
 const HOME_STORY_CLUBS = 12;
+const HOME_STORY_MIN_CLUBS = 5;
 
 export const getHomeClubStories = unstable_cache(
   async (): Promise<HomeClubStories> => {
     // Time math lives here (cached query), never in a component (react-hooks/purity).
-    const cutoff = new Date(Date.now() - CLUB_STORY_WINDOW_DAYS * 24 * 60 * 60 * 1000).toISOString();
+    const cutoffMs = Date.now() - CLUB_STORY_WINDOW_DAYS * 24 * 60 * 60 * 1000;
     const { data, error } = await supabase
       .from("club_posts")
       .select(
         "id, club_username, caption, post_url, image_url, is_event, post_type, posted_at, club:club_username!inner (username, display_name, avatar_url, enabled)",
       )
       .eq("club.enabled", true)
-      .gte("posted_at", cutoff)
       .order("posted_at", { ascending: false })
       .limit(STORIES_FETCH_LIMIT);
     if (error) console.error("getHomeClubStories error:", error);
@@ -2052,16 +2053,21 @@ export const getHomeClubStories = unstable_cache(
     for (const r of (data || []) as any[]) {
       const u = r.club_username as string;
       if (!stories[u]) {
-        if (clubs.length >= HOME_STORY_CLUBS) continue;
+        const rowFresh = Date.parse(r.posted_at) >= cutoffMs;
+        if (rowFresh ? clubs.length >= HOME_STORY_CLUBS : clubs.length >= HOME_STORY_MIN_CLUBS) continue;
         const c: any = normalizeRelation(r.club);
         stories[u] = [];
         clubs.push({
           username: u,
+          stale: !rowFresh,
           display_name: c && c.display_name ? c.display_name : null,
           avatar_url: c && c.avatar_url ? c.avatar_url : null,
         });
       }
       const arr = stories[u];
+      if (!arr) continue;
+      const info = clubs.find((x) => x.username === u);
+      if (info && !info.stale && !(Date.parse(r.posted_at) >= cutoffMs)) continue;
       if (arr.length >= STORIES_PER_CLUB) continue;
       arr.push({
         id: r.id,
@@ -2077,6 +2083,6 @@ export const getHomeClubStories = unstable_cache(
     for (const u of Object.keys(stories)) stories[u].reverse();
     return { clubs, stories };
   },
-  ["club-home-stories-v1"],
+  ["club-home-stories-v2"],
   { revalidate: 60, tags: ["clubs"] },
 );

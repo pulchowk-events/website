@@ -130,7 +130,7 @@ export default function StoryRail({ clubs, stories, selected, toggleHrefs, viewA
           const list = stories[c.username];
           const hasStories = !!list && list.length > 0;
           const on = selected.includes(c.username);
-          const isNew = ready && hasStories && newestMs(list) > (seen[c.username] || 0);
+          const isNew = ready && hasStories && !c.stale && newestMs(list) > (seen[c.username] || 0);
           const cls =
             "club-rail__item" + (on ? " club-rail__item--on" : "") + (isNew ? " club-rail__item--new" : "");
           const toggleHref = toggleHrefs[c.username] || "/clubs";
