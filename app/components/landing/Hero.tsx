@@ -95,7 +95,7 @@ function runBlackHole(cv: HTMLCanvasElement): () => void {
     cv.height = H * D;
     x.setTransform(D, 0, 0, D, 0, 0);
     cx = W * (m ? 0.5 : t ? 0.8 : 0.77);
-    cy = m ? 118 : t ? 170 : H * 0.46;
+    cy = m ? 152 : t ? 170 : H * 0.46;
     R = m ? 30 : t ? 46 : 62;
   };
 
