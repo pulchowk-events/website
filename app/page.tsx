@@ -12,12 +12,15 @@ import {
   getTechSkillDemand,
   getClosingSoonScholarships,
   getWeekdayPattern,
+  getHomeClubStories,
 } from "@/app/lib/queries";
 import { ActivityChart } from "@/app/components/home/ActivityChart";
 import { SkillDemand } from "@/app/components/home/SkillDemand";
 import { ClosingSoon } from "@/app/components/home/ClosingSoon";
 import { WeekdayPattern } from "@/app/components/home/WeekdayPattern";
 import { AnimatedNumber } from "@/app/components/ui/AnimatedNumber";
+import StoryRail from "@/app/clubs/StoryRail";
+import { slugOf } from "@/app/lib/clubs";
 
 export const revalidate = 60;
 
@@ -39,7 +42,7 @@ export default async function Home() {
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
 
-  const [stats, posts, scholarships24h, activity, skills, closing, weekday] = await Promise.all([
+  const [stats, posts, scholarships24h, activity, skills, closing, weekday, homeStories] = await Promise.all([
     getHomeStats(userId),
     getLoungePosts(5),
     getScholarships24h(),
@@ -47,9 +50,17 @@ export default async function Home() {
     getTechSkillDemand(6, 60),
     getClosingSoonScholarships(4),
     getWeekdayPattern(90),
+    getHomeClubStories(),
   ]);
 
   const firstName = session?.user?.name?.split(" ")[0];
+
+  const homeToggleHrefs: Record<string, string> = {};
+  const homeViewAllHrefs: Record<string, string> = {};
+  for (const c of homeStories.clubs) {
+    homeToggleHrefs[c.username] = "/clubs?club=" + encodeURIComponent(c.username);
+    homeViewAllHrefs[c.username] = "/clubs/" + slugOf(c.username);
+  }
 
   return (
     <Layout railContext="home">
@@ -65,6 +76,18 @@ export default async function Home() {
           })
         }
       />
+
+      {homeStories.clubs.length > 0 && (
+        <div className="home-stories">
+          <StoryRail
+            clubs={homeStories.clubs}
+            stories={homeStories.stories}
+            selected={[]}
+            toggleHrefs={homeToggleHrefs}
+            viewAllHrefs={homeViewAllHrefs}
+          />
+        </div>
+      )}
 
       <div className="stat-tiles">
         <Link href="/events?tab=upcoming" className="stat-tile">
