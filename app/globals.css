@@ -10958,6 +10958,10 @@ body::-webkit-scrollbar-thumb:hover,
 }
 .club-seg { display: inline-flex; }
 .club-seg .seg__item { text-decoration: none; }
+
+/* clubs-instagram-feed: one compact filter row */
+.club-seg { flex: none; }
+.club-feed .event-filters { gap: 0; padding-top: 8px; padding-bottom: 8px; }
 .club-filters-top .club-clear {
   flex: none;
   height: 28px;

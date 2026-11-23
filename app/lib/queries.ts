@@ -1,7 +1,7 @@
 import { unstable_cache } from "next/cache";
 import { supabase } from "@/app/lib/supabase";
 import { normalizeRelation } from "@/app/lib/supabase-helpers";
-import { CLUB_MIN_INDEXED_POSTS, CLUB_STORY_WINDOW_DAYS } from "@/app/lib/clubs";
+import { CLUB_MIN_INDEXED_POSTS, CLUB_STORY_WINDOW_DAYS, relativeAgo } from "@/app/lib/clubs";
 
 // ============================================================================
 // EVENT QUERIES
@@ -1810,6 +1810,7 @@ export interface ClubPost {
   post_type: string | null;
   posted_at: string;
   club: ClubInfo | null;
+  ago?: string;
 }
 
 export interface ClubFeedParams {
@@ -1875,9 +1876,11 @@ export const getClubFeed = unstable_cache(
     const { data, error } = await q;
     if (error) console.error("getClubFeed error:", error);
 
+    const nowMs = Date.now();
     const rows: ClubPost[] = (data || []).map((p: any) => ({
       ...p,
       club: normalizeRelation(p.club),
+      ago: relativeAgo(p.posted_at, nowMs),
     }));
     const hasMore = rows.length > f.pageSize;
     const posts = rows.slice(0, f.pageSize);
@@ -1887,7 +1890,7 @@ export const getClubFeed = unstable_cache(
       nextBefore: hasMore && posts.length > 0 ? posts[posts.length - 1].posted_at : null,
     };
   },
-  ["club-feed-v1"],
+  ["club-feed-v2"],
   { revalidate: 60, tags: ["clubs"] },
 );
 
