@@ -109,7 +109,7 @@ export default function DiscordSim() {
         <div className="dc" data-open={open ? '1' : '0'}>
           <aside className="dsb" id="dc-drawer" aria-label="Channels">
             <div className="dsh">
-              <img className="sv" src="https://avatars.githubusercontent.com/u/208609754?s=200&v=4" alt="" width={22} height={22} />Pulchowk Events
+              <img className="dc-sv" src="https://avatars.githubusercontent.com/u/208609754?s=200&v=4" alt="" width={22} height={22} style={{ position: "static", inset: "auto", transform: "none", width: 22, height: 22, borderRadius: "50%", objectFit: "cover", flex: "none", display: "inline-block" }} />Pulchowk Events
               <span className="ia"><Icon k="chev" /></span>
             </div>
             <div className="dsc">
