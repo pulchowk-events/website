@@ -24,6 +24,9 @@ import { slugOf } from "@/app/lib/clubs";
 
 export const revalidate = 60;
 
+// Site activity chart is hidden for now. Set to true to bring it back.
+const SHOW_ACTIVITY = false;
+
 function greeting(): string {
   // Site canonical timezone is Nepal (per design system). Server runs UTC.
   const nptHour = Number(
@@ -77,13 +80,8 @@ export default async function Home() {
         }
       />
 
-      <section className="campus-now" aria-label="Campus now">
       {homeStories.clubs.length > 0 && (
         <div className="home-stories">
-          <div className="campus-now__head">
-            <span className="campus-now__title"><i className="campus-now__dot" aria-hidden="true" />Campus now</span>
-            <Link href="/clubs" className="home-section__see">All clubs</Link>
-          </div>
           <StoryRail
             clubs={homeStories.clubs}
             stories={homeStories.stories}
@@ -94,7 +92,7 @@ export default async function Home() {
         </div>
       )}
 
-      <div className="stat-tiles">
+      <div className="stat-tiles stat-tiles--ig">
         <Link href="/events?tab=upcoming" className="stat-tile">
           <span className="stat-tile__label">Events this week</span>
           <span className="stat-tile__value"><AnimatedNumber value={stats.events_this_week} /></span>
@@ -112,11 +110,10 @@ export default async function Home() {
           <span className="stat-tile__value"><AnimatedNumber value={scholarships24h} /></span>
         </Link>
       </div>
-      </section>
 
       <div className="insight-grid">
         <div className="insight-col insight-col--wide">
-          <ActivityChart data={activity} />
+          {SHOW_ACTIVITY && <ActivityChart data={activity} />}
           <section className="home-section lounge-inline">
             <header className="home-section__head">
               <h2 className="home-section__title">Latest in Lounge</h2>
